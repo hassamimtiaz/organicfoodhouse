@@ -1,0 +1,214 @@
+.home-intro {
+  padding: 2.5rem 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.home-intro-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.home-intro-tag {
+  display: inline-block;
+  background: var(--bg-alt);
+  color: var(--primary-dark);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  margin-bottom: 0.75rem;
+}
+
+.home-intro h1 {
+  margin: 0 0 0.75rem;
+  max-width: 22ch;
+}
+
+.home-intro-inner > div > p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 48ch;
+  font-size: var(--text-base);
+  line-height: 1.7;
+}
+
+.home-intro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.section {
+  padding: 3.5rem 0;
+}
+
+.section-alt {
+  background: var(--bg-alt);
+}
+
+.section-categories {
+  padding-top: 2.5rem;
+}
+
+.section-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.section-header h2 {
+  margin: 0 0 0.5rem;
+}
+
+.section-header p {
+  margin: 0 auto;
+  max-width: 50ch;
+}
+
+.section-cta {
+  margin-top: 2.5rem;
+  text-align: center;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.75rem;
+}
+
+.home-why {
+  padding: 3.5rem 0;
+}
+
+.home-why-inner {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.home-why-text h2 {
+  margin: 0 0 1rem;
+}
+
+.home-why-text > p {
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 0 0 1.25rem;
+}
+
+.home-why-list {
+  margin: 0;
+  padding-left: 1.35rem;
+  font-size: var(--text-base);
+  line-height: 1.8;
+}
+
+.home-why-list li {
+  margin-bottom: 0.35rem;
+}
+
+.home-help-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow);
+}
+
+.home-help-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  color: var(--text);
+}
+
+.home-help-card > p {
+  color: var(--muted);
+  margin: 0 0 1.25rem;
+  font-size: var(--text-base);
+}
+
+.home-contact-link {
+  display: block;
+  color: var(--primary-dark);
+  font-weight: 600;
+  font-size: var(--text-base);
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+}
+
+.home-contact-link:hover {
+  text-decoration: underline;
+}
+
+.home-help-card .btn-whatsapp-card {
+  display: flex;
+  width: 100%;
+  margin-top: 1.25rem;
+  justify-content: center;
+  color: #fff !important;
+  background: #25d366;
+  border-color: #25d366;
+  font-size: var(--text-base);
+}
+
+.home-help-card .btn-whatsapp-card:hover {
+  background: #1da851;
+  border-color: #1da851;
+}
+
+.cta-final {
+  background: linear-gradient(135deg, #14532d 0%, #166534 100%);
+  color: white;
+  text-align: center;
+}
+
+.cta-final-inner h2 {
+  margin: 0 0 0.5rem;
+  color: #fff;
+}
+
+.cta-final-inner p {
+  margin: 0 0 1.75rem;
+  opacity: 0.92;
+  font-size: var(--text-lg);
+}
+
+.cta-final .btn-outline,
+.cta-call {
+  border-color: rgba(255, 255, 255, 0.9);
+  color: #fff;
+}
+
+.cta-final .btn-outline:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 768px) {
+  .home-intro-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .home-intro h1 {
+    max-width: none;
+  }
+
+  .home-intro-actions {
+    justify-content: stretch;
+  }
+
+  .home-intro-actions .btn {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .home-why-inner {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,71 @@
+.category-page {
+  padding: 2rem 0 4rem;
+}
+
+.back-link {
+  display: inline-block;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.back-link:hover {
+  color: var(--primary);
+}
+
+.category-header {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.category-page-icon {
+  font-size: 3rem;
+}
+
+.category-header h1 {
+  margin: 0 0 0.5rem;
+  font-size: 2rem;
+}
+
+.category-header p {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+  max-width: 50ch;
+  line-height: 1.6;
+}
+
+.product-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.category-parent-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.subcategory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--muted);
+}
+
+.empty-state .btn {
+  margin-top: 1rem;
+}

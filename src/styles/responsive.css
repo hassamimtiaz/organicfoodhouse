@@ -1,0 +1,160 @@
+/* Global mobile improvements for storefront */
+
+@media (max-width: 768px) {
+  html {
+    font-size: 15px;
+  }
+
+  .container {
+    width: min(1180px, 100% - 1.25rem);
+  }
+
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subcategory-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section {
+    padding: 2.5rem 0;
+  }
+
+  .contact-bar-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.6rem 0;
+  }
+
+  .contact-items {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .contact-actions {
+    width: 100%;
+  }
+
+  .contact-actions .btn-whatsapp {
+    width: 100%;
+    justify-content: center;
+    padding: 0.55rem 1rem;
+    font-size: var(--text-base);
+  }
+
+  .header-inner {
+    padding: 0.75rem 0;
+    gap: 0.75rem;
+  }
+
+  .brand {
+    font-size: 1.1rem;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .nav {
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .product-search--header {
+    width: 100%;
+  }
+
+  .product-search-form {
+    flex-wrap: wrap;
+    border-radius: var(--radius-lg);
+    padding: 0.5rem;
+  }
+
+  .product-search-form input {
+    width: 100%;
+    min-width: 0;
+    order: 1;
+    flex: 1 1 100%;
+    padding: 0.5rem 0.25rem;
+  }
+
+  .search-icon {
+    order: 0;
+  }
+
+  .search-submit {
+    order: 2;
+    flex: 1;
+    min-height: 44px;
+  }
+
+  .search-dropdown {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 2rem 0 1.5rem;
+  }
+
+  .hero-slider-arrow {
+    display: none;
+  }
+
+  .category-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .category-header h1 {
+    font-size: 1.65rem;
+  }
+
+  .product-detail-info h1 {
+    font-size: 1.65rem;
+  }
+
+  .product-detail-visual {
+    min-height: 260px;
+  }
+
+  .product-detail-visual img {
+    min-height: 260px;
+  }
+
+  .product-quick-actions {
+    flex-direction: column;
+  }
+
+  .product-quick-actions .btn {
+    width: 100%;
+  }
+
+  .order-form .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-submit-order {
+    min-height: 48px;
+  }
+
+  .search-page-header h1 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .home-intro-actions .btn {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}

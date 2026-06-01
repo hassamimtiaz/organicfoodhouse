@@ -1,0 +1,131 @@
+.promo-banner {
+  background: linear-gradient(
+    125deg,
+    #14532d 0%,
+    #166534 35%,
+    #ca8a04 100%
+  );
+  color: white;
+  padding: 2.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.promo-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 80% 50%,
+    rgba(255, 255, 255, 0.12) 0%,
+    transparent 55%
+  );
+  pointer-events: none;
+}
+
+.promo-banner-inner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.promo-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+}
+
+.promo-banner-content h2 {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  line-height: 1.2;
+  max-width: 22ch;
+}
+
+.promo-banner-content h2 strong {
+  color: #fef08a;
+}
+
+.promo-banner-content p {
+  margin: 0 0 1.25rem;
+  max-width: 48ch;
+  opacity: 0.95;
+  line-height: 1.6;
+  font-size: 1.02rem;
+}
+
+.promo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-promo {
+  background: white;
+  color: #14532d;
+  border-color: white;
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn-promo:hover {
+  background: #fef9c3;
+  border-color: #fef9c3;
+  color: #14532d;
+}
+
+.promo-note {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.promo-visual {
+  text-align: center;
+}
+
+.promo-mango-stack {
+  font-size: 6rem;
+  line-height: 1;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.25));
+  animation: float 4s ease-in-out infinite;
+}
+
+.promo-farm-tag {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .promo-banner-inner {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .promo-banner-content h2,
+  .promo-banner-content p {
+    max-width: none;
+  }
+
+  .promo-actions {
+    justify-content: center;
+  }
+
+  .promo-mango-stack {
+    font-size: 4rem;
+  }
+}

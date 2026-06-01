@@ -1,0 +1,33 @@
+.trust-badges {
+  background: var(--surface);
+  border-block: 1px solid var(--border);
+  padding: 2rem 0;
+}
+
+.trust-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.25rem;
+}
+
+.trust-badge {
+  text-align: center;
+  padding: 1rem 0.75rem;
+}
+
+.trust-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.trust-badge h3 {
+  margin: 0 0 0.25rem;
+  font-size: var(--text-base);
+}
+
+.trust-badge p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}

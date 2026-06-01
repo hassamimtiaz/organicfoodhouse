@@ -1,0 +1,12 @@
+-- =============================================================================
+-- Migration NNN — short title
+-- =============================================================================
+--
+-- Date: YYYY-MM-DD
+-- Description: What this change does and why.
+--
+-- Prerequisites: schema.sql applied; migrations 001..NNN-1 applied (if any).
+-- =============================================================================
+
+-- Example:
+-- alter table products add column if not exists sku text unique;
