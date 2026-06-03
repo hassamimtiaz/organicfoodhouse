@@ -1,0 +1,53 @@
+.mango-seo-content {
+  padding: 2.5rem 0;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+}
+
+.mango-seo-content--home {
+  border-bottom: 1px solid var(--border);
+}
+
+.mango-seo-content-inner {
+  max-width: 72ch;
+}
+
+.mango-seo-content h2 {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  color: var(--primary-dark);
+}
+
+.mango-seo-content h3 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.mango-seo-content p {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+.mango-seo-content p a {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.mango-seo-varieties ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--muted);
+  line-height: 1.65;
+  font-size: 0.95rem;
+}
+
+.mango-seo-varieties li {
+  margin-bottom: 0.35rem;
+}
+
+.mango-seo-varieties strong {
+  color: var(--text);
+}

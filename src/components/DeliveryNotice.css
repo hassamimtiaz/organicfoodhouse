@@ -1,0 +1,31 @@
+.delivery-notice {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius);
+  border-left: 3px solid var(--primary);
+}
+
+.delivery-notice--compact {
+  padding: 0.65rem 0.85rem;
+}
+
+.delivery-notice-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.delivery-notice p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.delivery-notice--compact p {
+  font-size: 0.8rem;
+}

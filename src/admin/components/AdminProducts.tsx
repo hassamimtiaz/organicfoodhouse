@@ -33,6 +33,8 @@ const emptyProduct: ProductFormData = {
   discount_percent: null,
   image_url: '',
   in_stock: true,
+  coming_soon: false,
+  delivery_starts_at: '',
 }
 
 function unitTypeFromProduct(product: Product): UnitType {
@@ -408,6 +410,40 @@ export default function AdminProducts({
               />
               In stock
             </label>
+
+            <fieldset className="price-type-fieldset">
+              <legend>Pre-order / coming soon</legend>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={form.coming_soon}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      coming_soon: e.target.checked,
+                      delivery_starts_at: e.target.checked
+                        ? form.delivery_starts_at || '2026-07-05'
+                        : '',
+                    })
+                  }
+                />
+                Show as coming soon (pre-order still allowed if in stock)
+              </label>
+              {form.coming_soon && (
+                <label>
+                  First delivery date
+                  <input
+                    type="date"
+                    value={form.delivery_starts_at}
+                    onChange={(e) =>
+                      setForm({ ...form, delivery_starts_at: e.target.value })
+                    }
+                    required
+                  />
+                </label>
+              )}
+            </fieldset>
+
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" disabled={saving}>
                 {saving ? 'Saving…' : editingId ? 'Update' : 'Add product'}
@@ -459,6 +495,7 @@ export default function AdminProducts({
                         includeUnit: p,
                         showWasPrice: hasProductDiscount(p),
                       })}
+                      {p.coming_soon ? ' · Coming soon' : ''}
                     </span>
                   </div>
                   <div className="admin-card-actions">
@@ -484,6 +521,8 @@ export default function AdminProducts({
                               : null,
                           image_url: p.image_url ?? '',
                           in_stock: p.in_stock,
+                          coming_soon: p.coming_soon,
+                          delivery_starts_at: p.delivery_starts_at ?? '',
                         })
                         window.scrollTo({ top: 0, behavior: 'smooth' })
                       }}

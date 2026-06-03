@@ -1,7 +1,7 @@
-import { normalizePriceType } from '../config/pricing'
 import { seedCategories, seedProducts } from '../data/seed'
+import { normalizeProductRow } from '../lib/productNormalize'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
-import type { Category, PriceType, Product } from '../types'
+import type { Category, Product } from '../types'
 import { isTopLevelCategory } from '../types'
 
 export type FetchOptions = {
@@ -61,31 +61,7 @@ export function getVisibleSubcategoryIds(categories: Category[]): Set<string> {
 }
 
 function normalizeProduct(row: Product): Product {
-  const price_type: PriceType = normalizePriceType(row.price_type, row.price_max)
-  const unit_min =
-    row.unit_min != null && row.unit_min !== undefined
-      ? Number(row.unit_min)
-      : null
-  const unit_max =
-    row.unit_max != null && row.unit_max !== undefined
-      ? Number(row.unit_max)
-      : null
-
-  return {
-    ...row,
-    price: Number(row.price),
-    price_type,
-    price_max:
-      price_type === 'range' && row.price_max != null
-        ? Number(row.price_max)
-        : null,
-    unit_min,
-    unit_max,
-    discount_percent:
-      row.discount_percent != null && row.discount_percent !== undefined
-        ? Number(row.discount_percent)
-        : null,
-  }
+  return normalizeProductRow(row)
 }
 
 function normalizeProducts(rows: Product[]): Product[] {

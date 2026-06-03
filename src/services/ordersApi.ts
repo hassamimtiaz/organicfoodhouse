@@ -1,8 +1,9 @@
 import { seedOrderItems, seedOrders } from '../data/seedOrders'
 import { seedCategories, seedProducts } from '../data/seed'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
-import { normalizePriceType, getOrderLineTotal, getOrderUnitPrice } from '../config/pricing'
+import { getOrderLineTotal, getOrderUnitPrice } from '../config/pricing'
 import { formatUnitLabel } from '../config/units'
+import { normalizeProductRow } from '../lib/productNormalize'
 import type {
   Order,
   OrderItem,
@@ -24,28 +25,7 @@ export async function fetchProductById(id: string): Promise<Product | null> {
 
   if (error) throw error
   if (!data) return null
-  const price_type = normalizePriceType(data.price_type, data.price_max)
-  return {
-    ...data,
-    price: Number(data.price),
-    price_type,
-    price_max:
-      price_type === 'range' && data.price_max != null
-        ? Number(data.price_max)
-        : null,
-    unit_min:
-      data.unit_min != null && data.unit_min !== undefined
-        ? Number(data.unit_min)
-        : null,
-    unit_max:
-      data.unit_max != null && data.unit_max !== undefined
-        ? Number(data.unit_max)
-        : null,
-    discount_percent:
-      data.discount_percent != null && data.discount_percent !== undefined
-        ? Number(data.discount_percent)
-        : null,
-  }
+  return normalizeProductRow(data as Product)
 }
 
 export async function getProductCategoryPath(

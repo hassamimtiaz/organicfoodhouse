@@ -43,6 +43,8 @@ export const seedProducts: Product[] = [
     discount_percent: null,
     image_url: MANGO_PRODUCT_IMAGES.dasheri,
     in_stock: true,
+    coming_soon: false,
+    delivery_starts_at: null,
   },
   {
     id: 'seed-sindhri',
@@ -59,13 +61,15 @@ export const seedProducts: Product[] = [
     discount_percent: 10,
     image_url: MANGO_PRODUCT_IMAGES.sindhri,
     in_stock: true,
+    coming_soon: false,
+    delivery_starts_at: null,
   },
   {
     id: 'seed-chaunsa',
     category_id: mangoesSubcategoryId,
-    name: 'Chaunsa',
+    name: 'Premium Chaunsa Mango',
     description:
-      'Rich, intensely flavorful Chaunsa mango — the king of mangoes. Buttery texture when ripe.',
+      'Export-grade Premium Chaunsa — rich, honey-sweet flavour and buttery texture when ripe. Pre-order now; deliveries start from 5 July.',
     price: 2925,
     price_type: 'single',
     price_max: null,
@@ -75,6 +79,8 @@ export const seedProducts: Product[] = [
     discount_percent: null,
     image_url: MANGO_PRODUCT_IMAGES.chaunsa,
     in_stock: true,
+    coming_soon: true,
+    delivery_starts_at: '2026-07-05',
   },
   {
     id: 'seed-anwar-ratol',
@@ -91,5 +97,7 @@ export const seedProducts: Product[] = [
     discount_percent: null,
     image_url: MANGO_PRODUCT_IMAGES.anwarRatol,
     in_stock: true,
+    coming_soon: false,
+    delivery_starts_at: null,
   },
 ]

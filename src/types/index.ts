@@ -26,6 +26,8 @@ export interface Product {
   discount_percent: number | null
   image_url: string | null
   in_stock: boolean
+  coming_soon: boolean
+  delivery_starts_at: string | null
   created_at?: string
   subcategory?: Category
   parent_category?: Category
@@ -45,6 +47,8 @@ export interface ProductFormData {
   discount_percent: number | null
   image_url: string
   in_stock: boolean
+  coming_soon: boolean
+  delivery_starts_at: string
 }
 
 export interface CategoryFormData {

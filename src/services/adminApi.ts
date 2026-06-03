@@ -1,4 +1,5 @@
 import { seedCategories, seedProducts } from '../data/seed'
+import { normalizeProductRow } from '../lib/productNormalize'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import {
   isMissingColumnError,
@@ -63,6 +64,9 @@ function productPayload(form: ProductFormData) {
     ...discountField(form),
     image_url: form.image_url || null,
     in_stock: form.in_stock,
+    coming_soon: form.coming_soon,
+    delivery_starts_at:
+      form.coming_soon && form.delivery_starts_at ? form.delivery_starts_at : null,
   }
 }
 
@@ -99,6 +103,13 @@ function payloadWithoutPriceRange(
   return rest
 }
 
+function payloadWithoutPreorderFields(
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const { coming_soon: _cs, delivery_starts_at: _ds, ...rest } = payload
+  return rest
+}
+
 async function writeProductRow(
   mode: 'insert' | 'update',
   id: string | null,
@@ -112,6 +123,10 @@ async function writeProductRow(
     payloadWithoutUnitRange(fullPayload),
     payloadWithoutUnitRange(withoutDiscount),
     payloadWithoutPriceRange(payloadWithoutUnitRange(withoutDiscount)),
+    payloadWithoutPreorderFields(fullPayload),
+    payloadWithoutUnitRange(fullPayload),
+    payloadWithoutUnitRange(payloadWithoutPreorderFields(fullPayload)),
+    payloadWithoutPriceRange(payloadWithoutUnitRange(payloadWithoutPreorderFields(fullPayload))),
     legacyProductPayload(form),
   ]
 
@@ -133,7 +148,7 @@ async function writeProductRow(
             .select()
             .single()
 
-    if (!result.error) return result.data as Product
+    if (!result.error) return normalizeProductRow(result.data as Product)
 
     lastError = result.error
     const retryable =
@@ -143,6 +158,8 @@ async function writeProductRow(
         'unit_min',
         'unit_max',
         'discount_percent',
+        'coming_soon',
+        'delivery_starts_at',
       ]) ||
       (result.error as { code?: string }).code === 'PGRST204'
 

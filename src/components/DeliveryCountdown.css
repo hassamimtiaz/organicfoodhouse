@@ -1,0 +1,76 @@
+.delivery-countdown {
+  padding: 1.25rem 1.35rem;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-lg);
+}
+
+.delivery-countdown.is-compact {
+  padding: 1rem;
+}
+
+.delivery-countdown-label {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  color: #92400e;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.delivery-countdown-label strong {
+  color: #78350f;
+}
+
+.delivery-countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
+}
+
+.countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.65rem 0.4rem;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: var(--radius);
+  border: 1px solid #fde047;
+}
+
+.countdown-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #14532d;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.delivery-countdown.is-compact .countdown-value {
+  font-size: 1.2rem;
+}
+
+.countdown-name {
+  margin-top: 0.2rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.delivery-countdown--started {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  background: #ecfdf5;
+  border: 1px solid #86efac;
+  border-radius: var(--radius);
+  color: #166534;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@media (max-width: 420px) {
+  .delivery-countdown-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

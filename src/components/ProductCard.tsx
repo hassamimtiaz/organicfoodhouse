@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { whatsappLink } from '../config/site'
+import { isComingSoonProduct } from '../config/preorder'
 import ProductPrice from './ProductPrice'
+import PreorderStatus from './PreorderStatus'
 import type { Product } from '../types'
 import './ProductCard.css'
 
@@ -10,17 +12,17 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const emoji = product.name.toLowerCase().includes('mango') ? '🥭' : '🍎'
+  const comingSoon = isComingSoonProduct(product)
   const preOrderMsg = `Hi! I want to pre-order ${product.name} from Organic Food House.`
   const productUrl = `/product/${product.id}`
 
   return (
-    <article className="product-card">
+    <article className={`product-card ${comingSoon ? 'product-card--coming-soon' : ''}`}>
       <Link
         to={productUrl}
         className="product-card-link"
         aria-label={`View ${product.name} details`}
       />
-
       <div className="product-card-visual">
         {product.image_url ? (
           <img src={product.image_url} alt="" loading="lazy" />
@@ -29,7 +31,14 @@ export default function ProductCard({ product }: ProductCardProps) {
             {emoji}
           </span>
         )}
-        <span className="product-badge pre">Pre-order</span>
+        {comingSoon ? (
+          <span className="product-badge product-badge--soon">Coming soon</span>
+        ) : (
+          <span className="product-badge pre">Pre-order</span>
+        )}
+        {comingSoon && product.in_stock && (
+          <span className="product-badge product-badge--preorder">Pre-order</span>
+        )}
         {!product.in_stock && (
           <span className="product-badge out">Out of stock</span>
         )}
@@ -42,6 +51,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {product.description && (
           <p className="product-desc">{product.description}</p>
         )}
+        <PreorderStatus product={product} variant="card" />
         <div className="product-footer">
           <ProductPrice product={product} />
           <div className="product-actions">
@@ -59,7 +69,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               className="btn btn-outline btn-sm"
               onClick={(e) => e.stopPropagation()}
             >
-              View details
+              {comingSoon ? 'Pre-order details' : 'View details'}
             </Link>
           </div>
         </div>

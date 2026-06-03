@@ -2,8 +2,13 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Breadcrumbs from '../components/Breadcrumbs'
 import ProductGridSection from '../components/ProductGridSection'
+import PreorderStatus from '../components/PreorderStatus'
 import ProductPrice from '../components/ProductPrice'
 import Seo from '../components/Seo'
+import {
+  acceptsPreorder,
+  isComingSoonProduct,
+} from '../config/preorder'
 import {
   getOrderLineTotal,
   getPriceRangeNote,
@@ -88,6 +93,8 @@ export default function ProductPage() {
     : 0
   const priceIsRange = product ? isPriceRange(product) : false
   const unitLabel = product ? formatUnitLabel(product) : ''
+  const comingSoon = product ? isComingSoonProduct(product) : false
+  const canPreorder = product ? acceptsPreorder(product) : false
 
   const whatsappMsg = product
     ? `Hi! I want to order ${form.quantity} ${unitLabel} of ${product.name} from Organic Food House.\nName: ${form.customer_name || '(pending)'}\nPhone: ${form.phone || '(pending)'}\nAddress: ${form.address_line || '(pending)'}, ${form.city || ''}`
@@ -262,7 +269,13 @@ export default function ProductPage() {
                   🥭
                 </span>
               )}
-              <span className="product-detail-badge">Pre-order · 10% OFF</span>
+              <span
+                className={`product-detail-badge ${comingSoon ? 'product-detail-badge--soon' : ''}`}
+              >
+                {comingSoon
+                  ? 'Coming soon · Pre-order open'
+                  : 'Pre-order · 10% OFF'}
+              </span>
             </div>
 
             <div className="product-detail-info">
@@ -273,6 +286,8 @@ export default function ProductPage() {
               {product.description && (
                 <p className="product-detail-desc">{product.description}</p>
               )}
+
+              <PreorderStatus product={product} variant="detail" />
 
               <div className="product-detail-price-box">
                 <ProductPrice product={product} size="large" />
@@ -299,9 +314,15 @@ export default function ProductPage() {
               </div>
 
               <section className="order-form-section" id="order-form">
-                <h2>Order on website</h2>
+                <h2>
+                  {comingSoon && canPreorder
+                    ? 'Pre-order on website'
+                    : 'Order on website'}
+                </h2>
                 <p className="order-form-intro">
-                  Fill in your details below. All fields marked * are required.
+                  {comingSoon && canPreorder
+                    ? 'Reserve your order now — we will confirm delivery after the countdown. All fields marked * are required.'
+                    : 'Fill in your details below. All fields marked * are required.'}
                 </p>
 
                 <form onSubmit={handleOrderSubmit} className="order-form">
@@ -422,9 +443,13 @@ export default function ProductPage() {
                   >
                     {submitting
                       ? 'Placing order…'
-                      : priceIsRange
-                        ? `Place order — from ${formatPricePKR(lineTotal)}`
-                        : `Place order — ${formatPricePKR(lineTotal)}`}
+                      : comingSoon && canPreorder
+                        ? priceIsRange
+                          ? `Pre-order — from ${formatPricePKR(lineTotal)}`
+                          : `Pre-order — ${formatPricePKR(lineTotal)}`
+                        : priceIsRange
+                          ? `Place order — from ${formatPricePKR(lineTotal)}`
+                          : `Place order — ${formatPricePKR(lineTotal)}`}
                   </button>
                 </form>
               </section>
