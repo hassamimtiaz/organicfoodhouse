@@ -7,8 +7,8 @@ import {
 import { formatSubcategoryLabel } from '../../services/api'
 import { formatProductPrice, hasProductDiscount } from '../../config/pricing'
 import { formatUnitLabel } from '../../config/units'
-import type { Category, Product, ProductFormData, PriceType, UnitType } from '../../types'
 import ProductImageField from './ProductImageField'
+import type { Category, Product, ProductFormData, PriceType, UnitType } from '../../types'
 
 interface Props {
   topLevel: Category[]
@@ -188,6 +188,12 @@ export default function AdminProducts({
                 rows={3}
               />
             </label>
+
+            <ProductImageField
+              imageUrl={form.image_url}
+              onImageUrlChange={(image_url) => setForm({ ...form, image_url })}
+              disabled={saving}
+            />
 
             <fieldset className="price-type-fieldset">
               <legend>Pricing</legend>
@@ -394,12 +400,6 @@ export default function AdminProducts({
               )}
             </fieldset>
 
-            <ProductImageField
-              imageUrl={form.image_url}
-              onImageUrlChange={(image_url) => setForm({ ...form, image_url })}
-              disabled={saving}
-            />
-
             <label className="checkbox-label">
               <input
                 type="checkbox"
@@ -484,7 +484,9 @@ export default function AdminProducts({
                     {p.image_url ? (
                       <img src={p.image_url} alt="" />
                     ) : (
-                      <span aria-hidden="true">🍎</span>
+                      <span aria-hidden="true">
+                        {p.name.toLowerCase().includes('mango') ? '🥭' : '🍎'}
+                      </span>
                     )}
                   </div>
                   <div className="admin-card-body">

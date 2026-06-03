@@ -1,4 +1,4 @@
-import { formatUnitLabel } from '../config/units'
+import { formatUnitLabel, getUnitRowLabel } from '../config/units'
 import { formatPricePKR } from '../config/site'
 import {
   getDiscountedPriceFields,
@@ -22,7 +22,10 @@ interface ProductPriceProps {
   >
   /** large = product detail page */
   size?: 'default' | 'large'
+  /** Show weight / unit on its own row */
   showUnit?: boolean
+  /** labeled = Price + Weight rows; inline = single line (search, etc.) */
+  layout?: 'labeled' | 'inline'
   className?: string
 }
 
@@ -35,38 +38,31 @@ function formatAmount(
   return formatPricePKR(Number(product.price))
 }
 
-export default function ProductPrice({
+function PriceAmount({
   product,
-  size = 'default',
-  showUnit = true,
-  className = '',
-}: ProductPriceProps) {
+  discounted,
+}: {
+  product: ProductPriceProps['product']
+  discounted: boolean
+}) {
   const prefix = productPricePrefix(product)
   const range = isPriceRange(product)
-  const discounted = hasProductDiscount(product)
   const salePrices = getDiscountedPriceFields(product)
-  const unitLabel = showUnit ? formatUnitLabel(product) : ''
-  const unitSuffix = unitLabel ? ` / ${unitLabel}` : ''
-
   const saleAmountText = range
     ? `${formatPricePKR(salePrices.price)} – ${formatPricePKR(salePrices.price_max!)}`
     : formatPricePKR(salePrices.price)
-
   const originalAmountText = discounted ? formatAmount(product) : null
 
   return (
-    <span
-      className={`product-price-display product-price-display--${size} ${range ? 'is-range' : ''} ${discounted ? 'has-discount' : ''} ${className}`.trim()}
-    >
+    <>
       {prefix && <span className="price-prefix">{prefix}</span>}
       {discounted && originalAmountText && (
         <span className="price-original" aria-label="Original price">
           {originalAmountText}
-          {unitSuffix}
         </span>
       )}
       <span className="price-amount">
-        {discounted ? `${saleAmountText}${unitSuffix}` : `${formatAmount(product)}${unitSuffix}`}
+        {discounted ? saleAmountText : formatAmount(product)}
       </span>
       {discounted && (
         <span className="discount-badge" aria-label="Discount">
@@ -78,6 +74,86 @@ export default function ProductPrice({
           Price range
         </span>
       )}
-    </span>
+    </>
+  )
+}
+
+export default function ProductPrice({
+  product,
+  size = 'default',
+  showUnit = true,
+  layout = 'labeled',
+  className = '',
+}: ProductPriceProps) {
+  const discounted = hasProductDiscount(product)
+  const range = isPriceRange(product)
+  const unitLabel = showUnit ? formatUnitLabel(product, { titleCaseMeasure: true }) : ''
+  const unitRowLabel = getUnitRowLabel(product)
+
+  const rootClass = [
+    'product-price-display',
+    `product-price-display--${size}`,
+    layout === 'labeled' ? 'product-price-display--labeled' : '',
+    range ? 'is-range' : '',
+    discounted ? 'has-discount' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  if (layout === 'inline') {
+    const unitSuffix = unitLabel ? ` / ${unitLabel}` : ''
+    const salePrices = getDiscountedPriceFields(product)
+    const saleAmountText = range
+      ? `${formatPricePKR(salePrices.price)} – ${formatPricePKR(salePrices.price_max!)}`
+      : formatPricePKR(salePrices.price)
+    const originalAmountText = discounted ? formatAmount(product) : null
+    const prefix = productPricePrefix(product)
+
+    return (
+      <span className={rootClass}>
+        {prefix && <span className="price-prefix">{prefix}</span>}
+        {discounted && originalAmountText && (
+          <span className="price-original" aria-label="Original price">
+            {originalAmountText}
+            {unitSuffix}
+          </span>
+        )}
+        <span className="price-amount">
+          {discounted
+            ? `${saleAmountText}${unitSuffix}`
+            : `${formatAmount(product)}${unitSuffix}`}
+        </span>
+        {discounted && (
+          <span className="discount-badge" aria-label="Discount">
+            {product.discount_percent}% off
+          </span>
+        )}
+        {range && (
+          <span className="price-range-badge" aria-label="Price range">
+            Price range
+          </span>
+        )}
+      </span>
+    )
+  }
+
+  return (
+    <div className={rootClass}>
+      <div className="product-price-line product-price-line--price">
+        <span className="product-price-line-label">Price</span>
+        <span className="product-price-line-value">
+          <PriceAmount product={product} discounted={discounted} />
+        </span>
+      </div>
+      {showUnit && unitLabel && (
+        <div className="product-price-line product-price-line--unit">
+          <span className="product-price-line-label">{unitRowLabel}</span>
+          <span className="product-price-line-value product-price-line-value--unit">
+            {unitLabel}
+          </span>
+        </div>
+      )}
+    </div>
   )
 }

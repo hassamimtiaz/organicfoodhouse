@@ -8,14 +8,16 @@ export function normalizeProductRow(row: Product): Product {
   let delivery_starts_at = row.delivery_starts_at ?? null
 
   const name = row.name.toLowerCase()
-  if (
-    name.includes('premium') &&
-    name.includes('chaunsa') &&
-    row.delivery_starts_at == null &&
-    row.coming_soon !== false
-  ) {
+  const isPremiumChaunsa =
+    name.includes('premium') && name.includes('chaunsa')
+
+  if (isPremiumChaunsa) {
     coming_soon = true
-    delivery_starts_at = PREMIUM_CHAUNSA_DELIVERY_START
+    delivery_starts_at =
+      row.delivery_starts_at ?? PREMIUM_CHAUNSA_DELIVERY_START
+  } else if (row.coming_soon !== true) {
+    coming_soon = false
+    if (!row.delivery_starts_at) delivery_starts_at = null
   }
 
   return {

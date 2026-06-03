@@ -2,9 +2,18 @@ import type { Product } from '../types'
 
 type UnitFields = Pick<Product, 'unit' | 'unit_min' | 'unit_max'>
 
+function formatMeasure(unit: string, titleCase?: boolean): string {
+  const trimmed = unit.trim()
+  if (!titleCase) return trimmed
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase()
+}
+
 /** e.g. "kg" or "9 – 10 kg" */
-export function formatUnitLabel(product: UnitFields): string {
-  const measure = product.unit.trim()
+export function formatUnitLabel(
+  product: UnitFields,
+  options?: { titleCaseMeasure?: boolean },
+): string {
+  const measure = formatMeasure(product.unit, options?.titleCaseMeasure)
   const min = product.unit_min
   const max = product.unit_max
 
@@ -27,4 +36,9 @@ export function hasUnitRange(product: UnitFields): boolean {
     product.unit_max != null &&
     product.unit_max >= product.unit_min
   )
+}
+
+/** Label for the separate unit/weight row in product pricing UI */
+export function getUnitRowLabel(product: UnitFields): string {
+  return hasUnitRange(product) ? 'Weight' : 'Unit'
 }

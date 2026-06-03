@@ -1,13 +1,19 @@
 import { seedOrderItems, seedOrders } from '../data/seedOrders'
 import { seedCategories, seedProducts } from '../data/seed'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
+import {
+  normalizeOrderItemRow,
+  normalizeOrderRow,
+} from '../lib/orderNormalize'
 import { getOrderLineTotal, getOrderUnitPrice } from '../config/pricing'
 import { formatUnitLabel } from '../config/units'
 import { normalizeProductRow } from '../lib/productNormalize'
+import { isMissingColumnError } from '../lib/supabaseErrors'
 import type {
   Order,
   OrderItem,
   OrderStatus,
+  OrderType,
   PlaceOrderFormData,
   Product,
 } from '../types'
@@ -60,14 +66,36 @@ export async function getProductCategoryPath(
   return { parentSlug: parent.slug, subSlug: subCat.slug }
 }
 
+function buildOrderInsert(
+  form: PlaceOrderFormData,
+  total: number,
+  orderType: OrderType,
+) {
+  return {
+    customer_name: form.customer_name,
+    phone: form.phone,
+    email: form.email || null,
+    address_line: form.address_line,
+    city: form.city,
+    notes: form.notes || null,
+    status: 'pending' as const,
+    total,
+    order_type: orderType,
+    advance_payment: null,
+  }
+}
+
 export async function placeOrder(
   product: Product,
   form: PlaceOrderFormData,
+  options?: { isPreorder?: boolean },
 ): Promise<Order> {
+  const quantity = Math.min(3, Math.max(1, Math.round(form.quantity)))
   const unitPrice = getOrderUnitPrice(product)
-  const lineTotal = getOrderLineTotal(product, form.quantity)
+  const lineTotal = getOrderLineTotal(product, quantity)
   const total = lineTotal
   const unitLabel = formatUnitLabel(product)
+  const orderType: OrderType = options?.isPreorder ? 'preorder' : 'order'
 
   if (!isSupabaseConfigured || !supabase) {
     const orderId = `local-order-${crypto.randomUUID()}`
@@ -80,6 +108,8 @@ export async function placeOrder(
       city: form.city,
       notes: form.notes || null,
       status: 'pending',
+      order_type: orderType,
+      advance_payment: null,
       total,
       created_at: new Date().toISOString(),
     }
@@ -88,7 +118,7 @@ export async function placeOrder(
       order_id: orderId,
       product_id: product.id,
       product_name: product.name,
-      quantity: form.quantity,
+      quantity,
       unit_price: unitPrice,
       unit: unitLabel,
       line_total: lineTotal,
@@ -98,28 +128,48 @@ export async function placeOrder(
     return { ...order, items: [item] }
   }
 
-  const { data: order, error: orderError } = await supabase
-    .from('orders')
-    .insert({
-      customer_name: form.customer_name,
-      phone: form.phone,
-      email: form.email || null,
-      address_line: form.address_line,
-      city: form.city,
-      notes: form.notes || null,
-      status: 'pending',
-      total,
-    })
-    .select()
-    .single()
+  const fullPayload = buildOrderInsert(form, total, orderType)
+  const legacyPayload = {
+    customer_name: form.customer_name,
+    phone: form.phone,
+    email: form.email || null,
+    address_line: form.address_line,
+    city: form.city,
+    notes: form.notes || null,
+    status: 'pending' as const,
+    total,
+  }
 
-  if (orderError) throw orderError
+  let order: Order | null = null
+  let lastError: unknown = null
+
+  for (const payload of [fullPayload, legacyPayload]) {
+    const result = await supabase
+      .from('orders')
+      .insert(payload)
+      .select()
+      .single()
+
+    if (!result.error) {
+      order = normalizeOrderRow(result.data as Order)
+      break
+    }
+
+    lastError = result.error
+    if (
+      !isMissingColumnError(result.error, ['order_type', 'advance_payment'])
+    ) {
+      throw result.error
+    }
+  }
+
+  if (!order) throw lastError
 
   const { error: itemError } = await supabase.from('order_items').insert({
     order_id: order.id,
     product_id: product.id,
     product_name: product.name,
-    quantity: form.quantity,
+    quantity,
     unit_price: unitPrice,
     unit: unitLabel,
     line_total: lineTotal,
@@ -133,8 +183,10 @@ export async function placeOrder(
 export async function fetchAllOrders(): Promise<Order[]> {
   if (!isSupabaseConfigured || !supabase) {
     return seedOrders.map((o) => ({
-      ...o,
-      items: seedOrderItems.filter((i) => i.order_id === o.id),
+      ...normalizeOrderRow(o),
+      items: seedOrderItems
+        .filter((i) => i.order_id === o.id)
+        .map(normalizeOrderItemRow),
     }))
   }
 
@@ -156,10 +208,16 @@ export async function fetchAllOrders(): Promise<Order[]> {
 
   if (itemsError) throw itemsError
 
-  return orders.map((o) => ({
-    ...o,
-    items: items?.filter((i) => i.order_id === o.id) ?? [],
-  }))
+  return orders.map((o) => {
+    const normalized = normalizeOrderRow(o as Order)
+    return {
+      ...normalized,
+      items:
+        items
+          ?.filter((i) => i.order_id === o.id)
+          .map((i) => normalizeOrderItemRow(i as OrderItem)) ?? [],
+    }
+  })
 }
 
 export async function updateOrderStatus(
@@ -176,6 +234,46 @@ export async function updateOrderStatus(
     .from('orders')
     .update({ status })
     .eq('id', orderId)
+
+  if (error) throw error
+}
+
+export async function updateOrderAdvancePayment(
+  orderId: string,
+  amount: number | null,
+): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) {
+    const order = seedOrders.find((o) => o.id === orderId)
+    if (order) order.advance_payment = amount
+    return
+  }
+
+  const { error } = await supabase
+    .from('orders')
+    .update({ advance_payment: amount })
+    .eq('id', orderId)
+
+  if (error) {
+    if (isMissingColumnError(error, ['advance_payment'])) {
+      throw new Error(
+        'Advance payment is not enabled yet. Run migration 010_orders_preorder_advance.sql in Supabase.',
+      )
+    }
+    throw error
+  }
+}
+
+export async function deleteOrder(orderId: string): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) {
+    const index = seedOrders.findIndex((o) => o.id === orderId)
+    if (index >= 0) seedOrders.splice(index, 1)
+    for (let i = seedOrderItems.length - 1; i >= 0; i--) {
+      if (seedOrderItems[i].order_id === orderId) seedOrderItems.splice(i, 1)
+    }
+    return
+  }
+
+  const { error } = await supabase.from('orders').delete().eq('id', orderId)
 
   if (error) throw error
 }

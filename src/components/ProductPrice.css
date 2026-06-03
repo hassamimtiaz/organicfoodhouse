@@ -9,22 +9,77 @@
   max-width: 100%;
 }
 
-.product-price-display--large {
+.product-price-display--labeled {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 22rem;
+}
+
+.product-price-line {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, 5.5rem) 1fr;
+  gap: 0.5rem 1rem;
+  align-items: baseline;
+}
+
+.product-price-line-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.product-price-line-value {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  line-height: 1.35;
+}
+
+.product-price-line--price .product-price-line-value {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.product-price-line--price .discount-badge,
+.product-price-line--price .price-range-badge {
+  flex-shrink: 0;
+}
+
+.product-price-line-value--unit {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.product-price-display--large .product-price-line-value {
   font-size: 1.75rem;
 }
 
-.product-price-display--large .price-amount {
-  font-size: inherit;
+.product-price-display--large .product-price-line-value--unit {
+  font-size: 1.25rem;
+}
+
+.product-price-display--large .product-price-line-label {
+  font-size: 0.85rem;
+  padding-top: 0.35rem;
+}
+
+.product-price-display--large .product-price-line-value .price-prefix {
+  font-size: 0.65em;
 }
 
 .product-price-display .price-prefix {
   font-size: 0.85em;
   font-weight: 600;
   color: var(--muted);
-}
-
-.product-price-display--large .price-prefix {
-  font-size: 0.65em;
 }
 
 .price-range-badge {
@@ -70,10 +125,25 @@
   font-size: 0.55rem;
 }
 
-.product-card .product-price-display {
-  font-size: 1.2rem;
+.product-card .product-price-display--labeled {
+  max-width: none;
+}
+
+.product-card .product-price-line-value {
+  font-size: 1.15rem;
+}
+
+.product-card .product-price-line-value--unit {
+  font-size: 0.95rem;
 }
 
 .product-card .product-price-display .price-range-badge {
   font-size: 0.6rem;
+}
+
+@media (max-width: 420px) {
+  .product-price-line {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
 }

@@ -84,7 +84,6 @@ function legacyProductPayload(form: ProductFormData) {
     description: form.description || null,
     price: form.price,
     unit: form.unit,
-    image_url: form.image_url || null,
     in_stock: form.in_stock,
   }
 }
@@ -110,6 +109,13 @@ function payloadWithoutPreorderFields(
   return rest
 }
 
+function payloadWithoutImage(
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const { image_url: _img, ...rest } = payload
+  return rest
+}
+
 async function writeProductRow(
   mode: 'insert' | 'update',
   id: string | null,
@@ -119,7 +125,9 @@ async function writeProductRow(
   const withoutDiscount = payloadWithoutDiscount(fullPayload)
   const attempts: Record<string, unknown>[] = [
     fullPayload,
+    payloadWithoutImage(fullPayload),
     withoutDiscount,
+    payloadWithoutImage(withoutDiscount),
     payloadWithoutUnitRange(fullPayload),
     payloadWithoutUnitRange(withoutDiscount),
     payloadWithoutPriceRange(payloadWithoutUnitRange(withoutDiscount)),
@@ -160,6 +168,7 @@ async function writeProductRow(
         'discount_percent',
         'coming_soon',
         'delivery_starts_at',
+        'image_url',
       ]) ||
       (result.error as { code?: string }).code === 'PGRST204'
 
@@ -201,8 +210,9 @@ export async function updateProduct(
     const index = seedProducts.findIndex((p) => p.id === id)
     if (index === -1) throw new Error('Product not found')
     const updated: Product = {
-      id,
+      ...seedProducts[index],
       ...productPayload(form),
+      id,
     }
     seedProducts[index] = updated
     return updated
@@ -401,12 +411,12 @@ async function uploadImage(file: File, folder: string): Promise<string> {
   return data.publicUrl
 }
 
-export async function uploadProductImage(file: File): Promise<string> {
-  return uploadImage(file, 'products')
-}
-
 export async function uploadCategoryImage(file: File): Promise<string> {
   return uploadImage(file, 'categories')
+}
+
+export async function uploadProductImage(file: File): Promise<string> {
+  return uploadImage(file, 'products')
 }
 
 export async function deleteCategory(id: string): Promise<void> {
