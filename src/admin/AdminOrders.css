@@ -43,7 +43,7 @@
   text-align: left;
   background: var(--bg);
   border: none;
-  padding: 1rem;
+  padding: 1rem 1.15rem;
   cursor: pointer;
   font: inherit;
 }
@@ -55,9 +55,14 @@
 .order-card-main {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-bottom: 0.35rem;
+}
+
+.order-card-main strong {
+  margin-right: auto;
+  font-size: 1.05rem;
 }
 
 .status-pill {
@@ -91,47 +96,152 @@
 .order-card-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.65rem 1.25rem;
   font-size: 0.85rem;
   color: var(--muted);
 }
 
 .order-card-details {
-  padding: 1rem;
+  padding: 1.15rem 1.25rem 1.25rem;
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
 
-.order-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 1rem;
+.order-details-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
   margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
 }
 
-.order-detail-grid h4 {
-  margin: 0 0 0.35rem;
-  font-size: 0.75rem;
+.order-contact-dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.75rem;
+  margin: 0;
+}
+
+.order-contact-dl > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.order-contact-dl dt {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   color: var(--muted);
 }
 
-.order-detail-grid p {
-  margin: 0 0 0.2rem;
-  font-size: 0.9rem;
+.order-contact-dl dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.order-status-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 10rem;
+}
+
+.order-status-field > span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.order-status-field select {
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.order-delivery-panel {
+  margin-bottom: 1.15rem;
+  padding: 1rem 1.1rem;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.order-delivery-panel h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.order-address-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--text);
+  max-width: 72ch;
+  word-break: break-word;
+}
+
+.order-address-city {
+  font-weight: 600;
+  color: var(--primary-dark);
 }
 
 .order-notes {
+  margin: 0.75rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+  font-size: 0.9rem;
   color: var(--muted);
-  font-style: italic;
+  line-height: 1.55;
+  max-width: 72ch;
 }
 
-.order-detail-grid select {
-  font: inherit;
-  padding: 0.4rem 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+.order-notes strong {
+  color: var(--text);
+}
+
+.order-details-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.order-items-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.order-items-panel h4,
+.order-payment-panel h4,
+.order-invoice-actions h4 {
+  margin: 0 0 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
 }
 
 .order-items-table {
@@ -143,14 +253,238 @@
 .order-items-table th,
 .order-items-table td {
   text-align: left;
-  padding: 0.5rem;
+  padding: 0.55rem 0.65rem;
   border-bottom: 1px solid var(--border);
+  vertical-align: top;
 }
 
 .order-items-table th {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
+  background: var(--bg-alt);
+}
+
+.order-items-table td:first-child {
+  min-width: 8rem;
+}
+
+.order-items-table th:nth-child(n + 2),
+.order-items-table td:nth-child(n + 2) {
+  white-space: nowrap;
+}
+
+.order-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.order-payment-panel {
+  padding: 1rem;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.order-payment-dl {
+  margin: 0 0 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.order-payment-dl > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.order-payment-dl dt {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.order-payment-dl dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.order-advance-editor {
+  margin-top: 0;
+  padding: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.order-advance-editor-hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.order-advance-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.order-advance-label input {
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.order-advance-balance {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: #92400e;
+}
+
+.order-advance-error {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: #b91c1c;
+}
+
+.order-advance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.order-invoice-actions {
+  margin: 0;
+  flex: 1;
+  min-width: min(100%, 16rem);
+}
+
+.order-invoice-hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.order-invoice-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.order-remove-btn {
+  flex-shrink: 0;
+}
+
+.btn-danger {
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.btn-danger:hover {
+  background: #fef2f2;
+}
+
+.admin-orders-section {
+  margin-bottom: 2rem;
+}
+
+.admin-orders-section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.admin-orders-section-head h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.admin-orders-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--bg-alt);
+  color: var(--muted);
+}
+
+.admin-orders-section-desc {
+  margin: 0 0 0.85rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.admin-orders-empty {
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+.order-type-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+}
+
+.order-type-pill--preorder {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.order-type-pill--current {
+  background: #ecfdf5;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.order-card--preorder {
+  border-left: 3px solid #3b82f6;
+}
+
+.order-card--current {
+  border-left: 3px solid #22c55e;
+}
+
+.order-advance-chip {
+  font-weight: 600;
+  color: #92400e;
+}
+
+@media (max-width: 900px) {
+  .order-details-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .order-items-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .order-remove-btn {
+    width: 100%;
+  }
 }
 
 @media (max-width: 640px) {
@@ -170,8 +504,14 @@
     gap: 0.25rem;
   }
 
-  .order-detail-grid {
-    grid-template-columns: 1fr;
+  .order-details-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .order-contact-dl {
+    flex-direction: column;
+    gap: 0.65rem;
   }
 
   .order-items-table {

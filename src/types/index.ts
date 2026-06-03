@@ -61,6 +61,7 @@ export interface CategoryFormData {
 }
 
 export type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled'
+export type OrderType = 'preorder' | 'order'
 
 export interface OrderItem {
   id: string
@@ -82,6 +83,8 @@ export interface Order {
   city: string
   notes: string | null
   status: OrderStatus
+  order_type: OrderType
+  advance_payment: number | null
   total: number
   created_at: string
   items?: OrderItem[]

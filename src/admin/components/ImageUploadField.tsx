@@ -8,6 +8,8 @@ interface ImageUploadFieldProps {
   onImageUrlChange: (url: string) => void
   onUpload: (file: File) => Promise<string>
   disabled?: boolean
+  /** When false, only file upload is shown (no manual URL field). */
+  allowUrlInput?: boolean
 }
 
 export default function ImageUploadField({
@@ -16,6 +18,7 @@ export default function ImageUploadField({
   onImageUrlChange,
   onUpload,
   disabled = false,
+  allowUrlInput = true,
 }: ImageUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -53,7 +56,11 @@ export default function ImageUploadField({
           </button>
         </div>
       ) : (
-        <p className="product-image-hint">No image yet — upload or paste a URL below.</p>
+        <p className="product-image-hint">
+          {allowUrlInput
+            ? 'No image yet — upload or paste a URL below.'
+            : 'No image yet — upload a file below.'}
+        </p>
       )}
 
       <div className="product-image-actions">
@@ -80,16 +87,18 @@ export default function ImageUploadField({
         )}
       </div>
 
-      <label className="product-image-url-label">
-        Or image URL
-        <input
-          type="url"
-          value={imageUrl}
-          disabled={disabled || uploading}
-          placeholder="https://…"
-          onChange={(e) => onImageUrlChange(e.target.value)}
-        />
-      </label>
+      {allowUrlInput && (
+        <label className="product-image-url-label">
+          Or image URL
+          <input
+            type="url"
+            value={imageUrl}
+            disabled={disabled || uploading}
+            placeholder="https://…"
+            onChange={(e) => onImageUrlChange(e.target.value)}
+          />
+        </label>
+      )}
 
       {uploadError && <p className="product-image-error">{uploadError}</p>}
     </div>

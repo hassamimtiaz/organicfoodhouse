@@ -19,6 +19,7 @@ export default function ProductImageField({
       onImageUrlChange={onImageUrlChange}
       onUpload={uploadProductImage}
       disabled={disabled}
+      allowUrlInput={false}
     />
   )
 }

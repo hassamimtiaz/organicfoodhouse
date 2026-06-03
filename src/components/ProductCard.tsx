@@ -13,7 +13,9 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const emoji = product.name.toLowerCase().includes('mango') ? '🥭' : '🍎'
   const comingSoon = isComingSoonProduct(product)
-  const preOrderMsg = `Hi! I want to pre-order ${product.name} from Organic Food House.`
+  const whatsappMsg = comingSoon
+    ? `Hi! I want to pre-order ${product.name} from Organic Food House.`
+    : `Hi! I want to order ${product.name} from Organic Food House.`
   const productUrl = `/product/${product.id}`
 
   return (
@@ -31,13 +33,15 @@ export default function ProductCard({ product }: ProductCardProps) {
             {emoji}
           </span>
         )}
-        {comingSoon ? (
-          <span className="product-badge product-badge--soon">Coming soon</span>
-        ) : (
-          <span className="product-badge pre">Pre-order</span>
-        )}
-        {comingSoon && product.in_stock && (
-          <span className="product-badge product-badge--preorder">Pre-order</span>
+        {comingSoon && (
+          <>
+            <span className="product-badge product-badge--soon">Coming soon</span>
+            {product.in_stock && (
+              <span className="product-badge product-badge--preorder">
+                Pre-order
+              </span>
+            )}
+          </>
         )}
         {!product.in_stock && (
           <span className="product-badge out">Out of stock</span>
@@ -56,13 +60,13 @@ export default function ProductCard({ product }: ProductCardProps) {
           <ProductPrice product={product} />
           <div className="product-actions">
             <a
-              href={whatsappLink(preOrderMsg)}
+              href={whatsappLink(whatsappMsg)}
               className="btn btn-primary btn-sm"
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
             >
-              Pre-order
+              {comingSoon ? 'Pre-order' : 'Order'}
             </a>
             <Link
               to={productUrl}

@@ -1,39 +1,24 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Breadcrumbs from '../components/Breadcrumbs'
 import ProductGridSection from '../components/ProductGridSection'
 import PreorderStatus from '../components/PreorderStatus'
-import ProductPrice from '../components/ProductPrice'
+import ProductDetailPricing from '../components/ProductDetailPricing'
+import ProductOrderModal from '../components/ProductOrderModal'
 import Seo from '../components/Seo'
 import {
   acceptsPreorder,
   isComingSoonProduct,
 } from '../config/preorder'
-import {
-  getOrderLineTotal,
-  getPriceRangeNote,
-  isPriceRange,
-} from '../config/pricing'
-import { formatUnitLabel } from '../config/units'
-import { SITE, formatPricePKR, whatsappLink } from '../config/site'
+import { hasProductDiscount } from '../config/pricing'
+import { SITE, whatsappLink } from '../config/site'
 import { fetchProductRecommendations } from '../services/api'
 import {
   fetchProductById,
   getProductCategoryPath,
-  placeOrder,
 } from '../services/ordersApi'
 import type { PlaceOrderFormData, Product } from '../types'
 import './ProductPage.css'
-
-const emptyOrderForm: PlaceOrderFormData = {
-  customer_name: '',
-  phone: '',
-  email: '',
-  address_line: '',
-  city: '',
-  notes: '',
-  quantity: 1,
-}
 
 function slugToLabel(slug: string) {
   return slug
@@ -51,10 +36,11 @@ export default function ProductPage() {
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [form, setForm] = useState<PlaceOrderFormData>(emptyOrderForm)
-  const [submitting, setSubmitting] = useState(false)
+  const [orderModalOpen, setOrderModalOpen] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
+  const [submittedForm, setSubmittedForm] = useState<PlaceOrderFormData | null>(
+    null,
+  )
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
   const [alsoLikeProducts, setAlsoLikeProducts] = useState<Product[]>([])
 
@@ -88,34 +74,27 @@ export default function ProductPage() {
     void load()
   }, [id])
 
-  const lineTotal = product
-    ? getOrderLineTotal(product, form.quantity)
-    : 0
-  const priceIsRange = product ? isPriceRange(product) : false
-  const unitLabel = product ? formatUnitLabel(product) : ''
   const comingSoon = product ? isComingSoonProduct(product) : false
   const canPreorder = product ? acceptsPreorder(product) : false
+  const isPreorderFlow = comingSoon && canPreorder
+  const detailBadge = product
+    ? comingSoon
+      ? 'Coming soon · Pre-order open'
+      : hasProductDiscount(product)
+        ? `${product.discount_percent}% OFF`
+        : null
+    : null
 
   const whatsappMsg = product
-    ? `Hi! I want to order ${form.quantity} ${unitLabel} of ${product.name} from Organic Food House.\nName: ${form.customer_name || '(pending)'}\nPhone: ${form.phone || '(pending)'}\nAddress: ${form.address_line || '(pending)'}, ${form.city || ''}`
+    ? isPreorderFlow
+      ? `Hi! I want to pre-order ${product.name} from Organic Food House.`
+      : `Hi! I want to order ${product.name} from Organic Food House.`
     : ''
 
-  async function handleOrderSubmit(e: FormEvent) {
-    e.preventDefault()
-    if (!product || !product.in_stock) return
-
-    setSubmitting(true)
-    setFormError(null)
-
-    try {
-      await placeOrder(product, form)
-      setOrderSuccess(true)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Order failed')
-    } finally {
-      setSubmitting(false)
-    }
+  function handleOrderSuccess(form: PlaceOrderFormData) {
+    setSubmittedForm(form)
+    setOrderSuccess(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   if (loading) {
@@ -212,16 +191,21 @@ export default function ProductPage() {
       <div className="container">
         <Breadcrumbs items={breadcrumbItems} />
 
-        {orderSuccess ? (
+        {orderSuccess && submittedForm ? (
           <div className="order-success">
             <span className="success-icon" aria-hidden="true">
               ✓
             </span>
-            <h1>Order placed successfully!</h1>
+            <h1>
+              {isPreorderFlow
+                ? 'Pre-order placed successfully!'
+                : 'Order placed successfully!'}
+            </h1>
             <p>
-              Thank you, {form.customer_name}. We received your pre-order for{' '}
+              Thank you, {submittedForm.customer_name}. We received your{' '}
+              {isPreorderFlow ? 'pre-order' : 'order'} for{' '}
               <strong>{product.name}</strong> and will contact you on{' '}
-              <strong>{form.phone}</strong> to confirm delivery.
+              <strong>{submittedForm.phone}</strong> to confirm delivery.
             </p>
             <div className="hero-actions">
               <Link
@@ -236,7 +220,7 @@ export default function ProductPage() {
               </Link>
               <a
                 href={whatsappLink(
-                  `Hi, I placed a website order for ${product.name}. My phone is ${form.phone}.`,
+                  `Hi, I placed a website ${isPreorderFlow ? 'pre-order' : 'order'} for ${product.name}. My phone is ${submittedForm.phone}.`,
                 )}
                 className="btn btn-outline"
                 target="_blank"
@@ -269,13 +253,13 @@ export default function ProductPage() {
                   🥭
                 </span>
               )}
-              <span
-                className={`product-detail-badge ${comingSoon ? 'product-detail-badge--soon' : ''}`}
-              >
-                {comingSoon
-                  ? 'Coming soon · Pre-order open'
-                  : 'Pre-order · 10% OFF'}
-              </span>
+              {detailBadge && (
+                <span
+                  className={`product-detail-badge ${comingSoon ? 'product-detail-badge--soon' : ''}`}
+                >
+                  {detailBadge}
+                </span>
+              )}
             </div>
 
             <div className="product-detail-info">
@@ -290,175 +274,62 @@ export default function ProductPage() {
               <PreorderStatus product={product} variant="detail" />
 
               <div className="product-detail-price-box">
-                <ProductPrice product={product} size="large" />
-                {priceIsRange && (
-                  <p className="price-range-note">{getPriceRangeNote()}</p>
-                )}
-                {!product.in_stock && (
-                  <span className="out-stock-label">Currently unavailable</span>
-                )}
+                <ProductDetailPricing product={product} />
               </div>
 
-              <div className="product-quick-actions">
-                <a
-                  href={whatsappLink(whatsappMsg)}
-                  className="btn btn-primary"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Order on WhatsApp
-                </a>
-                <a href={`tel:${SITE.phoneTel}`} className="btn btn-outline">
-                  Call {SITE.phone}
-                </a>
-              </div>
-
-              <section className="order-form-section" id="order-form">
-                <h2>
-                  {comingSoon && canPreorder
-                    ? 'Pre-order on website'
-                    : 'Order on website'}
-                </h2>
-                <p className="order-form-intro">
-                  {comingSoon && canPreorder
-                    ? 'Reserve your order now — we will confirm delivery after the countdown. All fields marked * are required.'
-                    : 'Fill in your details below. All fields marked * are required.'}
-                </p>
-
-                <form onSubmit={handleOrderSubmit} className="order-form">
-                  <div className="form-row">
-                    <label>
-                      Full name *
-                      <input
-                        value={form.customer_name}
-                        onChange={(e) =>
-                          setForm({ ...form, customer_name: e.target.value })
-                        }
-                        required
-                        autoComplete="name"
-                      />
-                    </label>
-                    <label>
-                      Phone number *
-                      <input
-                        type="tel"
-                        value={form.phone}
-                        onChange={(e) =>
-                          setForm({ ...form, phone: e.target.value })
-                        }
-                        placeholder="03XX-XXXXXXX"
-                        required
-                        autoComplete="tel"
-                      />
-                    </label>
-                  </div>
-
-                  <label>
-                    Email (optional)
-                    <input
-                      type="email"
-                      value={form.email}
-                      onChange={(e) =>
-                        setForm({ ...form, email: e.target.value })
-                      }
-                      autoComplete="email"
-                    />
-                  </label>
-
-                  <label>
-                    Delivery address *
-                    <textarea
-                      value={form.address_line}
-                      onChange={(e) =>
-                        setForm({ ...form, address_line: e.target.value })
-                      }
-                      rows={2}
-                      placeholder="House #, street, area"
-                      required
-                    />
-                  </label>
-
-                  <div className="form-row">
-                    <label>
-                      City *
-                      <input
-                        value={form.city}
-                        onChange={(e) =>
-                          setForm({ ...form, city: e.target.value })
-                        }
-                        placeholder="Lahore, Karachi, etc."
-                        required
-                      />
-                    </label>
-                    <label>
-                      Quantity ({unitLabel}) *
-                      <input
-                        type="number"
-                        min="0.5"
-                        step="0.5"
-                        value={form.quantity}
-                        onChange={(e) =>
-                          setForm({
-                            ...form,
-                            quantity: parseFloat(e.target.value) || 1,
-                          })
-                        }
-                        required
-                      />
-                    </label>
-                  </div>
-
-                  <label>
-                    Order notes (optional)
-                    <textarea
-                      value={form.notes}
-                      onChange={(e) =>
-                        setForm({ ...form, notes: e.target.value })
-                      }
-                      rows={2}
-                      placeholder="Preferred delivery date, gift message, etc."
-                    />
-                  </label>
-
-                  <div className="order-summary">
-                    <span>
-                      {priceIsRange ? 'Estimated total (from)' : 'Estimated total'}
-                    </span>
-                    <strong>{formatPricePKR(lineTotal)}</strong>
-                  </div>
-                  {priceIsRange && (
-                    <p className="order-summary-note">{getPriceRangeNote()}</p>
-                  )}
-
-                  {formError && (
-                    <p className="form-error" role="alert">
-                      {formError}
-                    </p>
-                  )}
-
+              {product.in_stock && (
+                <div className="product-order-actions">
                   <button
-                    type="submit"
-                    className="btn btn-primary btn-submit-order"
-                    disabled={submitting || !product.in_stock}
+                    type="button"
+                    className="btn btn-primary btn-order-primary"
+                    onClick={() => setOrderModalOpen(true)}
                   >
-                    {submitting
-                      ? 'Placing order…'
-                      : comingSoon && canPreorder
-                        ? priceIsRange
-                          ? `Pre-order — from ${formatPricePKR(lineTotal)}`
-                          : `Pre-order — ${formatPricePKR(lineTotal)}`
-                        : priceIsRange
-                          ? `Place order — from ${formatPricePKR(lineTotal)}`
-                          : `Place order — ${formatPricePKR(lineTotal)}`}
+                    {isPreorderFlow
+                      ? 'Pre-order on website'
+                      : 'Order on website'}
                   </button>
-                </form>
-              </section>
+                  <div className="product-order-actions-secondary">
+                    <a
+                      href={whatsappLink(whatsappMsg)}
+                      className="btn btn-outline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {isPreorderFlow
+                        ? 'Pre-order on WhatsApp'
+                        : 'Order on WhatsApp'}
+                    </a>
+                    <a
+                      href={`tel:${SITE.phoneTel}`}
+                      className="btn btn-outline"
+                    >
+                      Call for inquiry — {SITE.phone}
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {!product.in_stock && (
+                <p className="out-stock-label product-out-stock-block">
+                  Currently unavailable — contact us for availability.
+                </p>
+              )}
             </div>
           </div>
         )}
 
         {!orderSuccess && recommendations}
       </div>
+
+      {product.in_stock && (
+        <ProductOrderModal
+          open={orderModalOpen}
+          onClose={() => setOrderModalOpen(false)}
+          product={product}
+          isPreorder={isPreorderFlow}
+          onSuccess={handleOrderSuccess}
+        />
+      )}
     </div>
   )
 }
