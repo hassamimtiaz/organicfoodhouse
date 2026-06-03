@@ -13,6 +13,15 @@ export function supabaseErrorMessage(err: unknown): string {
       if (message.includes('unit_min') || message.includes('unit_max')) {
         return 'Database is missing unit range columns. Run supabase/migrations/006_product_unit_range.sql in the Supabase SQL editor, then try again.'
       }
+      if (message.includes('discount_percent')) {
+        return 'Database is missing discount column. Run supabase/migrations/007_product_discount.sql in the Supabase SQL editor, then try again.'
+      }
+      if (message.includes('image_url') && message.includes('categories')) {
+        return 'Database is missing category image column. Run supabase/migrations/008_category_image_and_visibility.sql in the Supabase SQL editor, then try again.'
+      }
+      if (message.includes('is_visible')) {
+        return 'Database is missing category visibility column. Run supabase/migrations/008_category_image_and_visibility.sql in the Supabase SQL editor, then try again.'
+      }
     }
 
     return message

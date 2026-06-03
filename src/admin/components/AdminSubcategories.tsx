@@ -1,10 +1,13 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import {
   createCategory,
   deleteCategory,
+  setCategoryVisibility,
   updateCategory,
+  uploadCategoryImage,
 } from '../../services/adminApi'
 import type { Category, CategoryFormData } from '../../types'
+import ImageUploadField from './ImageUploadField'
 
 interface Props {
   topLevel: Category[]
@@ -19,6 +22,8 @@ const emptyForm: CategoryFormData = {
   slug: '',
   description: '',
   parent_id: '',
+  image_url: '',
+  is_visible: true,
 }
 
 export default function AdminSubcategories({
@@ -31,6 +36,15 @@ export default function AdminSubcategories({
   const [form, setForm] = useState<CategoryFormData>(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (editingId || topLevel.length === 0) return
+    setForm((current) => {
+      if (current.parent_id) return current
+      return { ...current, parent_id: topLevel[0].id }
+    })
+  }, [topLevel, editingId])
 
   function slugFromName(name: string) {
     return name
@@ -66,6 +80,36 @@ export default function AdminSubcategories({
       })
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleToggleVisibility(category: Category) {
+    const next = !category.is_visible
+    const action = next ? 'shown on' : 'hidden from'
+    if (
+      !next &&
+      !confirm(
+        `Hide "${category.name}" from the store? Products in this subcategory will no longer appear on the website.`,
+      )
+    ) {
+      return
+    }
+
+    setTogglingId(category.id)
+    try {
+      await setCategoryVisibility(category.id, next)
+      onMessage({
+        type: 'success',
+        text: `"${category.name}" ${action} the store.`,
+      })
+      await onSaved()
+    } catch (err) {
+      onMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Update failed',
+      })
+    } finally {
+      setTogglingId(null)
     }
   }
 
@@ -118,6 +162,7 @@ export default function AdminSubcategories({
                 {topLevel.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
+                    {!c.is_visible ? ' (hidden)' : ''}
                   </option>
                 ))}
               </select>
@@ -157,6 +202,26 @@ export default function AdminSubcategories({
                 rows={3}
               />
             </label>
+
+            <ImageUploadField
+              label="Subcategory image"
+              imageUrl={form.image_url}
+              onImageUrlChange={(image_url) => setForm({ ...form, image_url })}
+              onUpload={uploadCategoryImage}
+              disabled={saving}
+            />
+
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={form.is_visible}
+                onChange={(e) =>
+                  setForm({ ...form, is_visible: e.target.checked })
+                }
+              />
+              Visible on store
+            </label>
+
             <div className="form-actions">
               <button
                 type="submit"
@@ -191,18 +256,41 @@ export default function AdminSubcategories({
         ) : (
           <ul className="admin-card-list">
             {subcategories.map((c) => (
-              <li key={c.id} className="admin-card">
+              <li
+                key={c.id}
+                className={`admin-card ${!c.is_visible ? 'admin-card-hidden' : ''}`}
+              >
+                {c.image_url && (
+                  <div className="admin-category-thumb">
+                    <img src={c.image_url} alt="" />
+                  </div>
+                )}
                 <div className="admin-card-body">
                   <span className="admin-card-parent">
                     {parentName(c.parent_id)}
                   </span>
                   <strong>{c.name}</strong>
+                  {!c.is_visible && (
+                    <span className="admin-hidden-badge">Hidden from store</span>
+                  )}
                   <span className="admin-card-meta">/{c.slug}</span>
                   {c.description && (
                     <p className="admin-card-desc">{c.description}</p>
                   )}
                 </div>
                 <div className="admin-card-actions">
+                  <button
+                    type="button"
+                    className="btn-link"
+                    disabled={togglingId === c.id}
+                    onClick={() => void handleToggleVisibility(c)}
+                  >
+                    {togglingId === c.id
+                      ? 'Updating…'
+                      : c.is_visible
+                        ? 'Hide from store'
+                        : 'Show on store'}
+                  </button>
                   <button
                     type="button"
                     className="btn-link"
@@ -213,6 +301,8 @@ export default function AdminSubcategories({
                         slug: c.slug,
                         description: c.description ?? '',
                         parent_id: c.parent_id,
+                        image_url: c.image_url ?? '',
+                        is_visible: c.is_visible,
                       })
                     }}
                   >

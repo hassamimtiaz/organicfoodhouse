@@ -12,6 +12,8 @@ export const seedCategories: Category[] = [
     description:
       'Fresh, seasonal organic fruits picked at peak ripeness.',
     parent_id: null,
+    image_url: null,
+    is_visible: true,
   },
   {
     id: mangoesSubcategoryId,
@@ -20,6 +22,8 @@ export const seedCategories: Category[] = [
     description:
       'Premium Pakistani mango varieties — sweet, aromatic, and tree-ripened.',
     parent_id: fruitsCategoryId,
+    image_url: null,
+    is_visible: true,
   },
 ]
 
@@ -36,6 +40,7 @@ export const seedProducts: Product[] = [
     unit: 'kg',
     unit_min: null,
     unit_max: null,
+    discount_percent: null,
     image_url: MANGO_PRODUCT_IMAGES.dasheri,
     in_stock: true,
   },
@@ -51,6 +56,7 @@ export const seedProducts: Product[] = [
     unit: 'kg',
     unit_min: null,
     unit_max: null,
+    discount_percent: 10,
     image_url: MANGO_PRODUCT_IMAGES.sindhri,
     in_stock: true,
   },
@@ -66,6 +72,7 @@ export const seedProducts: Product[] = [
     unit: 'kg',
     unit_min: null,
     unit_max: null,
+    discount_percent: null,
     image_url: MANGO_PRODUCT_IMAGES.chaunsa,
     in_stock: true,
   },
@@ -81,6 +88,7 @@ export const seedProducts: Product[] = [
     unit: 'kg',
     unit_min: null,
     unit_max: null,
+    discount_percent: null,
     image_url: MANGO_PRODUCT_IMAGES.anwarRatol,
     in_stock: true,
   },

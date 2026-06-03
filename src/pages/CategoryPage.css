@@ -27,6 +27,14 @@
   font-size: 3rem;
 }
 
+.category-page-image {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .category-header h1 {
   margin: 0 0 0.5rem;
   font-size: 2rem;

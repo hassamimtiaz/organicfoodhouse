@@ -35,6 +35,14 @@ function unitFields(form: ProductFormData) {
   }
 }
 
+function discountField(form: ProductFormData) {
+  if (form.discount_percent == null) return { discount_percent: null }
+  if (form.discount_percent <= 0 || form.discount_percent > 100) {
+    throw new Error('Discount must be between 1 and 100 percent.')
+  }
+  return { discount_percent: form.discount_percent }
+}
+
 function productPayload(form: ProductFormData) {
   if (form.price_type === 'range') {
     if (form.price_max == null || form.price_max < form.price) {
@@ -52,6 +60,7 @@ function productPayload(form: ProductFormData) {
     price_type: form.price_type,
     price_max: form.price_type === 'range' ? form.price_max : null,
     ...unitFields(form),
+    ...discountField(form),
     image_url: form.image_url || null,
     in_stock: form.in_stock,
   }
@@ -76,6 +85,13 @@ function legacyProductPayload(form: ProductFormData) {
   }
 }
 
+function payloadWithoutDiscount(
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const { discount_percent: _d, ...rest } = payload
+  return rest
+}
+
 function payloadWithoutPriceRange(
   payload: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -89,10 +105,13 @@ async function writeProductRow(
   form: ProductFormData,
 ): Promise<Product> {
   const fullPayload = productPayload(form)
+  const withoutDiscount = payloadWithoutDiscount(fullPayload)
   const attempts: Record<string, unknown>[] = [
     fullPayload,
+    withoutDiscount,
     payloadWithoutUnitRange(fullPayload),
-    payloadWithoutPriceRange(payloadWithoutUnitRange(fullPayload)),
+    payloadWithoutUnitRange(withoutDiscount),
+    payloadWithoutPriceRange(payloadWithoutUnitRange(withoutDiscount)),
     legacyProductPayload(form),
   ]
 
@@ -123,6 +142,7 @@ async function writeProductRow(
         'price_max',
         'unit_min',
         'unit_max',
+        'discount_percent',
       ]) ||
       (result.error as { code?: string }).code === 'PGRST204'
 
@@ -190,33 +210,19 @@ export async function deleteProduct(id: string): Promise<void> {
 export async function createCategory(
   form: CategoryFormData,
 ): Promise<Category> {
+  const payload = categoryPayload(form)
+
   if (!isSupabaseConfigured || !supabase) {
     const category: Category = {
       id: `local-${crypto.randomUUID()}`,
-      name: form.name,
-      slug: form.slug,
-      description: form.description || null,
-      parent_id: form.parent_id,
+      ...payload,
     }
     seedCategories.push(category)
     return category
   }
 
   requireSupabaseForWrite()
-
-  const { data, error } = await supabase
-    .from('categories')
-    .insert({
-      name: form.name,
-      slug: form.slug,
-      description: form.description || null,
-      parent_id: form.parent_id,
-    })
-    .select()
-    .single()
-
-  if (error) throw new Error(supabaseErrorMessage(error))
-  return data
+  return writeCategoryRow('insert', null, form)
 }
 
 export async function updateCategory(
@@ -226,27 +232,30 @@ export async function updateCategory(
   if (!isSupabaseConfigured || !supabase) {
     const index = seedCategories.findIndex((c) => c.id === id)
     if (index === -1) throw new Error('Category not found')
-    const updated: Category = {
-      id,
-      name: form.name,
-      slug: form.slug,
-      description: form.description || null,
-      parent_id: form.parent_id,
-    }
-    seedCategories[index] = updated
-    return updated
+    seedCategories[index] = { id, ...categoryPayload(form) }
+    return seedCategories[index]
+  }
+
+  requireSupabaseForWrite()
+  return writeCategoryRow('update', id, form)
+}
+
+export async function setCategoryVisibility(
+  id: string,
+  is_visible: boolean,
+): Promise<Category> {
+  if (!isSupabaseConfigured || !supabase) {
+    const index = seedCategories.findIndex((c) => c.id === id)
+    if (index === -1) throw new Error('Category not found')
+    seedCategories[index] = { ...seedCategories[index], is_visible }
+    return seedCategories[index]
   }
 
   requireSupabaseForWrite()
 
   const { data, error } = await supabase
     .from('categories')
-    .update({
-      name: form.name,
-      slug: form.slug,
-      description: form.description || null,
-      parent_id: form.parent_id,
-    })
+    .update({ is_visible })
     .eq('id', id)
     .select()
     .single()
@@ -255,9 +264,89 @@ export async function updateCategory(
   return data
 }
 
+function categoryPayload(form: CategoryFormData) {
+  return {
+    name: form.name,
+    slug: form.slug,
+    description: form.description || null,
+    parent_id: form.parent_id,
+    image_url: form.image_url || null,
+    is_visible: form.is_visible,
+  }
+}
+
+function legacyCategoryPayload(form: CategoryFormData) {
+  return {
+    name: form.name,
+    slug: form.slug,
+    description: form.description || null,
+    parent_id: form.parent_id,
+  }
+}
+
+function payloadWithoutCategoryImage(
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const { image_url: _img, ...rest } = payload
+  return rest
+}
+
+function payloadWithoutCategoryVisibility(
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const { is_visible: _vis, ...rest } = payload
+  return rest
+}
+
+async function writeCategoryRow(
+  mode: 'insert' | 'update',
+  id: string | null,
+  form: CategoryFormData,
+): Promise<Category> {
+  const fullPayload = categoryPayload(form)
+  const attempts: Record<string, unknown>[] = [
+    fullPayload,
+    payloadWithoutCategoryImage(fullPayload),
+    payloadWithoutCategoryVisibility(payloadWithoutCategoryImage(fullPayload)),
+    legacyCategoryPayload(form),
+  ]
+
+  const seen = new Set<string>()
+  let lastError: unknown = null
+
+  for (const payload of attempts) {
+    const key = JSON.stringify(payload)
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    const result =
+      mode === 'insert'
+        ? await supabase!.from('categories').insert(payload).select().single()
+        : await supabase!
+            .from('categories')
+            .update(payload)
+            .eq('id', id!)
+            .select()
+            .single()
+
+    if (!result.error) return result.data as Category
+
+    lastError = result.error
+    const retryable =
+      isMissingColumnError(result.error, [
+        'image_url',
+        'is_visible',
+      ]) || (result.error as { code?: string }).code === 'PGRST204'
+
+    if (!retryable) break
+  }
+
+  throw new Error(supabaseErrorMessage(lastError))
+}
+
 const PRODUCT_IMAGES_BUCKET = 'product-images'
 
-export async function uploadProductImage(file: File): Promise<string> {
+async function uploadImage(file: File, folder: string): Promise<string> {
   if (!file.type.startsWith('image/')) {
     throw new Error('Please choose an image file (JPEG, PNG, or WebP).')
   }
@@ -277,7 +366,7 @@ export async function uploadProductImage(file: File): Promise<string> {
   requireSupabaseForWrite()
 
   const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-  const path = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`
+  const path = `${folder}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`
 
   const { error: uploadError } = await supabase.storage
     .from(PRODUCT_IMAGES_BUCKET)
@@ -293,6 +382,14 @@ export async function uploadProductImage(file: File): Promise<string> {
 
   const { data } = supabase.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(path)
   return data.publicUrl
+}
+
+export async function uploadProductImage(file: File): Promise<string> {
+  return uploadImage(file, 'products')
+}
+
+export async function uploadCategoryImage(file: File): Promise<string> {
+  return uploadImage(file, 'categories')
 }
 
 export async function deleteCategory(id: string): Promise<void> {

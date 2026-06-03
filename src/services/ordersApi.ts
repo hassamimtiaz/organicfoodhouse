@@ -41,6 +41,10 @@ export async function fetchProductById(id: string): Promise<Product | null> {
       data.unit_max != null && data.unit_max !== undefined
         ? Number(data.unit_max)
         : null,
+    discount_percent:
+      data.discount_percent != null && data.discount_percent !== undefined
+        ? Number(data.discount_percent)
+        : null,
   }
 }
 
