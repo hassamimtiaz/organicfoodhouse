@@ -4,6 +4,8 @@ export interface Category {
   slug: string
   description: string | null
   parent_id: string | null
+  image_url: string | null
+  is_visible: boolean
   created_at?: string
 }
 
@@ -21,6 +23,7 @@ export interface Product {
   unit: string
   unit_min: number | null
   unit_max: number | null
+  discount_percent: number | null
   image_url: string | null
   in_stock: boolean
   created_at?: string
@@ -39,6 +42,7 @@ export interface ProductFormData {
   unit: string
   unit_min: number | null
   unit_max: number | null
+  discount_percent: number | null
   image_url: string
   in_stock: boolean
 }
@@ -48,6 +52,8 @@ export interface CategoryFormData {
   slug: string
   description: string
   parent_id: string | null
+  image_url: string
+  is_visible: boolean
 }
 
 export type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled'

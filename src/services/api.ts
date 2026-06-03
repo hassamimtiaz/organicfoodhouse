@@ -4,6 +4,62 @@ import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import type { Category, PriceType, Product } from '../types'
 import { isTopLevelCategory } from '../types'
 
+export type FetchOptions = {
+  /** Include categories hidden from the storefront (admin only) */
+  includeHidden?: boolean
+}
+
+export function isCategoryVisible(category: Category): boolean {
+  return category.is_visible !== false
+}
+
+function normalizeCategory(row: Category): Category {
+  return {
+    ...row,
+    image_url: row.image_url ?? null,
+    is_visible: row.is_visible !== false,
+  }
+}
+
+function normalizeCategories(rows: Category[]): Category[] {
+  return rows.map(normalizeCategory)
+}
+
+function filterVisibleCategories(
+  categories: Category[],
+  allCategories: Category[],
+): Category[] {
+  const visibleIds = new Set(
+    categories.filter(isCategoryVisible).map((c) => c.id),
+  )
+
+  return categories.filter((c) => {
+    if (!visibleIds.has(c.id)) return false
+    if (!c.parent_id) return true
+    const parent = allCategories.find((p) => p.id === c.parent_id)
+    return parent ? isCategoryVisible(parent) : false
+  })
+}
+
+async function loadAllCategoriesRaw(): Promise<Category[]> {
+  if (!isSupabaseConfigured || !supabase) {
+    return normalizeCategories(seedCategories)
+  }
+
+  const { data, error } = await supabase.from('categories').select('*').order('name')
+  if (error) throw error
+  return normalizeCategories(data ?? [])
+}
+
+export function getVisibleSubcategoryIds(categories: Category[]): Set<string> {
+  return new Set(
+    filterVisibleCategories(
+      categories.filter((c) => c.parent_id !== null),
+      categories,
+    ).map((c) => c.id),
+  )
+}
+
 function normalizeProduct(row: Product): Product {
   const price_type: PriceType = normalizePriceType(row.price_type, row.price_max)
   const unit_min =
@@ -25,6 +81,10 @@ function normalizeProduct(row: Product): Product {
         : null,
     unit_min,
     unit_max,
+    discount_percent:
+      row.discount_percent != null && row.discount_percent !== undefined
+        ? Number(row.discount_percent)
+        : null,
   }
 }
 
@@ -32,41 +92,78 @@ function normalizeProducts(rows: Product[]): Product[] {
   return rows.map(normalizeProduct)
 }
 
-export async function fetchTopLevelCategories(): Promise<Category[]> {
+export async function fetchTopLevelCategories(
+  options: FetchOptions = {},
+): Promise<Category[]> {
   if (!isSupabaseConfigured || !supabase) {
-    return seedCategories.filter(isTopLevelCategory)
+    const cats = seedCategories.filter(isTopLevelCategory).map(normalizeCategory)
+    return options.includeHidden ? cats : cats.filter(isCategoryVisible)
   }
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('categories')
     .select('*')
     .is('parent_id', null)
     .order('name')
 
+  if (!options.includeHidden) {
+    query = query.eq('is_visible', true)
+  }
+
+  const { data, error } = await query
   if (error) throw error
-  return data ?? []
+  return normalizeCategories(data ?? [])
 }
 
 export async function fetchSubcategories(
   parentId: string,
+  options: FetchOptions = {},
 ): Promise<Category[]> {
   if (!isSupabaseConfigured || !supabase) {
-    return seedCategories.filter((c) => c.parent_id === parentId)
+    const all = normalizeCategories(seedCategories)
+    const parent = all.find((c) => c.id === parentId)
+    if (!parent || (!options.includeHidden && !isCategoryVisible(parent))) {
+      return []
+    }
+    const subs = all.filter((c) => c.parent_id === parentId)
+    return options.includeHidden ? subs : subs.filter(isCategoryVisible)
   }
 
-  const { data, error } = await supabase
+  if (!options.includeHidden) {
+    const { data: parent, error: parentError } = await supabase
+      .from('categories')
+      .select('is_visible')
+      .eq('id', parentId)
+      .maybeSingle()
+
+    if (parentError) throw parentError
+    if (!parent || parent.is_visible === false) return []
+  }
+
+  let query = supabase
     .from('categories')
     .select('*')
     .eq('parent_id', parentId)
     .order('name')
 
+  if (!options.includeHidden) {
+    query = query.eq('is_visible', true)
+  }
+
+  const { data, error } = await query
   if (error) throw error
-  return data ?? []
+  return normalizeCategories(data ?? [])
 }
 
-export async function fetchAllSubcategories(): Promise<Category[]> {
+export async function fetchAllSubcategories(
+  options: FetchOptions = {},
+): Promise<Category[]> {
   if (!isSupabaseConfigured || !supabase) {
-    return seedCategories.filter((c) => c.parent_id !== null)
+    const all = normalizeCategories(seedCategories)
+    const subs = all.filter((c) => c.parent_id !== null)
+    return options.includeHidden
+      ? subs
+      : filterVisibleCategories(subs, all)
   }
 
   const { data, error } = await supabase
@@ -76,17 +173,22 @@ export async function fetchAllSubcategories(): Promise<Category[]> {
     .order('name')
 
   if (error) throw error
-  return data ?? []
+  const subs = normalizeCategories(data ?? [])
+  if (options.includeHidden) return subs
+
+  const all = await loadAllCategoriesRaw()
+  return filterVisibleCategories(subs, all)
 }
 
 export async function fetchCategoryBySlug(
   slug: string,
 ): Promise<Category | null> {
   if (!isSupabaseConfigured || !supabase) {
-    return (
-      seedCategories.find((c) => c.slug === slug && isTopLevelCategory(c)) ??
-      null
+    const cat = seedCategories.find(
+      (c) => c.slug === slug && isTopLevelCategory(c),
     )
+    if (!cat || !isCategoryVisible(normalizeCategory(cat))) return null
+    return normalizeCategory(cat)
   }
 
   const { data, error } = await supabase
@@ -94,10 +196,11 @@ export async function fetchCategoryBySlug(
     .select('*')
     .eq('slug', slug)
     .is('parent_id', null)
+    .eq('is_visible', true)
     .maybeSingle()
 
   if (error) throw error
-  return data
+  return data ? normalizeCategory(data) : null
 }
 
 export async function fetchSubcategoryBySlug(
@@ -105,14 +208,15 @@ export async function fetchSubcategoryBySlug(
   subcategorySlug: string,
 ): Promise<{ parent: Category; subcategory: Category } | null> {
   if (!isSupabaseConfigured || !supabase) {
-    const parent = seedCategories.find(
+    const all = normalizeCategories(seedCategories)
+    const parent = all.find(
       (c) => c.slug === parentSlug && isTopLevelCategory(c),
     )
-    if (!parent) return null
-    const subcategory = seedCategories.find(
+    if (!parent || !isCategoryVisible(parent)) return null
+    const subcategory = all.find(
       (c) => c.slug === subcategorySlug && c.parent_id === parent.id,
     )
-    if (!subcategory) return null
+    if (!subcategory || !isCategoryVisible(subcategory)) return null
     return { parent, subcategory }
   }
 
@@ -121,6 +225,7 @@ export async function fetchSubcategoryBySlug(
     .select('*')
     .eq('slug', parentSlug)
     .is('parent_id', null)
+    .eq('is_visible', true)
     .maybeSingle()
 
   if (parentError) throw parentError
@@ -131,17 +236,29 @@ export async function fetchSubcategoryBySlug(
     .select('*')
     .eq('slug', subcategorySlug)
     .eq('parent_id', parent.id)
+    .eq('is_visible', true)
     .maybeSingle()
 
   if (subError) throw subError
   if (!subcategory) return null
 
-  return { parent, subcategory }
+  return {
+    parent: normalizeCategory(parent),
+    subcategory: normalizeCategory(subcategory),
+  }
 }
 
 export async function fetchProductsBySubcategory(
   subcategoryId: string,
 ): Promise<Product[]> {
+  const categories = await loadAllCategoriesRaw()
+  const sub = categories.find((c) => c.id === subcategoryId)
+  if (!sub || !isCategoryVisible(sub)) return []
+  if (sub.parent_id) {
+    const parent = categories.find((c) => c.id === sub.parent_id)
+    if (!parent || !isCategoryVisible(parent)) return []
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return seedProducts.filter((p) => p.category_id === subcategoryId)
   }
@@ -170,12 +287,22 @@ export async function fetchAllProducts(): Promise<Product[]> {
   return normalizeProducts(data ?? [])
 }
 
+export async function fetchVisibleProducts(): Promise<Product[]> {
+  const [products, categories] = await Promise.all([
+    fetchAllProducts(),
+    loadAllCategoriesRaw(),
+  ])
+  const visibleSubIds = getVisibleSubcategoryIds(categories)
+  return products.filter((p) => visibleSubIds.has(p.category_id))
+}
+
 export function formatSubcategoryLabel(
   sub: Category,
   topLevel: Category[],
 ): string {
   const parent = topLevel.find((c) => c.id === sub.parent_id)
-  return parent ? `${parent.name} › ${sub.name}` : sub.name
+  const hidden = !isCategoryVisible(sub) ? ' (hidden)' : ''
+  return parent ? `${parent.name} › ${sub.name}${hidden}` : `${sub.name}${hidden}`
 }
 
 export async function searchProducts(query: string): Promise<Product[]> {
@@ -183,10 +310,13 @@ export async function searchProducts(query: string): Promise<Product[]> {
   if (!q) return []
 
   if (!isSupabaseConfigured || !supabase) {
+    const categories = normalizeCategories(seedCategories)
+    const visibleSubIds = getVisibleSubcategoryIds(categories)
     return seedProducts.filter(
       (p) =>
-        p.name.toLowerCase().includes(q) ||
-        (p.description?.toLowerCase().includes(q) ?? false),
+        visibleSubIds.has(p.category_id) &&
+        (p.name.toLowerCase().includes(q) ||
+          (p.description?.toLowerCase().includes(q) ?? false)),
     )
   }
 
@@ -197,19 +327,17 @@ export async function searchProducts(query: string): Promise<Product[]> {
     .order('name')
 
   if (error) throw error
-  return normalizeProducts(data ?? [])
+
+  const products = normalizeProducts(data ?? [])
+  const categories = await loadAllCategoriesRaw()
+  const visibleSubIds = getVisibleSubcategoryIds(categories)
+  return products.filter((p) => visibleSubIds.has(p.category_id))
 }
 
-export async function fetchAllCategories(): Promise<Category[]> {
-  if (!isSupabaseConfigured || !supabase) {
-    return seedCategories
-  }
-
-  const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .order('name')
-
-  if (error) throw error
-  return data ?? []
+export async function fetchAllCategories(
+  options: FetchOptions = {},
+): Promise<Category[]> {
+  const all = await loadAllCategoriesRaw()
+  if (options.includeHidden) return all
+  return filterVisibleCategories(all, all)
 }

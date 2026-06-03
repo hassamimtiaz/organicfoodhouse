@@ -7,7 +7,7 @@ import TrustBadges from '../components/TrustBadges'
 import CategoryCard from '../components/CategoryCard'
 import ProductCard from '../components/ProductCard'
 import { SITE, whatsappLink } from '../config/site'
-import { fetchAllProducts, fetchSubcategories, fetchTopLevelCategories } from '../services/api'
+import { fetchVisibleProducts, fetchSubcategories, fetchTopLevelCategories } from '../services/api'
 import type { Category, Product } from '../types'
 import './Home.css'
 
@@ -35,7 +35,7 @@ export default function Home() {
         )
         setSubcategoryCounts(counts)
 
-        const all = await fetchAllProducts()
+        const all = await fetchVisibleProducts()
         setFeatured(all.slice(0, 8))
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to load')

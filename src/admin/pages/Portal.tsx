@@ -28,8 +28,8 @@ export default function AdminPortal() {
     setLoading(true)
     try {
       const [top, subs, prods] = await Promise.all([
-        fetchTopLevelCategories(),
-        fetchAllSubcategories(),
+        fetchTopLevelCategories({ includeHidden: true }),
+        fetchAllSubcategories({ includeHidden: true }),
         fetchAllProducts(),
       ])
       setTopLevel(top)

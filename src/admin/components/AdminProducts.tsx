@@ -5,7 +5,7 @@ import {
   updateProduct,
 } from '../../services/adminApi'
 import { formatSubcategoryLabel } from '../../services/api'
-import { formatProductPrice } from '../../config/pricing'
+import { formatProductPrice, hasProductDiscount } from '../../config/pricing'
 import { formatUnitLabel } from '../../config/units'
 import type { Category, Product, ProductFormData, PriceType, UnitType } from '../../types'
 import ProductImageField from './ProductImageField'
@@ -30,6 +30,7 @@ const emptyProduct: ProductFormData = {
   unit: 'kg',
   unit_min: null,
   unit_max: null,
+  discount_percent: null,
   image_url: '',
   in_stock: true,
 }
@@ -262,6 +263,52 @@ export default function AdminProducts({
                   </label>
                 </div>
               )}
+
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={form.discount_percent != null}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      discount_percent: e.target.checked ? 10 : null,
+                    })
+                  }
+                />
+                Apply discount
+              </label>
+
+              {form.discount_percent != null && (
+                <label>
+                  Discount (%)
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    step="1"
+                    value={form.discount_percent || ''}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        discount_percent: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    required
+                  />
+                </label>
+              )}
+
+              {(form.discount_percent != null && form.discount_percent > 0) && (
+                <p className="panel-hint">
+                  Customer price preview:{' '}
+                  <strong>
+                    {formatProductPrice(form, {
+                      includeUnit: form,
+                      showWasPrice: true,
+                    })}
+                  </strong>
+                </p>
+              )}
             </fieldset>
 
             <fieldset className="price-type-fieldset">
@@ -408,7 +455,10 @@ export default function AdminProducts({
                     <strong>{p.name}</strong>
                     <span className="admin-card-meta">
                       {sub ? labelFor(sub) : '—'} ·{' '}
-                      {formatProductPrice(p, { includeUnit: p })}
+                      {formatProductPrice(p, {
+                        includeUnit: p,
+                        showWasPrice: hasProductDiscount(p),
+                      })}
                     </span>
                   </div>
                   <div className="admin-card-actions">
@@ -428,6 +478,10 @@ export default function AdminProducts({
                           unit: p.unit,
                           unit_min: p.unit_min != null ? Number(p.unit_min) : null,
                           unit_max: p.unit_max != null ? Number(p.unit_max) : null,
+                          discount_percent:
+                            p.discount_percent != null
+                              ? Number(p.discount_percent)
+                              : null,
                           image_url: p.image_url ?? '',
                           in_stock: p.in_stock,
                         })

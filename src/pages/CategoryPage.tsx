@@ -131,9 +131,17 @@ export default function CategoryPage() {
         {!loading && !error && category && !isSubcategoryView && (
           <>
             <header className="category-header">
-              <span className="category-page-icon" aria-hidden="true">
-                🍎
-              </span>
+              {category.image_url ? (
+                <img
+                  src={category.image_url}
+                  alt=""
+                  className="category-page-image"
+                />
+              ) : (
+                <span className="category-page-icon" aria-hidden="true">
+                  🍎
+                </span>
+              )}
               <div>
                 <h1>{category.name}</h1>
                 {category.description && <p>{category.description}</p>}
@@ -166,9 +174,17 @@ export default function CategoryPage() {
         {!loading && !error && category && subcategory && (
           <>
             <header className="category-header">
-              <span className="category-page-icon" aria-hidden="true">
-                🥭
-              </span>
+              {subcategory.image_url ? (
+                <img
+                  src={subcategory.image_url}
+                  alt=""
+                  className="category-page-image"
+                />
+              ) : (
+                <span className="category-page-icon" aria-hidden="true">
+                  🥭
+                </span>
+              )}
               <div>
                 <p className="category-parent-label">{category.name}</p>
                 <h1>{subcategory.name}</h1>

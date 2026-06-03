@@ -19,9 +19,15 @@ export default function CategoryCard({
 
   return (
     <Link to={`/category/${category.slug}`} className="category-card">
-      <span className="category-icon" aria-hidden="true">
-        {icon}
-      </span>
+      <div className="category-card-visual">
+        {category.image_url ? (
+          <img src={category.image_url} alt="" loading="lazy" />
+        ) : (
+          <span className="category-icon" aria-hidden="true">
+            {icon}
+          </span>
+        )}
+      </div>
       <h3>{category.name}</h3>
       {category.description && <p>{category.description}</p>}
       <span className="category-meta">

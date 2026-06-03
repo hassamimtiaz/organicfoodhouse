@@ -24,9 +24,15 @@ export default function SubcategoryCard({
       to={`/category/${parentSlug}/${subcategory.slug}`}
       className="subcategory-card"
     >
-      <span className="subcategory-icon" aria-hidden="true">
-        {icon}
-      </span>
+      <div className="subcategory-card-visual">
+        {subcategory.image_url ? (
+          <img src={subcategory.image_url} alt="" loading="lazy" />
+        ) : (
+          <span className="subcategory-icon" aria-hidden="true">
+            {icon}
+          </span>
+        )}
+      </div>
       <h3>{subcategory.name}</h3>
       {subcategory.description && <p>{subcategory.description}</p>}
       <span className="subcategory-meta">

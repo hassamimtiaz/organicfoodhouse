@@ -24,11 +24,15 @@ create table if not exists categories (
   slug text not null,
   description text,
   parent_id uuid references categories(id) on delete cascade,
+  image_url text,
+  is_visible boolean not null default true,
   created_at timestamptz not null default now()
 );
 
 comment on table categories is 'Major categories have parent_id NULL; subcategories reference their parent.';
 comment on column categories.parent_id is 'NULL = major category (e.g. Fruits). Set = subcategory (e.g. Mangoes under Fruits).';
+comment on column categories.image_url is 'Optional hero/card image for category or subcategory';
+comment on column categories.is_visible is 'When false, hidden from the public store';
 
 create table if not exists products (
   id uuid primary key default gen_random_uuid(),
@@ -45,6 +49,8 @@ create table if not exists products (
     check (unit_min is null or unit_min >= 0),
   unit_max numeric(10, 2)
     check (unit_max is null or unit_max >= 0),
+  discount_percent numeric(5, 2)
+    check (discount_percent is null or (discount_percent > 0 and discount_percent <= 100)),
   image_url text,
   in_stock boolean not null default true,
   created_at timestamptz not null default now()
@@ -67,6 +73,7 @@ alter table products add constraint products_unit_range_check check (
 comment on column products.unit is 'Measure name (kg, dozen, box, etc.)';
 comment on column products.unit_min is 'Minimum size/weight when sold in a range; null for fixed unit';
 comment on column products.unit_max is 'Maximum size/weight when sold in a range; null for fixed unit';
+comment on column products.discount_percent is 'Optional sale discount (1–100). Null = no discount.';
 
 alter table products drop constraint if exists products_price_range_check;
 alter table products add constraint products_price_range_check check (
