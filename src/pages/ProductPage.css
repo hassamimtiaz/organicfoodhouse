@@ -214,6 +214,14 @@
   margin: 0 0 1.5rem;
 }
 
+.product-recommendations--success {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+  text-align: left;
+  max-width: none;
+}
+
 @media (max-width: 900px) {
   .product-detail-grid {
     grid-template-columns: 1fr;

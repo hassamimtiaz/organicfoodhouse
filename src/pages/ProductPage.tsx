@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Breadcrumbs from '../components/Breadcrumbs'
+import ProductGridSection from '../components/ProductGridSection'
 import ProductPrice from '../components/ProductPrice'
 import Seo from '../components/Seo'
 import {
@@ -10,6 +11,7 @@ import {
 } from '../config/pricing'
 import { formatUnitLabel } from '../config/units'
 import { SITE, formatPricePKR, whatsappLink } from '../config/site'
+import { fetchProductRecommendations } from '../services/api'
 import {
   fetchProductById,
   getProductCategoryPath,
@@ -48,6 +50,8 @@ export default function ProductPage() {
   const [submitting, setSubmitting] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
+  const [alsoLikeProducts, setAlsoLikeProducts] = useState<Product[]>([])
 
   useEffect(() => {
     if (!id) return
@@ -55,6 +59,8 @@ export default function ProductPage() {
     async function load() {
       setLoading(true)
       setError(null)
+      setRelatedProducts([])
+      setAlsoLikeProducts([])
       try {
         const p = await fetchProductById(id!)
         if (!p) {
@@ -64,6 +70,10 @@ export default function ProductPage() {
         setProduct(p)
         const path = await getProductCategoryPath(p)
         setCategoryPath(path)
+
+        const { related, alsoLike } = await fetchProductRecommendations(p)
+        setRelatedProducts(related)
+        setAlsoLikeProducts(alsoLike)
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to load product')
       } finally {
@@ -141,6 +151,46 @@ export default function ProductPage() {
     { label: product.name },
   ]
 
+  const subcategoryLabel = categoryPath
+    ? slugToLabel(categoryPath.subSlug)
+    : null
+
+  const recommendations =
+    relatedProducts.length > 0 || alsoLikeProducts.length > 0 ? (
+      <div className="product-recommendations">
+        <ProductGridSection
+          title="Related products"
+          description={
+            subcategoryLabel
+              ? `More varieties from ${subcategoryLabel} you might enjoy.`
+              : 'More items from this collection.'
+          }
+          products={relatedProducts}
+          viewAll={
+            categoryPath
+              ? {
+                  label: `View all ${subcategoryLabel ?? 'products'}`,
+                  to: `/category/${categoryPath.parentSlug}/${categoryPath.subSlug}`,
+                }
+              : undefined
+          }
+        />
+        <ProductGridSection
+          title="You may also like"
+          description="Other seasonal picks from our catalog."
+          products={alsoLikeProducts}
+          viewAll={
+            categoryPath
+              ? {
+                  label: `Browse ${slugToLabel(categoryPath.parentSlug)}`,
+                  to: `/category/${categoryPath.parentSlug}`,
+                }
+              : { label: 'Browse shop', to: '/' }
+          }
+        />
+      </div>
+    ) : null
+
   return (
     <div className="product-page">
       <Seo
@@ -188,6 +238,19 @@ export default function ProductPage() {
                 Message on WhatsApp
               </a>
             </div>
+
+            {(relatedProducts.length > 0 || alsoLikeProducts.length > 0) && (
+              <div className="product-recommendations product-recommendations--success">
+                <ProductGridSection
+                  title="Related products"
+                  products={relatedProducts}
+                />
+                <ProductGridSection
+                  title="You may also like"
+                  products={alsoLikeProducts}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="product-detail-grid">
@@ -368,6 +431,8 @@ export default function ProductPage() {
             </div>
           </div>
         )}
+
+        {!orderSuccess && recommendations}
       </div>
     </div>
   )

@@ -11,12 +11,19 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const emoji = product.name.toLowerCase().includes('mango') ? '🥭' : '🍎'
   const preOrderMsg = `Hi! I want to pre-order ${product.name} from Organic Food House.`
+  const productUrl = `/product/${product.id}`
 
   return (
     <article className="product-card">
+      <Link
+        to={productUrl}
+        className="product-card-link"
+        aria-label={`View ${product.name} details`}
+      />
+
       <div className="product-card-visual">
         {product.image_url ? (
-          <img src={product.image_url} alt={product.name} loading="lazy" />
+          <img src={product.image_url} alt="" loading="lazy" />
         ) : (
           <span className="product-emoji" aria-hidden="true">
             {emoji}
@@ -27,8 +34,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           <span className="product-badge out">Out of stock</span>
         )}
       </div>
+
       <div className="product-card-body">
-        <h3>{product.name}</h3>
+        <h3>
+          <span className="product-card-title">{product.name}</span>
+        </h3>
         {product.description && (
           <p className="product-desc">{product.description}</p>
         )}
@@ -40,12 +50,14 @@ export default function ProductCard({ product }: ProductCardProps) {
               className="btn btn-primary btn-sm"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
             >
               Pre-order
             </a>
             <Link
-              to={`/product/${product.id}`}
+              to={productUrl}
               className="btn btn-outline btn-sm"
+              onClick={(e) => e.stopPropagation()}
             >
               View details
             </Link>
