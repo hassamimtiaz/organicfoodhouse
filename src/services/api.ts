@@ -296,6 +296,68 @@ export async function fetchVisibleProducts(): Promise<Product[]> {
   return products.filter((p) => visibleSubIds.has(p.category_id))
 }
 
+const RELATED_LIMIT = 4
+const ALSO_LIKE_LIMIT = 4
+
+export type ProductRecommendations = {
+  related: Product[]
+  alsoLike: Product[]
+}
+
+/** Same subcategory + sibling subcategories / catalog for detail-page sections */
+export async function fetchProductRecommendations(
+  product: Product,
+): Promise<ProductRecommendations> {
+  const categories = await loadAllCategoriesRaw()
+  const sub = categories.find((c) => c.id === product.category_id)
+  if (!sub) {
+    return { related: [], alsoLike: [] }
+  }
+
+  const sameSubcategory = await fetchProductsBySubcategory(product.category_id)
+  const related = sameSubcategory
+    .filter((p) => p.id !== product.id)
+    .slice(0, RELATED_LIMIT)
+
+  const excluded = new Set([product.id, ...related.map((p) => p.id)])
+  const alsoLike: Product[] = []
+
+  if (sub.parent_id) {
+    const siblingSubs = categories.filter(
+      (c) =>
+        c.parent_id === sub.parent_id &&
+        c.id !== product.category_id &&
+        isCategoryVisible(c),
+    )
+
+    for (const sibling of siblingSubs) {
+      const items = await fetchProductsBySubcategory(sibling.id)
+      for (const item of items) {
+        if (!excluded.has(item.id)) {
+          alsoLike.push(item)
+          excluded.add(item.id)
+          if (alsoLike.length >= ALSO_LIKE_LIMIT) break
+        }
+      }
+      if (alsoLike.length >= ALSO_LIKE_LIMIT) break
+    }
+  }
+
+  if (alsoLike.length < ALSO_LIKE_LIMIT) {
+    const visible = await fetchVisibleProducts()
+    for (const item of visible) {
+      if (item.category_id === product.category_id || excluded.has(item.id)) {
+        continue
+      }
+      alsoLike.push(item)
+      excluded.add(item.id)
+      if (alsoLike.length >= ALSO_LIKE_LIMIT) break
+    }
+  }
+
+  return { related, alsoLike: alsoLike.slice(0, ALSO_LIKE_LIMIT) }
+}
+
 export function formatSubcategoryLabel(
   sub: Category,
   topLevel: Category[],
