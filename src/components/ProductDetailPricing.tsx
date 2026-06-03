@@ -14,6 +14,7 @@ interface ProductDetailPricingProps {
     | 'price'
     | 'price_max'
     | 'price_type'
+    | 'discount_percent'
     | 'unit'
     | 'unit_min'
     | 'unit_max'
