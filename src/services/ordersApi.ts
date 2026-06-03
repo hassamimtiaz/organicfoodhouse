@@ -1,11 +1,8 @@
 import { seedOrderItems, seedOrders } from '../data/seedOrders'
 import { seedCategories, seedProducts } from '../data/seed'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
-import {
-  getOrderLineTotal,
-  getOrderUnitPrice,
-  normalizePriceType,
-} from '../config/pricing'
+import { normalizePriceType, getOrderLineTotal, getOrderUnitPrice } from '../config/pricing'
+import { formatUnitLabel } from '../config/units'
 import type {
   Order,
   OrderItem,
@@ -35,6 +32,14 @@ export async function fetchProductById(id: string): Promise<Product | null> {
     price_max:
       price_type === 'range' && data.price_max != null
         ? Number(data.price_max)
+        : null,
+    unit_min:
+      data.unit_min != null && data.unit_min !== undefined
+        ? Number(data.unit_min)
+        : null,
+    unit_max:
+      data.unit_max != null && data.unit_max !== undefined
+        ? Number(data.unit_max)
         : null,
   }
 }
@@ -78,6 +83,7 @@ export async function placeOrder(
   const unitPrice = getOrderUnitPrice(product)
   const lineTotal = getOrderLineTotal(product, form.quantity)
   const total = lineTotal
+  const unitLabel = formatUnitLabel(product)
 
   if (!isSupabaseConfigured || !supabase) {
     const orderId = `local-order-${crypto.randomUUID()}`
@@ -100,7 +106,7 @@ export async function placeOrder(
       product_name: product.name,
       quantity: form.quantity,
       unit_price: unitPrice,
-      unit: product.unit,
+      unit: unitLabel,
       line_total: lineTotal,
     }
     seedOrders.unshift(order)
@@ -130,8 +136,8 @@ export async function placeOrder(
     product_id: product.id,
     product_name: product.name,
     quantity: form.quantity,
-    unit_price: Number(product.price),
-    unit: product.unit,
+    unit_price: unitPrice,
+    unit: unitLabel,
     line_total: lineTotal,
   })
 

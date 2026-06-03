@@ -1,11 +1,39 @@
 import { seedCategories, seedProducts } from '../data/seed'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
+import {
+  isMissingColumnError,
+  supabaseErrorMessage,
+} from '../lib/supabaseErrors'
 import type {
   Category,
   CategoryFormData,
   Product,
   ProductFormData,
 } from '../types'
+
+function unitFields(form: ProductFormData) {
+  if (form.unit_type === 'range') {
+    if (form.unit_min == null || form.unit_max == null) {
+      throw new Error('For a unit range, enter both minimum and maximum size.')
+    }
+    if (form.unit_max < form.unit_min) {
+      throw new Error(
+        'For a unit range, maximum size must be greater than or equal to minimum size.',
+      )
+    }
+    return {
+      unit: form.unit,
+      unit_min: form.unit_min,
+      unit_max: form.unit_max,
+    }
+  }
+
+  return {
+    unit: form.unit,
+    unit_min: null,
+    unit_max: null,
+  }
+}
 
 function productPayload(form: ProductFormData) {
   if (form.price_type === 'range') {
@@ -23,10 +51,85 @@ function productPayload(form: ProductFormData) {
     price: form.price,
     price_type: form.price_type,
     price_max: form.price_type === 'range' ? form.price_max : null,
+    ...unitFields(form),
+    image_url: form.image_url || null,
+    in_stock: form.in_stock,
+  }
+}
+
+function payloadWithoutUnitRange(
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const { unit_min: _min, unit_max: _max, ...rest } = payload
+  return rest
+}
+
+function legacyProductPayload(form: ProductFormData) {
+  return {
+    category_id: form.category_id,
+    name: form.name,
+    description: form.description || null,
+    price: form.price,
     unit: form.unit,
     image_url: form.image_url || null,
     in_stock: form.in_stock,
   }
+}
+
+function payloadWithoutPriceRange(
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const { price_type: _pt, price_max: _pm, ...rest } = payload
+  return rest
+}
+
+async function writeProductRow(
+  mode: 'insert' | 'update',
+  id: string | null,
+  form: ProductFormData,
+): Promise<Product> {
+  const fullPayload = productPayload(form)
+  const attempts: Record<string, unknown>[] = [
+    fullPayload,
+    payloadWithoutUnitRange(fullPayload),
+    payloadWithoutPriceRange(payloadWithoutUnitRange(fullPayload)),
+    legacyProductPayload(form),
+  ]
+
+  const seen = new Set<string>()
+  let lastError: unknown = null
+
+  for (const payload of attempts) {
+    const key = JSON.stringify(payload)
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    const result =
+      mode === 'insert'
+        ? await supabase!.from('products').insert(payload).select().single()
+        : await supabase!
+            .from('products')
+            .update(payload)
+            .eq('id', id!)
+            .select()
+            .single()
+
+    if (!result.error) return result.data as Product
+
+    lastError = result.error
+    const retryable =
+      isMissingColumnError(result.error, [
+        'price_type',
+        'price_max',
+        'unit_min',
+        'unit_max',
+      ]) ||
+      (result.error as { code?: string }).code === 'PGRST204'
+
+    if (!retryable) break
+  }
+
+  throw new Error(supabaseErrorMessage(lastError))
 }
 
 function requireSupabaseForWrite() {
@@ -38,8 +141,9 @@ function requireSupabaseForWrite() {
 }
 
 export async function createProduct(form: ProductFormData): Promise<Product> {
+  const payload = productPayload(form)
+
   if (!isSupabaseConfigured || !supabase) {
-    const payload = productPayload(form)
     const product: Product = {
       id: `local-${crypto.randomUUID()}`,
       ...payload,
@@ -49,15 +153,7 @@ export async function createProduct(form: ProductFormData): Promise<Product> {
   }
 
   requireSupabaseForWrite()
-
-  const { data, error } = await supabase
-    .from('products')
-    .insert(productPayload(form))
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
+  return writeProductRow('insert', null, form)
 }
 
 export async function updateProduct(
@@ -76,16 +172,7 @@ export async function updateProduct(
   }
 
   requireSupabaseForWrite()
-
-  const { data, error } = await supabase
-    .from('products')
-    .update(productPayload(form))
-    .eq('id', id)
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
+  return writeProductRow('update', id, form)
 }
 
 export async function deleteProduct(id: string): Promise<void> {
@@ -97,7 +184,7 @@ export async function deleteProduct(id: string): Promise<void> {
 
   requireSupabaseForWrite()
   const { error } = await supabase.from('products').delete().eq('id', id)
-  if (error) throw error
+  if (error) throw new Error(supabaseErrorMessage(error))
 }
 
 export async function createCategory(
@@ -128,7 +215,7 @@ export async function createCategory(
     .select()
     .single()
 
-  if (error) throw error
+  if (error) throw new Error(supabaseErrorMessage(error))
   return data
 }
 
@@ -164,7 +251,7 @@ export async function updateCategory(
     .select()
     .single()
 
-  if (error) throw error
+  if (error) throw new Error(supabaseErrorMessage(error))
   return data
 }
 
@@ -217,5 +304,5 @@ export async function deleteCategory(id: string): Promise<void> {
 
   requireSupabaseForWrite()
   const { error } = await supabase.from('categories').delete().eq('id', id)
-  if (error) throw error
+  if (error) throw new Error(supabaseErrorMessage(error))
 }

@@ -8,6 +8,7 @@ import {
   getPriceRangeNote,
   isPriceRange,
 } from '../config/pricing'
+import { formatUnitLabel } from '../config/units'
 import { SITE, formatPricePKR, whatsappLink } from '../config/site'
 import {
   fetchProductById,
@@ -76,9 +77,10 @@ export default function ProductPage() {
     ? getOrderLineTotal(product, form.quantity)
     : 0
   const priceIsRange = product ? isPriceRange(product) : false
+  const unitLabel = product ? formatUnitLabel(product) : ''
 
   const whatsappMsg = product
-    ? `Hi! I want to order ${form.quantity} ${product.unit} of ${product.name} from Organic Food House.\nName: ${form.customer_name || '(pending)'}\nPhone: ${form.phone || '(pending)'}\nAddress: ${form.address_line || '(pending)'}, ${form.city || ''}`
+    ? `Hi! I want to order ${form.quantity} ${unitLabel} of ${product.name} from Organic Food House.\nName: ${form.customer_name || '(pending)'}\nPhone: ${form.phone || '(pending)'}\nAddress: ${form.address_line || '(pending)'}, ${form.city || ''}`
     : ''
 
   async function handleOrderSubmit(e: FormEvent) {
@@ -305,7 +307,7 @@ export default function ProductPage() {
                       />
                     </label>
                     <label>
-                      Quantity ({product.unit}) *
+                      Quantity ({unitLabel}) *
                       <input
                         type="number"
                         min="0.5"

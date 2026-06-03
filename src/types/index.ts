@@ -8,6 +8,7 @@ export interface Category {
 }
 
 export type PriceType = 'single' | 'range'
+export type UnitType = 'single' | 'range'
 
 export interface Product {
   id: string
@@ -18,6 +19,8 @@ export interface Product {
   price_type: PriceType
   price_max: number | null
   unit: string
+  unit_min: number | null
+  unit_max: number | null
   image_url: string | null
   in_stock: boolean
   created_at?: string
@@ -32,7 +35,10 @@ export interface ProductFormData {
   price_type: PriceType
   price: number
   price_max: number | null
+  unit_type: UnitType
   unit: string
+  unit_min: number | null
+  unit_max: number | null
   image_url: string
   in_stock: boolean
 }
