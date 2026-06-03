@@ -6,6 +6,15 @@ import { isTopLevelCategory } from '../types'
 
 function normalizeProduct(row: Product): Product {
   const price_type: PriceType = normalizePriceType(row.price_type, row.price_max)
+  const unit_min =
+    row.unit_min != null && row.unit_min !== undefined
+      ? Number(row.unit_min)
+      : null
+  const unit_max =
+    row.unit_max != null && row.unit_max !== undefined
+      ? Number(row.unit_max)
+      : null
+
   return {
     ...row,
     price: Number(row.price),
@@ -14,6 +23,8 @@ function normalizeProduct(row: Product): Product {
       price_type === 'range' && row.price_max != null
         ? Number(row.price_max)
         : null,
+    unit_min,
+    unit_max,
   }
 }
 

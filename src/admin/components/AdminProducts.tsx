@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import {
   createProduct,
   deleteProduct,
@@ -6,7 +6,8 @@ import {
 } from '../../services/adminApi'
 import { formatSubcategoryLabel } from '../../services/api'
 import { formatProductPrice } from '../../config/pricing'
-import type { Category, Product, ProductFormData, PriceType } from '../../types'
+import { formatUnitLabel } from '../../config/units'
+import type { Category, Product, ProductFormData, PriceType, UnitType } from '../../types'
 import ProductImageField from './ProductImageField'
 
 interface Props {
@@ -25,9 +26,16 @@ const emptyProduct: ProductFormData = {
   price_type: 'single',
   price: 0,
   price_max: null,
+  unit_type: 'single',
   unit: 'kg',
+  unit_min: null,
+  unit_max: null,
   image_url: '',
   in_stock: true,
+}
+
+function unitTypeFromProduct(product: Product): UnitType {
+  return product.unit_min != null && product.unit_max != null ? 'range' : 'single'
 }
 
 export default function AdminProducts({
@@ -38,15 +46,39 @@ export default function AdminProducts({
   onSaved,
   onMessage,
 }: Props) {
-  const [form, setForm] = useState<ProductFormData>({
-    ...emptyProduct,
-    category_id: subcategories[0]?.id ?? '',
-  })
+  const [form, setForm] = useState<ProductFormData>(emptyProduct)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
+  useEffect(() => {
+    if (editingId || subcategories.length === 0) return
+    setForm((current) => {
+      if (current.category_id) return current
+      return { ...current, category_id: subcategories[0].id }
+    })
+  }, [subcategories, editingId])
+
   function labelFor(sub: Category) {
     return formatSubcategoryLabel(sub, topLevel)
+  }
+
+  function setUnitType(unit_type: UnitType) {
+    setForm((f) => ({
+      ...f,
+      unit_type,
+      unit_min:
+        unit_type === 'range'
+          ? f.unit_min != null && f.unit_max != null && f.unit_max >= f.unit_min
+            ? f.unit_min
+            : 1
+          : null,
+      unit_max:
+        unit_type === 'range'
+          ? f.unit_min != null && f.unit_max != null && f.unit_max >= f.unit_min
+            ? f.unit_max
+            : f.unit_min ?? 1
+          : null,
+    }))
   }
 
   function setPriceType(price_type: PriceType) {
@@ -232,15 +264,86 @@ export default function AdminProducts({
               )}
             </fieldset>
 
-            <label>
-              Unit
-              <input
-                value={form.unit}
-                onChange={(e) => setForm({ ...form, unit: e.target.value })}
-                placeholder="kg, dozen, box…"
-                required
-              />
-            </label>
+            <fieldset className="price-type-fieldset">
+              <legend>Unit / size</legend>
+              <div className="price-type-options" role="radiogroup" aria-label="Unit type">
+                <label className="price-type-option">
+                  <input
+                    type="radio"
+                    name="unit_type"
+                    checked={form.unit_type === 'single'}
+                    onChange={() => setUnitType('single')}
+                  />
+                  Fixed unit
+                </label>
+                <label className="price-type-option">
+                  <input
+                    type="radio"
+                    name="unit_type"
+                    checked={form.unit_type === 'range'}
+                    onChange={() => setUnitType('range')}
+                  />
+                  Size range
+                </label>
+              </div>
+
+              <label>
+                Measure
+                <input
+                  value={form.unit}
+                  onChange={(e) => setForm({ ...form, unit: e.target.value })}
+                  placeholder="kg, dozen, box…"
+                  required
+                />
+              </label>
+
+              {form.unit_type === 'range' ? (
+                <div className="form-row form-row-stacked price-range-inputs">
+                  <label>
+                    Minimum size
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={form.unit_min ?? ''}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          unit_min: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      required
+                    />
+                  </label>
+                  <label>
+                    Maximum size
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={form.unit_max ?? ''}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          unit_max: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      required
+                    />
+                  </label>
+                </div>
+              ) : (
+                <p className="panel-hint">
+                  Shown as e.g. <strong>/ kg</strong> next to the price.
+                </p>
+              )}
+
+              {form.unit_type === 'range' && form.unit && (
+                <p className="panel-hint">
+                  Preview: <strong>{formatUnitLabel(form)}</strong>
+                </p>
+              )}
+            </fieldset>
 
             <ProductImageField
               imageUrl={form.image_url}
@@ -305,7 +408,7 @@ export default function AdminProducts({
                     <strong>{p.name}</strong>
                     <span className="admin-card-meta">
                       {sub ? labelFor(sub) : '—'} ·{' '}
-                      {formatProductPrice(p, { includeUnit: p.unit })}
+                      {formatProductPrice(p, { includeUnit: p })}
                     </span>
                   </div>
                   <div className="admin-card-actions">
@@ -321,7 +424,10 @@ export default function AdminProducts({
                           price_type: p.price_type,
                           price: Number(p.price),
                           price_max: p.price_max != null ? Number(p.price_max) : null,
+                          unit_type: unitTypeFromProduct(p),
                           unit: p.unit,
+                          unit_min: p.unit_min != null ? Number(p.unit_min) : null,
+                          unit_max: p.unit_max != null ? Number(p.unit_max) : null,
                           image_url: p.image_url ?? '',
                           in_stock: p.in_stock,
                         })

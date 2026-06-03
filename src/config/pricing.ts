@@ -1,7 +1,9 @@
+import { formatUnitLabel } from '../config/units'
 import { formatPricePKR } from './site'
 import type { PriceType, Product } from '../types'
 
 type PriceFields = Pick<Product, 'price' | 'price_max' | 'price_type'>
+type UnitFields = Pick<Product, 'unit' | 'unit_min' | 'unit_max'>
 
 export function normalizePriceType(
   price_type?: PriceType | null,
@@ -22,9 +24,15 @@ export function isPriceRange(product: PriceFields): boolean {
 
 export function formatProductPrice(
   product: PriceFields,
-  options?: { includeUnit?: string },
+  options?: { includeUnit?: UnitFields | string },
 ): string {
-  const unitSuffix = options?.includeUnit ? ` / ${options.includeUnit}` : ''
+  const unitLabel =
+    typeof options?.includeUnit === 'string'
+      ? options.includeUnit
+      : options?.includeUnit
+        ? formatUnitLabel(options.includeUnit)
+        : ''
+  const unitSuffix = unitLabel ? ` / ${unitLabel}` : ''
 
   if (isPriceRange(product)) {
     return `${formatPricePKR(Number(product.price))} – ${formatPricePKR(Number(product.price_max))}${unitSuffix}`

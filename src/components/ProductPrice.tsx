@@ -7,7 +7,10 @@ import type { Product } from '../types'
 import './ProductPrice.css'
 
 interface ProductPriceProps {
-  product: Pick<Product, 'price' | 'price_max' | 'price_type' | 'unit'>
+  product: Pick<
+    Product,
+    'price' | 'price_max' | 'price_type' | 'unit' | 'unit_min' | 'unit_max'
+  >
   /** large = product detail page */
   size?: 'default' | 'large'
   showUnit?: boolean
@@ -30,7 +33,7 @@ export default function ProductPrice({
       {prefix && <span className="price-prefix">{prefix}</span>}
       <span className="price-amount">
         {formatProductPrice(product, {
-          includeUnit: showUnit ? product.unit : undefined,
+          includeUnit: showUnit ? product : undefined,
         })}
       </span>
       {range && (

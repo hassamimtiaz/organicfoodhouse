@@ -41,6 +41,10 @@ create table if not exists products (
   price_max numeric(10, 2)
     check (price_max is null or price_max >= 0),
   unit text not null default 'kg',
+  unit_min numeric(10, 2)
+    check (unit_min is null or unit_min >= 0),
+  unit_max numeric(10, 2)
+    check (unit_max is null or unit_max >= 0),
   image_url text,
   in_stock boolean not null default true,
   created_at timestamptz not null default now()
@@ -50,6 +54,19 @@ comment on table products is 'Products belong to a subcategory (leaf category), 
 comment on column products.category_id is 'FK to categories.id — must be a subcategory row, not a top-level category.';
 comment on column products.price is 'Single price, or minimum when price_type is range';
 comment on column products.price_max is 'Maximum price when price_type is range; null for single price';
+
+alter table products add constraint products_unit_range_check check (
+  (unit_min is null and unit_max is null)
+  or (
+    unit_min is not null
+    and unit_max is not null
+    and unit_max >= unit_min
+  )
+);
+
+comment on column products.unit is 'Measure name (kg, dozen, box, etc.)';
+comment on column products.unit_min is 'Minimum size/weight when sold in a range; null for fixed unit';
+comment on column products.unit_max is 'Maximum size/weight when sold in a range; null for fixed unit';
 
 alter table products drop constraint if exists products_price_range_check;
 alter table products add constraint products_price_range_check check (
