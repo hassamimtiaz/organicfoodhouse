@@ -15,6 +15,7 @@ export default function PromoBanner() {
           <p>
             Skip the market rush. Reserve carbide-free, farm-fresh items while
             they&apos;re available. Delivering across {SITE.deliveryArea}.
+            Delivery charges apply based on your address.
           </p>
           <div className="promo-actions">
             <Link to="/#in-season" className="btn btn-promo">

@@ -43,6 +43,15 @@
   font-weight: 600;
 }
 
+.contact-delivery-charges {
+  color: #713f12;
+  font-weight: 500;
+}
+
+.footer-col .delivery-notice {
+  margin-top: 0.75rem;
+}
+
 .btn-whatsapp {
   display: inline-flex;
   align-items: center;

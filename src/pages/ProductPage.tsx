@@ -4,6 +4,7 @@ import Breadcrumbs from '../components/Breadcrumbs'
 import ProductGridSection from '../components/ProductGridSection'
 import PreorderStatus from '../components/PreorderStatus'
 import ProductDetailPricing from '../components/ProductDetailPricing'
+import DeliveryNotice from '../components/DeliveryNotice'
 import ProductOrderModal from '../components/ProductOrderModal'
 import Seo from '../components/Seo'
 import {
@@ -205,8 +206,10 @@ export default function ProductPage() {
               Thank you, {submittedForm.customer_name}. We received your{' '}
               {isPreorderFlow ? 'pre-order' : 'order'} for{' '}
               <strong>{product.name}</strong> and will contact you on{' '}
-              <strong>{submittedForm.phone}</strong> to confirm delivery.
+              <strong>{submittedForm.phone}</strong> to confirm delivery and
+              delivery charges for your address.
             </p>
+            <DeliveryNotice city={submittedForm.city} compact />
             <div className="hero-actions">
               <Link
                 to={
@@ -276,6 +279,8 @@ export default function ProductPage() {
               <div className="product-detail-price-box">
                 <ProductDetailPricing product={product} />
               </div>
+
+              <DeliveryNotice compact />
 
               {product.in_stock && (
                 <div className="product-order-actions">

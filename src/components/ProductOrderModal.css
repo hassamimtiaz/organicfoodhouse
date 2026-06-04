@@ -13,7 +13,7 @@
 .order-modal {
   position: relative;
   width: 100%;
-  max-width: 32rem;
+  max-width: 42rem;
   max-height: min(90vh, 720px);
   overflow-y: auto;
   padding: 1.5rem 1.35rem 1.35rem;
@@ -80,4 +80,12 @@
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--muted);
+}
+
+.order-modal .delivery-notice {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.order-modal .order-summary {
+  margin-top: 0.5rem;
 }

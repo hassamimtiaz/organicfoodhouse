@@ -1,9 +1,13 @@
-/** Shown on checkout / order forms */
+/** Short line for header / banners */
+export const DELIVERY_CHARGES_SHORT =
+  'Delivery charges apply based on your address.'
+
+/** Full note on checkout / order forms */
 export const DELIVERY_CHARGES_NOTE =
-  'Standard delivery charges may apply depending on your area in Lahore or your city. The exact fee will be confirmed when we contact you.'
+  'Delivery charges will be applicable based on your address. The exact amount depends on your city and delivery area — we will confirm the fee when we contact you.'
 
 export function deliveryNoteForCity(city: string): string {
   const trimmed = city.trim()
   if (!trimmed) return DELIVERY_CHARGES_NOTE
-  return `Standard delivery charges may apply for deliveries to ${trimmed} (and other areas in Lahore or across Pakistan). We will confirm the exact fee when we contact you.`
+  return `Delivery charges will be applicable based on your address (${trimmed}). The exact fee depends on your location — we will confirm the amount when we contact you.`
 }

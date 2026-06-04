@@ -38,6 +38,11 @@
   line-height: 1.7;
 }
 
+.home-intro-inner .delivery-notice {
+  margin-top: 1rem;
+  max-width: 42rem;
+}
+
 .home-intro-actions {
   display: flex;
   flex-wrap: wrap;

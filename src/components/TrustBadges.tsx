@@ -4,7 +4,11 @@ const badges = [
   { icon: '🌿', title: '100% Organic', desc: 'Certified natural growing' },
   { icon: '🚫', title: 'Carbide Free', desc: 'Safe ripening only' },
   { icon: '📅', title: 'Seasonal picks', desc: 'Fresh each harvest' },
-  { icon: '🚚', title: 'Home delivery', desc: 'Across Pakistan' },
+  {
+    icon: '🚚',
+    title: 'Home delivery',
+    desc: 'Charges based on your address',
+  },
   { icon: '✅', title: 'Best quality', desc: 'Export-grade care' },
   { icon: '💬', title: '10% pre-order off', desc: 'Order early & save' },
 ]

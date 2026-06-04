@@ -7,6 +7,7 @@ import {
 import { formatUnitLabel, hasUnitRange } from '../config/units'
 import { formatPricePKR } from '../config/site'
 import { placeOrder } from '../services/ordersApi'
+import DeliveryNotice from './DeliveryNotice'
 import type { PlaceOrderFormData, Product } from '../types'
 import './ProductOrderModal.css'
 
@@ -123,6 +124,8 @@ export default function ProductOrderModal({
           <strong>{product.name}</strong>
         </p>
 
+        <DeliveryNotice compact />
+
         <form onSubmit={handleSubmit} className="order-form order-form--modal">
           <div className="form-row">
             <label>
@@ -204,6 +207,8 @@ export default function ProductOrderModal({
             </label>
           </div>
 
+          <DeliveryNotice city={form.city} />
+
           <label>
             Order notes (optional)
             <textarea
@@ -227,6 +232,10 @@ export default function ProductOrderModal({
           {priceIsRange && (
             <p className="order-summary-note">{getPriceRangeNote()}</p>
           )}
+          <p className="order-summary-note order-summary-note--delivery">
+            Product total above excludes delivery charges (based on your
+            address).
+          </p>
 
           {formError && (
             <p className="form-error" role="alert">

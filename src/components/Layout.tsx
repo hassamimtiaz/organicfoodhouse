@@ -1,5 +1,7 @@
 import { Link, Outlet } from 'react-router-dom'
+import { DELIVERY_CHARGES_SHORT } from '../config/delivery'
 import { SITE, whatsappLink } from '../config/site'
+import DeliveryNotice from './DeliveryNotice'
 import { isSupabaseConfigured } from '../lib/supabase'
 import NavProducts from './NavProducts'
 import ProductSearch from './ProductSearch'
@@ -16,6 +18,7 @@ export default function Layout() {
             <span className="contact-delivery">
               🚚 Delivering across {SITE.deliveryArea}
             </span>
+            <span className="contact-delivery-charges">{DELIVERY_CHARGES_SHORT}</span>
           </div>
           <div className="contact-actions">
             <a
@@ -73,6 +76,7 @@ export default function Layout() {
               delivered across {SITE.deliveryArea}. Naturally ripened,
               carbide-free.
             </p>
+            <DeliveryNotice compact />
           </div>
           <div className="footer-col">
             <h4>Contact</h4>

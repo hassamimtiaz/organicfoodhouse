@@ -2,8 +2,8 @@ export const SITE = {
   name: 'Organic Food House',
   tagline: 'Seasonal organic produce, delivered fresh',
   description:
-    'Shop seasonal organic fruits and farm-fresh produce online in Pakistan. Carbide-free, naturally ripened — pre-order in-season items with free delivery on qualifying orders.',
-  url: import.meta.env.VITE_SITE_URL ?? 'https://organicfoods.pk',
+    'Shop seasonal organic fruits and farm-fresh produce online in Pakistan. Carbide-free, naturally ripened — pre-order in-season items. Delivery charges apply based on your address.',
+  url: import.meta.env.VITE_SITE_URL ?? 'https://organicfoodhouse.pk',
   email: 'organicfoodhouse786@gmail.com',
   phone: '0339-6622020',
   phoneTel: '+923396622020',

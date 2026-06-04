@@ -58,7 +58,8 @@ export default function MangoSeoContent({ variant = 'home' }: MangoSeoContentPro
 
         <p>
           Pre-order with {SITE.preOrderDiscount} off during the season. Free
-          delivery on qualifying orders above {SITE.freeShippingMin}.{' '}
+          delivery on qualifying orders above {SITE.freeShippingMin}. Delivery
+          charges apply based on your address.{' '}
           <Link to="/category/fruits/mangoes">Shop all mangoes online →</Link>
         </p>
       </div>

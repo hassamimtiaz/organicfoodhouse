@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import HeroSlider from '../components/HeroSlider'
 import JsonLd from '../components/JsonLd'
 import Seo from '../components/Seo'
+import DeliveryNotice from '../components/DeliveryNotice'
 import TrustBadges from '../components/TrustBadges'
 import CategoryCard from '../components/CategoryCard'
 import ProductCard from '../components/ProductCard'
@@ -65,8 +66,10 @@ export default function Home() {
             <p>
               {SITE.name} brings you the best of each harvest — fruits and more as
               seasons change. Pre-order online, chat on WhatsApp, or call us.
-              Save {SITE.preOrderDiscount} on pre-orders.
+              Save {SITE.preOrderDiscount} on pre-orders.{' '}
+              Delivery charges apply based on your address.
             </p>
+            <DeliveryNotice compact />
           </div>
           <div className="home-intro-actions">
             <Link to="/category/fruits" className="btn btn-primary">
@@ -151,7 +154,10 @@ export default function Home() {
               <li>100% organic, carbide-free ripening</li>
               <li>Farm-to-home delivery across {SITE.deliveryArea}</li>
               <li>Pre-order discounts on seasonal items</li>
-              <li>Free delivery on orders above {SITE.freeShippingMin}</li>
+              <li>
+                Free delivery on product totals above {SITE.freeShippingMin}{' '}
+                (delivery charges still based on your address where applicable)
+              </li>
             </ul>
           </div>
           <div className="home-help-card">

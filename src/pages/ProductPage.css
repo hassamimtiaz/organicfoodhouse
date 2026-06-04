@@ -93,6 +93,10 @@
   font-size: 0.9rem;
 }
 
+.product-detail-info > .delivery-notice {
+  margin: 0 0 1rem;
+}
+
 .product-order-actions {
   display: flex;
   flex-direction: column;
@@ -194,6 +198,12 @@
   padding: 3rem 1rem;
   max-width: 520px;
   margin: 0 auto;
+}
+
+.order-success .delivery-notice {
+  margin: 1.25rem auto 0;
+  max-width: 36rem;
+  text-align: left;
 }
 
 .success-icon {
