@@ -26,22 +26,6 @@
     padding: 2.5rem 0;
   }
 
-  .contact-bar-inner {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0.6rem 0;
-  }
-
-  .contact-items {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.35rem;
-  }
-
-  .contact-actions {
-    width: 100%;
-  }
-
   .contact-actions .btn-whatsapp {
     width: 100%;
     justify-content: center;
@@ -65,26 +49,9 @@
     width: 100%;
   }
 
-  .product-search--header {
+  .header-whatsapp-btn {
     width: 100%;
-  }
-
-  .product-search-form {
-    flex-wrap: wrap;
-    border-radius: var(--radius-lg);
-    padding: 0.5rem;
-  }
-
-  .product-search-form input {
-    width: 100%;
-    min-width: 0;
-    order: 1;
-    flex: 1 1 100%;
-    padding: 0.5rem 0.25rem;
-  }
-
-  .search-icon {
-    order: 0;
+    justify-content: center;
   }
 
   .search-submit {

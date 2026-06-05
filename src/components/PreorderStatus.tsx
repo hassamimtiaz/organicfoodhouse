@@ -1,4 +1,4 @@
-import { SITE } from '../config/site'
+import { hasProductDiscount } from '../config/pricing'
 import {
   acceptsPreorder,
   formatDeliveryStartLabel,
@@ -51,8 +51,10 @@ export default function PreorderStatus({
             <>
               <strong>{product.name}</strong> is available to pre-order now.
               Deliveries begin from{' '}
-              {deliveryLabel ?? 'the date below'} — save {SITE.preOrderDiscount}{' '}
-              when you order early.
+              {deliveryLabel ?? 'the date below'}
+              {hasProductDiscount(product)
+                ? ` — save ${product.discount_percent}% when you pre-order.`
+                : ' — pre-order discounts apply on this item.'}
             </>
           ) : null}
         </p>

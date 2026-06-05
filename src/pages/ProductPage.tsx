@@ -184,7 +184,11 @@ export default function ProductPage() {
         title={`Buy ${product.name} Online`}
         description={
           product.description ??
-          `Order fresh organic ${product.name} from ${SITE.name}. Pre-order with ${SITE.preOrderDiscount} off — delivered across ${SITE.deliveryArea}.`
+          `Order fresh organic ${product.name} from ${SITE.name}.${
+            hasProductDiscount(product)
+              ? ` Pre-order with ${product.discount_percent}% off`
+              : ' Pre-order available'
+          } — delivered across ${SITE.deliveryArea}.`
         }
         path={`/product/${product.id}`}
       />

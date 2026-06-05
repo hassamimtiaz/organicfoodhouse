@@ -9,8 +9,8 @@ export default function PromoBanner() {
         <div className="promo-banner-text">
           <p className="promo-eyebrow">Seasonal pre-order</p>
           <h2>
-            Pre-order in-season produce — get{' '}
-            <strong>{SITE.preOrderDiscount} off</strong>
+            Pre-order in-season produce —{' '}
+            <strong>discounts on selected items</strong>
           </h2>
           <p>
             Skip the market rush. Reserve carbide-free, farm-fresh items while

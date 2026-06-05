@@ -8,7 +8,10 @@ import {
 import { getOrderLineTotal, getOrderUnitPrice } from '../config/pricing'
 import { formatUnitLabel } from '../config/units'
 import { normalizeProductRow } from '../lib/productNormalize'
-import { isMissingColumnError } from '../lib/supabaseErrors'
+import {
+  isMissingColumnError,
+  supabaseErrorMessage,
+} from '../lib/supabaseErrors'
 import type {
   Order,
   OrderItem,
@@ -140,33 +143,35 @@ export async function placeOrder(
     total,
   }
 
-  let order: Order | null = null
+  // Client-generated id: anon users may INSERT orders but cannot SELECT them (RLS).
+  const orderId = crypto.randomUUID()
+  let insertedPayload: (typeof fullPayload | typeof legacyPayload) | null =
+    null
   let lastError: unknown = null
 
   for (const payload of [fullPayload, legacyPayload]) {
-    const result = await supabase
-      .from('orders')
-      .insert(payload)
-      .select()
-      .single()
+    const { error } = await supabase.from('orders').insert({
+      id: orderId,
+      ...payload,
+    })
 
-    if (!result.error) {
-      order = normalizeOrderRow(result.data as Order)
+    if (!error) {
+      insertedPayload = payload
       break
     }
 
-    lastError = result.error
-    if (
-      !isMissingColumnError(result.error, ['order_type', 'advance_payment'])
-    ) {
-      throw result.error
+    lastError = error
+    if (!isMissingColumnError(error, ['order_type', 'advance_payment'])) {
+      throw new Error(supabaseErrorMessage(error))
     }
   }
 
-  if (!order) throw lastError
+  if (!insertedPayload) {
+    throw new Error(supabaseErrorMessage(lastError))
+  }
 
   const { error: itemError } = await supabase.from('order_items').insert({
-    order_id: order.id,
+    order_id: orderId,
     product_id: product.id,
     product_name: product.name,
     quantity,
@@ -175,7 +180,16 @@ export async function placeOrder(
     line_total: lineTotal,
   })
 
-  if (itemError) throw itemError
+  if (itemError) {
+    await supabase.from('orders').delete().eq('id', orderId)
+    throw new Error(supabaseErrorMessage(itemError))
+  }
+
+  const order = normalizeOrderRow({
+    id: orderId,
+    ...insertedPayload,
+    created_at: new Date().toISOString(),
+  } as Order)
 
   return order
 }

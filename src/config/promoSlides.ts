@@ -18,7 +18,7 @@ export const promoSlides: PromoSlide[] = [
     imageAlt: 'Fresh ripe mangoes on a wooden table',
     badge: 'In season now',
     title: 'Premium mango season is here',
-    subtitle: 'Pre-order export-grade varieties with 10% off. Carbide-free & farm-fresh.',
+    subtitle: 'Pre-order export-grade varieties — discounts on select items. Carbide-free & farm-fresh.',
     ctaLabel: 'Shop mangoes',
     ctaLink: '/category/fruits/mangoes',
   },
@@ -38,7 +38,7 @@ export const promoSlides: PromoSlide[] = [
     image:
       'https://images.unsplash.com/photo-1553279768-8650adbb2896?w=1400&q=80&auto=format&fit=crop',
     imageAlt: 'Golden mangoes in a harvest basket',
-    badge: `Pre-order · Save 10%`,
+    badge: 'Pre-order · Save early',
     title: 'Reserve before the season sells out',
     subtitle: 'Order on the website, WhatsApp, or call — we deliver the best quality.',
     ctaLabel: 'Shop seasonal picks',

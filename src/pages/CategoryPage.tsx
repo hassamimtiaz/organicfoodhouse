@@ -111,7 +111,7 @@ export default function CategoryPage() {
     <div className="category-page">
       <Seo
         title={seoTitle}
-        description={`Shop ${subcategory?.name ?? category?.name ?? 'seasonal organic'} at ${SITE.name}. Pre-order with ${SITE.preOrderDiscount} off — delivered across ${SITE.deliveryArea}.`}
+        description={`Shop ${subcategory?.name ?? category?.name ?? 'seasonal organic'} at ${SITE.name}. Pre-order seasonal items — discounts shown on each product. Delivered across ${SITE.deliveryArea}.`}
         path={seoPath}
       />
       <div className="container">

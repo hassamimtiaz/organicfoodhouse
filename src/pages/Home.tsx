@@ -3,43 +3,22 @@ import { Link } from 'react-router-dom'
 import HeroSlider from '../components/HeroSlider'
 import JsonLd from '../components/JsonLd'
 import Seo from '../components/Seo'
-import DeliveryNotice from '../components/DeliveryNotice'
 import TrustBadges from '../components/TrustBadges'
-import CategoryCard from '../components/CategoryCard'
 import ProductCard from '../components/ProductCard'
 import { SITE, whatsappLink } from '../config/site'
-import { fetchVisibleProducts, fetchSubcategories, fetchTopLevelCategories } from '../services/api'
-import type { Category, Product } from '../types'
+import { fetchVisibleProducts } from '../services/api'
+import type { Product } from '../types'
 import './Home.css'
 
 export default function Home() {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [subcategoryCounts, setSubcategoryCounts] = useState<
-    Record<string, number>
-  >({})
   const [featured, setFeatured] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
       try {
-        const cats = await fetchTopLevelCategories()
-        setCategories(cats)
-
-        const counts: Record<string, number> = {}
-        await Promise.all(
-          cats.map(async (cat) => {
-            const subs = await fetchSubcategories(cat.id)
-            counts[cat.id] = subs.length
-          }),
-        )
-        setSubcategoryCounts(counts)
-
         const all = await fetchVisibleProducts()
         setFeatured(all.slice(0, 8))
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Failed to load')
       } finally {
         setLoading(false)
       }
@@ -58,7 +37,7 @@ export default function Home() {
 
       <HeroSlider />
 
-      <section className="home-intro">
+      {/* <section className="home-intro">
         <div className="container home-intro-inner">
           <div>
             <span className="home-intro-tag">Seasonal marketplace</span>
@@ -66,7 +45,7 @@ export default function Home() {
             <p>
               {SITE.name} brings you the best of each harvest — fruits and more as
               seasons change. Pre-order online, chat on WhatsApp, or call us.
-              Save {SITE.preOrderDiscount} on pre-orders.{' '}
+              Pre-order discounts available on selected seasonal items.{' '}
               Delivery charges apply based on your address.
             </p>
             <DeliveryNotice compact />
@@ -85,36 +64,11 @@ export default function Home() {
             </a>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <TrustBadges />
 
-      <section className="section section-categories">
-        <div className="container">
-          <div className="section-header">
-            <h2>Shop by category</h2>
-            <p>
-              Explore what&apos;s available this season — more categories coming
-              as harvests arrive
-            </p>
-          </div>
-          {loading ? (
-            <p className="status-msg">Loading categories…</p>
-          ) : error ? (
-            <p className="status-msg error">{error}</p>
-          ) : (
-            <div className="category-grid">
-              {categories.map((cat) => (
-                <CategoryCard
-                  key={cat.id}
-                  category={cat}
-                  subcategoryCount={subcategoryCounts[cat.id] ?? 0}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      {/* Seasonal marketplace */}
 
       <section className="section section-alt" id="in-season">
         <div className="container">
@@ -133,11 +87,11 @@ export default function Home() {
               ))}
             </div>
           )}
-          <div className="section-cta">
+          {/* <div className="section-cta">
             <Link to="/category/fruits" className="btn btn-outline">
               View all products →
             </Link>
-          </div>
+          </div> */}
         </div>
       </section>
 
@@ -184,7 +138,7 @@ export default function Home() {
       <section className="section cta-final">
         <div className="container cta-final-inner">
           <h2>Don&apos;t miss this season&apos;s harvest</h2>
-          <p>Pre-order today and get {SITE.preOrderDiscount} off — limited stock.</p>
+          <p>Pre-order today — limited stock. Discounts shown on each product.</p>
           <div className="home-intro-actions">
             <Link to="/category/fruits" className="btn btn-primary">
               Start shopping

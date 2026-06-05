@@ -81,11 +81,3 @@
   font-weight: 500;
   color: var(--muted);
 }
-
-.order-modal .delivery-notice {
-  margin: 0.25rem 0 0.5rem;
-}
-
-.order-modal .order-summary {
-  margin-top: 0.5rem;
-}

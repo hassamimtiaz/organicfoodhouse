@@ -10,8 +10,7 @@ export const SITE = {
   whatsapp: '923396622020',
   whatsappDisplay: '0339-6622020',
   deliveryArea: 'Pakistan',
-  preOrderDiscount: '10%',
-  freeShippingMin: 'Rs. 3,000',
+  freeShippingMin: 'Rs. 5,000',
 } as const
 
 export function whatsappLink(message?: string) {

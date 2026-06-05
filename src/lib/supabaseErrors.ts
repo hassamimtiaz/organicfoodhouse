@@ -22,6 +22,17 @@ export function supabaseErrorMessage(err: unknown): string {
       if (message.includes('is_visible')) {
         return 'Database is missing category visibility column. Run supabase/migrations/008_category_image_and_visibility.sql in the Supabase SQL editor, then try again.'
       }
+      if (message.includes('order_type') || message.includes('advance_payment')) {
+        return 'Database is missing pre-order order columns. Run supabase/migrations/010_orders_preorder_advance.sql in the Supabase SQL editor, then try again.'
+      }
+    }
+
+    if (code === '42501' || message.toLowerCase().includes('row-level security')) {
+      return 'Order could not be saved (database permissions). Ensure supabase/migrations/003_orders.sql is applied and public insert policies exist for orders and order_items.'
+    }
+
+    if (code === '42P01' && message.includes('orders')) {
+      return 'Orders table is missing. Run supabase/migrations/003_orders.sql in the Supabase SQL editor, then try again.'
     }
 
     return message

@@ -1,0 +1,93 @@
+.site-logo {
+  flex-shrink: 0;
+}
+
+.site-logo--header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  line-height: 1.2;
+}
+
+.site-logo-mark {
+  display: block;
+  height: 60px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.site-logo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.site-logo-name {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  font-size: calc(1.45rem + 2px);
+  letter-spacing: 0.02em;
+  color: #2c5f2e;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.site-logo-tagline {
+  font-family: 'Jost', sans-serif;
+  font-weight: 500;
+  font-size: calc(0.62rem + 1px);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #7bae5a;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.site-logo--full {
+  display: block;
+  height: clamp(38px, 5vw, 52px);
+  width: auto;
+  max-width: min(220px, 55vw);
+}
+
+.site-logo--mark-only {
+  height: 60px;
+  width: auto;
+}
+
+@media (max-width: 900px) {
+  .site-logo-mark,
+  .site-logo--mark-only {
+    height: 54px;
+  }
+
+  .site-logo-name {
+    font-size: calc(1.3rem + 2px);
+  }
+
+  .site-logo-tagline {
+    font-size: calc(0.58rem + 1px);
+    letter-spacing: 0.22em;
+  }
+}
+
+@media (max-width: 520px) {
+  .site-logo--header {
+    gap: 0.55rem;
+  }
+
+  .site-logo-mark {
+    height: 48px;
+  }
+
+  .site-logo-name {
+    font-size: calc(1.15rem + 2px);
+  }
+
+  .site-logo-tagline {
+    font-size: calc(0.5rem + 1px);
+    letter-spacing: 0.18em;
+  }
+}

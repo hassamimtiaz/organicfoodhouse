@@ -6,8 +6,8 @@ import {
 } from '../config/pricing'
 import { formatUnitLabel, hasUnitRange } from '../config/units'
 import { formatPricePKR } from '../config/site'
+import { supabaseErrorMessage } from '../lib/supabaseErrors'
 import { placeOrder } from '../services/ordersApi'
-import DeliveryNotice from './DeliveryNotice'
 import type { PlaceOrderFormData, Product } from '../types'
 import './ProductOrderModal.css'
 
@@ -83,7 +83,7 @@ export default function ProductOrderModal({
       onSuccess(form)
       onClose()
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Order failed')
+      setFormError(supabaseErrorMessage(err))
     } finally {
       setSubmitting(false)
     }
@@ -123,8 +123,6 @@ export default function ProductOrderModal({
         <p className="order-modal-product">
           <strong>{product.name}</strong>
         </p>
-
-        <DeliveryNotice compact />
 
         <form onSubmit={handleSubmit} className="order-form order-form--modal">
           <div className="form-row">
@@ -207,8 +205,6 @@ export default function ProductOrderModal({
             </label>
           </div>
 
-          <DeliveryNotice city={form.city} />
-
           <label>
             Order notes (optional)
             <textarea
@@ -232,11 +228,6 @@ export default function ProductOrderModal({
           {priceIsRange && (
             <p className="order-summary-note">{getPriceRangeNote()}</p>
           )}
-          <p className="order-summary-note order-summary-note--delivery">
-            Product total above excludes delivery charges (based on your
-            address).
-          </p>
-
           {formError && (
             <p className="form-error" role="alert">
               {formError}

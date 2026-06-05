@@ -10,7 +10,7 @@ const badges = [
     desc: 'Charges based on your address',
   },
   { icon: '✅', title: 'Best quality', desc: 'Export-grade care' },
-  { icon: '💬', title: '10% pre-order off', desc: 'Order early & save' },
+  { icon: '💬', title: 'Pre-order savings', desc: 'Discounts on select items' },
 ]
 
 export default function TrustBadges() {
