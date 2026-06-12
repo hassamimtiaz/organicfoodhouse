@@ -109,6 +109,15 @@ export interface CartLine {
   quantity: number
 }
 
+export interface OrderSuccessPayload {
+  customerName: string
+  phone: string
+  isPreorder: boolean
+  productIds: string[]
+  productNames: string[]
+  categoryPath: { parentSlug: string; subSlug: string } | null
+}
+
 export function isTopLevelCategory(category: Category): boolean {
   return category.parent_id === null
 }

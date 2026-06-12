@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import AddToCartButton from '../components/AddToCartButton'
 import Breadcrumbs from '../components/Breadcrumbs'
 import ProductGridSection from '../components/ProductGridSection'
@@ -14,6 +14,7 @@ import {
 } from '../config/preorder'
 import { hasProductDiscount } from '../config/pricing'
 import { SITE, whatsappLink } from '../config/site'
+import { saveOrderSuccessPayload } from '../lib/orderSuccessStorage'
 import { fetchProductRecommendations } from '../services/api'
 import { getProductUrl } from '../lib/productSlug'
 import {
@@ -32,6 +33,7 @@ function slugToLabel(slug: string) {
 
 export default function ProductPage() {
   const { slug: urlRef } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
   const [product, setProduct] = useState<Product | null>(null)
   const [categoryPath, setCategoryPath] = useState<{
     parentSlug: string
@@ -40,10 +42,6 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [orderModalOpen, setOrderModalOpen] = useState(false)
-  const [orderSuccess, setOrderSuccess] = useState(false)
-  const [submittedForm, setSubmittedForm] = useState<PlaceOrderFormData | null>(
-    null,
-  )
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
   const [alsoLikeProducts, setAlsoLikeProducts] = useState<Product[]>([])
 
@@ -100,9 +98,17 @@ export default function ProductPage() {
     : ''
 
   function handleOrderSuccess(form: PlaceOrderFormData) {
-    setSubmittedForm(form)
-    setOrderSuccess(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (!product) return
+
+    saveOrderSuccessPayload({
+      customerName: form.customer_name,
+      phone: form.phone,
+      isPreorder: isPreorderFlow,
+      productIds: [product.id],
+      productNames: [product.name],
+      categoryPath,
+    })
+    navigate('/order/success', { replace: true })
   }
 
   if (loading) {
@@ -148,17 +154,6 @@ export default function ProductPage() {
   const subcategoryLabel = categoryPath
     ? slugToLabel(categoryPath.subSlug)
     : null
-
-  const successRecommendations = (() => {
-    const seen = new Set<string>()
-    const items: Product[] = []
-    for (const p of [...relatedProducts, ...alsoLikeProducts]) {
-      if (seen.has(p.id)) continue
-      seen.add(p.id)
-      items.push(p)
-    }
-    return items
-  })()
 
   const recommendations =
     relatedProducts.length > 0 || alsoLikeProducts.length > 0 ? (
@@ -212,141 +207,81 @@ export default function ProductPage() {
       />
 
       <div className="container">
-        {!orderSuccess && <Breadcrumbs items={breadcrumbItems} />}
+        <Breadcrumbs items={breadcrumbItems} />
 
-        {orderSuccess && submittedForm ? (
-          <>
-            <div className="order-success">
-              <span className="success-icon" aria-hidden="true">
-                ✓
+        <div className="product-detail-grid">
+          <div className="product-detail-visual">
+            {product.image_url ? (
+              <img src={product.image_url} alt={product.name} />
+            ) : (
+              <span className="product-detail-emoji" aria-hidden="true">
+                🥭
               </span>
-              <h1>
-                {isPreorderFlow
-                  ? 'Pre-order placed successfully!'
-                  : 'Order placed successfully!'}
-              </h1>
-              <p>
-                Thank you, {submittedForm.customer_name}. We received your{' '}
-                {isPreorderFlow ? 'pre-order' : 'order'} for{' '}
-                <strong>{product.name}</strong> and will contact you on{' '}
-                <strong>{submittedForm.phone}</strong> to confirm delivery.
-              </p>
-              <div className="order-success-actions">
-                <Link
-                  to={
-                    categoryPath
-                      ? `/category/${categoryPath.parentSlug}/${categoryPath.subSlug}`
-                      : '/'
-                  }
+            )}
+            {detailBadge && (
+              <span
+                className={`product-detail-badge ${comingSoon ? 'product-detail-badge--soon' : ''}`}
+              >
+                {detailBadge}
+              </span>
+            )}
+          </div>
+
+          <div className="product-detail-info">
+            <p className="product-detail-origin">
+              Organic · Seasonal · {SITE.deliveryArea}
+            </p>
+            <h1>{product.name}</h1>
+            {product.description && (
+              <p className="product-detail-desc">{product.description}</p>
+            )}
+
+            <PreorderStatus product={product} variant="detail" />
+
+            <div className="product-detail-price-box">
+              <ProductDetailPricing product={product} />
+            </div>
+
+            <DeliveryNotice compact />
+
+            {product.in_stock && (
+              <div className="product-order-actions">
+                <button
+                  type="button"
                   className="btn btn-primary"
+                  onClick={() => setOrderModalOpen(true)}
                 >
-                  Continue shopping
-                </Link>
+                  {isPreorderFlow ? 'Pre-order now' : 'Buy now'}
+                </button>
+                <AddToCartButton product={product} variant="outline" />
                 <a
-                  href={whatsappLink(
-                    `Hi, I placed a website ${isPreorderFlow ? 'pre-order' : 'order'} for ${product.name}. My phone is ${submittedForm.phone}.`,
-                  )}
+                  href={whatsappLink(whatsappMsg)}
                   className="btn btn-outline"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Message on WhatsApp
+                  {isPreorderFlow
+                    ? 'Pre-order on WhatsApp'
+                    : 'Order on WhatsApp'}
+                </a>
+                <a
+                  href={`tel:${SITE.phoneTel}`}
+                  className="btn btn-outline"
+                >
+                  Call for inquiry — {SITE.phone}
                 </a>
               </div>
-            </div>
-
-            {successRecommendations.length > 0 && (
-              <div className="product-recommendations product-recommendations--success">
-                <ProductGridSection
-                  title="More you might like"
-                  products={successRecommendations}
-                  viewAll={
-                    categoryPath
-                      ? {
-                          label: `View all ${subcategoryLabel ?? 'products'}`,
-                          to: `/category/${categoryPath.parentSlug}/${categoryPath.subSlug}`,
-                        }
-                      : undefined
-                  }
-                />
-              </div>
             )}
-          </>
-        ) : (
-          <div className="product-detail-grid">
-            <div className="product-detail-visual">
-              {product.image_url ? (
-                <img src={product.image_url} alt={product.name} />
-              ) : (
-                <span className="product-detail-emoji" aria-hidden="true">
-                  🥭
-                </span>
-              )}
-              {detailBadge && (
-                <span
-                  className={`product-detail-badge ${comingSoon ? 'product-detail-badge--soon' : ''}`}
-                >
-                  {detailBadge}
-                </span>
-              )}
-            </div>
 
-            <div className="product-detail-info">
-              <p className="product-detail-origin">
-                Organic · Seasonal · {SITE.deliveryArea}
+            {!product.in_stock && (
+              <p className="out-stock-label product-out-stock-block">
+                Currently unavailable — contact us for availability.
               </p>
-              <h1>{product.name}</h1>
-              {product.description && (
-                <p className="product-detail-desc">{product.description}</p>
-              )}
-
-              <PreorderStatus product={product} variant="detail" />
-
-              <div className="product-detail-price-box">
-                <ProductDetailPricing product={product} />
-              </div>
-
-              <DeliveryNotice compact />
-
-              {product.in_stock && (
-                <div className="product-order-actions">
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => setOrderModalOpen(true)}
-                  >
-                    {isPreorderFlow ? 'Pre-order now' : 'Buy now'}
-                  </button>
-                  <AddToCartButton product={product} variant="outline" />
-                  <a
-                    href={whatsappLink(whatsappMsg)}
-                    className="btn btn-outline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {isPreorderFlow
-                      ? 'Pre-order on WhatsApp'
-                      : 'Order on WhatsApp'}
-                  </a>
-                  <a
-                    href={`tel:${SITE.phoneTel}`}
-                    className="btn btn-outline"
-                  >
-                    Call for inquiry — {SITE.phone}
-                  </a>
-                </div>
-              )}
-
-              {!product.in_stock && (
-                <p className="out-stock-label product-out-stock-block">
-                  Currently unavailable — contact us for availability.
-                </p>
-              )}
-            </div>
+            )}
           </div>
-        )}
+        </div>
 
-        {!orderSuccess && recommendations}
+        {recommendations}
       </div>
 
       {product.in_stock && (

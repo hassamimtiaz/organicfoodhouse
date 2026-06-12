@@ -1,19 +1,22 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import CartCheckoutModal from '../components/CartCheckoutModal'
 import Seo from '../components/Seo'
 import { MAX_PACKS_PER_ITEM } from '../lib/cartStorage'
 import { getCartLineTotal } from '../lib/cartTotals'
 import { formatUnitLabel } from '../config/units'
-import { formatPricePKR, SITE, whatsappLink } from '../config/site'
+import { formatPricePKR, SITE } from '../config/site'
 import { getProductUrl } from '../lib/productSlug'
 import { isComingSoonProduct } from '../config/preorder'
 import { getPriceRangeNote } from '../config/pricing'
+import { saveOrderSuccessPayload } from '../lib/orderSuccessStorage'
+import { getProductCategoryPath } from '../services/ordersApi'
 import { useCart } from '../contexts/CartContext'
 import type { CheckoutFormData } from '../types'
 import './CartPage.css'
 
 export default function CartPage() {
+  const navigate = useNavigate()
   const {
     items,
     subtotal,
@@ -24,58 +27,25 @@ export default function CartPage() {
     clearCart,
   } = useCart()
   const [checkoutOpen, setCheckoutOpen] = useState(false)
-  const [orderSuccess, setOrderSuccess] = useState(false)
-  const [successHasPreorder, setSuccessHasPreorder] = useState(false)
-  const [submittedForm, setSubmittedForm] = useState<CheckoutFormData | null>(
-    null,
-  )
 
-  function handleCheckoutSuccess(form: CheckoutFormData) {
-    setSuccessHasPreorder(hasPreorder)
+  async function handleCheckoutSuccess(form: CheckoutFormData) {
+    const productIds = items.map((line) => line.product.id)
+    const productNames = items.map((line) => line.product.name)
+    const categoryPath =
+      items.length > 0
+        ? await getProductCategoryPath(items[0].product)
+        : null
+
     clearCart()
-    setSubmittedForm(form)
-    setOrderSuccess(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  if (orderSuccess && submittedForm) {
-    return (
-      <div className="cart-page">
-        <Seo title="Order placed" description="Your order was placed successfully." path="/cart" />
-        <div className="container">
-          <div className="cart-success">
-            <span className="success-icon" aria-hidden="true">
-              ✓
-            </span>
-            <h1>
-              {successHasPreorder
-                ? 'Pre-order placed successfully!'
-                : 'Order placed successfully!'}
-            </h1>
-            <p>
-              Thank you, {submittedForm.customer_name}. We received your{' '}
-              {successHasPreorder ? 'pre-order' : 'order'} and will contact you on{' '}
-              <strong>{submittedForm.phone}</strong> to confirm delivery.
-            </p>
-            <div className="cart-success-actions">
-              <Link to="/" className="btn btn-primary">
-                Continue shopping
-              </Link>
-              <a
-                href={whatsappLink(
-                  `Hi, I placed a website ${successHasPreorder ? 'pre-order' : 'order'}. My phone is ${submittedForm.phone}.`,
-                )}
-                className="btn btn-outline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Message on WhatsApp
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    saveOrderSuccessPayload({
+      customerName: form.customer_name,
+      phone: form.phone,
+      isPreorder: hasPreorder,
+      productIds,
+      productNames,
+      categoryPath,
+    })
+    navigate('/order/success', { replace: true })
   }
 
   return (
