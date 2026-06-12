@@ -9,6 +9,7 @@ import CategoryPage from './pages/CategoryPage'
 import CartPage from './pages/CartPage'
 import Home from './pages/Home'
 import OrderSuccessPage from './pages/OrderSuccessPage'
+import OrderPage from './pages/OrderPage'
 import ProductPage from './pages/ProductPage'
 import AboutUs from './pages/AboutUs'
 import OurValues from './pages/OurValues'
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="about-us" element={<AboutUs />} />
           <Route path="our-values" element={<OurValues />} />
           <Route path="cart" element={<CartPage />} />
+          <Route path="order" element={<OrderPage />} />
           <Route path="order/success" element={<OrderSuccessPage />} />
           <Route path="product/:slug" element={<ProductPage />} />
         </Route>

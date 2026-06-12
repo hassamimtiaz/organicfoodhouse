@@ -1,18 +1,14 @@
-import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import CartCheckoutModal from '../components/CartCheckoutModal'
 import Seo from '../components/Seo'
 import { MAX_PACKS_PER_ITEM } from '../lib/cartStorage'
 import { getCartLineTotal } from '../lib/cartTotals'
+import { clearDirectCheckout } from '../lib/checkoutStorage'
 import { formatUnitLabel } from '../config/units'
 import { formatPricePKR, SITE } from '../config/site'
 import { getProductUrl } from '../lib/productSlug'
 import { isComingSoonProduct } from '../config/preorder'
 import { getPriceRangeNote } from '../config/pricing'
-import { saveOrderSuccessPayload } from '../lib/orderSuccessStorage'
-import { getProductCategoryPath } from '../services/ordersApi'
 import { useCart } from '../contexts/CartContext'
-import type { CheckoutFormData } from '../types'
 import './CartPage.css'
 
 export default function CartPage() {
@@ -24,28 +20,11 @@ export default function CartPage() {
     hasPreorder,
     setQuantity,
     removeItem,
-    clearCart,
   } = useCart()
-  const [checkoutOpen, setCheckoutOpen] = useState(false)
 
-  async function handleCheckoutSuccess(form: CheckoutFormData) {
-    const productIds = items.map((line) => line.product.id)
-    const productNames = items.map((line) => line.product.name)
-    const categoryPath =
-      items.length > 0
-        ? await getProductCategoryPath(items[0].product)
-        : null
-
-    clearCart()
-    saveOrderSuccessPayload({
-      customerName: form.customer_name,
-      phone: form.phone,
-      isPreorder: hasPreorder,
-      productIds,
-      productNames,
-      categoryPath,
-    })
-    navigate('/order/success', { replace: true })
+  function goToCheckout() {
+    clearDirectCheckout()
+    navigate('/order')
   }
 
   return (
@@ -172,7 +151,7 @@ export default function CartPage() {
               <button
                 type="button"
                 className="btn btn-primary cart-checkout-btn"
-                onClick={() => setCheckoutOpen(true)}
+                onClick={goToCheckout}
               >
                 {hasPreorder ? 'Proceed to pre-order' : 'Proceed to checkout'}
               </button>
@@ -183,16 +162,6 @@ export default function CartPage() {
           </div>
         )}
       </div>
-
-      <CartCheckoutModal
-        open={checkoutOpen}
-        onClose={() => setCheckoutOpen(false)}
-        lines={items}
-        hasPreorder={hasPreorder}
-        hasPriceRange={hasPriceRange}
-        subtotal={subtotal}
-        onSuccess={handleCheckoutSuccess}
-      />
     </div>
   )
 }

@@ -6,7 +6,6 @@ import ProductGridSection from '../components/ProductGridSection'
 import PreorderStatus from '../components/PreorderStatus'
 import ProductDetailPricing from '../components/ProductDetailPricing'
 import DeliveryNotice from '../components/DeliveryNotice'
-import ProductOrderModal from '../components/ProductOrderModal'
 import Seo from '../components/Seo'
 import {
   acceptsPreorder,
@@ -14,14 +13,14 @@ import {
 } from '../config/preorder'
 import { hasProductDiscount } from '../config/pricing'
 import { SITE, whatsappLink } from '../config/site'
-import { saveOrderSuccessPayload } from '../lib/orderSuccessStorage'
+import { saveDirectCheckout } from '../lib/checkoutStorage'
 import { fetchProductRecommendations } from '../services/api'
 import { getProductUrl } from '../lib/productSlug'
 import {
   fetchProductBySlugOrId,
   getProductCategoryPath,
 } from '../services/ordersApi'
-import type { PlaceOrderFormData, Product } from '../types'
+import type { Product } from '../types'
 import './ProductPage.css'
 
 function slugToLabel(slug: string) {
@@ -41,7 +40,6 @@ export default function ProductPage() {
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [orderModalOpen, setOrderModalOpen] = useState(false)
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
   const [alsoLikeProducts, setAlsoLikeProducts] = useState<Product[]>([])
 
@@ -97,18 +95,10 @@ export default function ProductPage() {
       : `Hi! I want to order ${product.name} from Organic Food House.`
     : ''
 
-  function handleOrderSuccess(form: PlaceOrderFormData) {
+  function handleBuyNow() {
     if (!product) return
-
-    saveOrderSuccessPayload({
-      customerName: form.customer_name,
-      phone: form.phone,
-      isPreorder: isPreorderFlow,
-      productIds: [product.id],
-      productNames: [product.name],
-      categoryPath,
-    })
-    navigate('/order/success', { replace: true })
+    saveDirectCheckout([{ productId: product.id, quantity: 1 }])
+    navigate('/order')
   }
 
   if (loading) {
@@ -249,7 +239,7 @@ export default function ProductPage() {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={() => setOrderModalOpen(true)}
+                  onClick={handleBuyNow}
                 >
                   {isPreorderFlow ? 'Pre-order now' : 'Buy now'}
                 </button>
@@ -283,16 +273,6 @@ export default function ProductPage() {
 
         {recommendations}
       </div>
-
-      {product.in_stock && (
-        <ProductOrderModal
-          open={orderModalOpen}
-          onClose={() => setOrderModalOpen(false)}
-          product={product}
-          isPreorder={isPreorderFlow}
-          onSuccess={handleOrderSuccess}
-        />
-      )}
     </div>
   )
 }
