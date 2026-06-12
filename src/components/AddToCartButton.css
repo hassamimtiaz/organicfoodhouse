@@ -1,0 +1,11 @@
+.add-to-cart-btn.is-added {
+  background: #166534;
+  border-color: #166534;
+  color: #fff;
+}
+
+.add-to-cart-btn.is-added.btn-outline {
+  background: #ecfdf5;
+  border-color: #86efac;
+  color: #166534;
+}

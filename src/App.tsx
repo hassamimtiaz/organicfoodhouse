@@ -6,6 +6,7 @@ import AdminLogin from './admin/pages/Login'
 import AdminPortal from './admin/pages/Portal'
 import Layout from './components/Layout'
 import CategoryPage from './pages/CategoryPage'
+import CartPage from './pages/CartPage'
 import Home from './pages/Home'
 import ProductPage from './pages/ProductPage'
 import AboutUs from './pages/AboutUs'
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="search" element={<Search />} />
           <Route path="about-us" element={<AboutUs />} />
           <Route path="our-values" element={<OurValues />} />
+          <Route path="cart" element={<CartPage />} />
           <Route path="product/:slug" element={<ProductPage />} />
         </Route>
 

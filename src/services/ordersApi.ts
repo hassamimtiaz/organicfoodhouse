@@ -7,12 +7,15 @@ import {
 } from '../lib/orderNormalize'
 import { getOrderLineTotal, getOrderUnitPrice } from '../config/pricing'
 import { formatUnitLabel } from '../config/units'
+import { isComingSoonProduct } from '../config/preorder'
+import { clampPackQuantity } from '../lib/cartStorage'
 import { normalizeProductRow } from '../lib/productNormalize'
 import {
   isMissingColumnError,
   supabaseErrorMessage,
 } from '../lib/supabaseErrors'
 import type {
+  CheckoutFormData,
   Order,
   OrderItem,
   OrderStatus,
@@ -92,7 +95,7 @@ export async function getProductCategoryPath(
 }
 
 function buildOrderInsert(
-  form: PlaceOrderFormData,
+  form: CheckoutFormData,
   total: number,
   orderType: OrderType,
 ) {
@@ -110,17 +113,28 @@ function buildOrderInsert(
   }
 }
 
-export async function placeOrder(
-  product: Product,
-  form: PlaceOrderFormData,
-  options?: { isPreorder?: boolean },
+export async function placeCartOrder(
+  lines: { product: Product; quantity: number }[],
+  form: CheckoutFormData,
 ): Promise<Order> {
-  const quantity = Math.min(3, Math.max(1, Math.round(form.quantity)))
-  const unitPrice = getOrderUnitPrice(product)
-  const lineTotal = getOrderLineTotal(product, quantity)
-  const total = lineTotal
-  const unitLabel = formatUnitLabel(product)
-  const orderType: OrderType = options?.isPreorder ? 'preorder' : 'order'
+  if (lines.length === 0) {
+    throw new Error('Your cart is empty.')
+  }
+
+  const prepared = lines.map(({ product, quantity }) => {
+    const qty = clampPackQuantity(quantity)
+    const unitPrice = getOrderUnitPrice(product)
+    const lineTotal = getOrderLineTotal(product, qty)
+    const unitLabel = formatUnitLabel(product)
+    return { product, quantity: qty, unitPrice, lineTotal, unitLabel }
+  })
+
+  const total = prepared.reduce((sum, line) => sum + line.lineTotal, 0)
+  const orderType: OrderType = prepared.some((line) =>
+    isComingSoonProduct(line.product),
+  )
+    ? 'preorder'
+    : 'order'
 
   if (!isSupabaseConfigured || !supabase) {
     const orderId = `local-order-${crypto.randomUUID()}`
@@ -138,19 +152,19 @@ export async function placeOrder(
       total,
       created_at: new Date().toISOString(),
     }
-    const item: OrderItem = {
+    const items: OrderItem[] = prepared.map((line) => ({
       id: `local-item-${crypto.randomUUID()}`,
       order_id: orderId,
-      product_id: product.id,
-      product_name: product.name,
-      quantity,
-      unit_price: unitPrice,
-      unit: unitLabel,
-      line_total: lineTotal,
-    }
+      product_id: line.product.id,
+      product_name: line.product.name,
+      quantity: line.quantity,
+      unit_price: line.unitPrice,
+      unit: line.unitLabel,
+      line_total: line.lineTotal,
+    }))
     seedOrders.unshift(order)
-    seedOrderItems.push(item)
-    return { ...order, items: [item] }
+    seedOrderItems.push(...items)
+    return { ...order, items }
   }
 
   const fullPayload = buildOrderInsert(form, total, orderType)
@@ -165,7 +179,6 @@ export async function placeOrder(
     total,
   }
 
-  // Client-generated id: anon users may INSERT orders but cannot SELECT them (RLS).
   const orderId = crypto.randomUUID()
   let insertedPayload: (typeof fullPayload | typeof legacyPayload) | null =
     null
@@ -192,19 +205,21 @@ export async function placeOrder(
     throw new Error(supabaseErrorMessage(lastError))
   }
 
-  const { error: itemError } = await supabase.from('order_items').insert({
-    order_id: orderId,
-    product_id: product.id,
-    product_name: product.name,
-    quantity,
-    unit_price: unitPrice,
-    unit: unitLabel,
-    line_total: lineTotal,
-  })
+  const { error: itemsError } = await supabase.from('order_items').insert(
+    prepared.map((line) => ({
+      order_id: orderId,
+      product_id: line.product.id,
+      product_name: line.product.name,
+      quantity: line.quantity,
+      unit_price: line.unitPrice,
+      unit: line.unitLabel,
+      line_total: line.lineTotal,
+    })),
+  )
 
-  if (itemError) {
+  if (itemsError) {
     await supabase.from('orders').delete().eq('id', orderId)
-    throw new Error(supabaseErrorMessage(itemError))
+    throw new Error(supabaseErrorMessage(itemsError))
   }
 
   const order = normalizeOrderRow({
@@ -214,6 +229,17 @@ export async function placeOrder(
   } as Order)
 
   return order
+}
+
+export async function placeOrder(
+  product: Product,
+  form: PlaceOrderFormData,
+  options?: { isPreorder?: boolean },
+): Promise<Order> {
+  void options?.isPreorder
+  const quantity = clampPackQuantity(form.quantity)
+  const { quantity: _qty, ...checkout } = form
+  return placeCartOrder([{ product, quantity }], checkout)
 }
 
 export async function fetchAllOrders(): Promise<Order[]> {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import AddToCartButton from '../components/AddToCartButton'
 import Breadcrumbs from '../components/Breadcrumbs'
 import ProductGridSection from '../components/ProductGridSection'
 import PreorderStatus from '../components/PreorderStatus'
@@ -311,31 +312,28 @@ export default function ProductPage() {
                 <div className="product-order-actions">
                   <button
                     type="button"
-                    className="btn btn-primary btn-order-primary"
+                    className="btn btn-primary"
                     onClick={() => setOrderModalOpen(true)}
                   >
-                    {isPreorderFlow
-                      ? 'Pre-order on website'
-                      : 'Order on website'}
+                    {isPreorderFlow ? 'Pre-order now' : 'Buy now'}
                   </button>
-                  <div className="product-order-actions-secondary">
-                    <a
-                      href={whatsappLink(whatsappMsg)}
-                      className="btn btn-outline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {isPreorderFlow
-                        ? 'Pre-order on WhatsApp'
-                        : 'Order on WhatsApp'}
-                    </a>
-                    <a
-                      href={`tel:${SITE.phoneTel}`}
-                      className="btn btn-outline"
-                    >
-                      Call for inquiry — {SITE.phone}
-                    </a>
-                  </div>
+                  <AddToCartButton product={product} variant="outline" />
+                  <a
+                    href={whatsappLink(whatsappMsg)}
+                    className="btn btn-outline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {isPreorderFlow
+                      ? 'Pre-order on WhatsApp'
+                      : 'Order on WhatsApp'}
+                  </a>
+                  <a
+                    href={`tel:${SITE.phoneTel}`}
+                    className="btn btn-outline"
+                  >
+                    Call for inquiry — {SITE.phone}
+                  </a>
                 </div>
               )}
 

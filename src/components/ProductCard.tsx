@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { whatsappLink } from '../config/site'
 import { isComingSoonProduct } from '../config/preorder'
 import { getProductUrl } from '../lib/productSlug'
+import AddToCartButton from './AddToCartButton'
 import ProductPrice from './ProductPrice'
 import PreorderStatus from './PreorderStatus'
 import type { Product } from '../types'
@@ -60,9 +61,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="product-footer">
           <ProductPrice product={product} />
           <div className="product-actions">
+            <AddToCartButton product={product} size="sm" variant="primary" />
             <a
               href={whatsappLink(whatsappMsg)}
-              className="btn btn-primary btn-sm"
+              className="btn btn-outline btn-sm"
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}

@@ -102,6 +102,13 @@ export interface PlaceOrderFormData {
   quantity: number
 }
 
+export type CheckoutFormData = Omit<PlaceOrderFormData, 'quantity'>
+
+export interface CartLine {
+  product: Product
+  quantity: number
+}
+
 export function isTopLevelCategory(category: Category): boolean {
   return category.parent_id === null
 }
