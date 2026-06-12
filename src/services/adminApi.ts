@@ -1,5 +1,6 @@
 import { seedCategories, seedProducts } from '../data/seed'
 import { normalizeProductRow } from '../lib/productNormalize'
+import { slugFromName } from '../lib/slugify'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import {
   isMissingColumnError,
@@ -55,6 +56,7 @@ function productPayload(form: ProductFormData) {
 
   return {
     category_id: form.category_id,
+    slug: (form.slug || slugFromName(form.name)).trim() || 'product',
     name: form.name,
     description: form.description || null,
     price: form.price,
@@ -116,6 +118,13 @@ function payloadWithoutImage(
   return rest
 }
 
+function payloadWithoutSlug(
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const { slug: _s, ...rest } = payload
+  return rest
+}
+
 async function writeProductRow(
   mode: 'insert' | 'update',
   id: string | null,
@@ -125,6 +134,7 @@ async function writeProductRow(
   const withoutDiscount = payloadWithoutDiscount(fullPayload)
   const attempts: Record<string, unknown>[] = [
     fullPayload,
+    payloadWithoutSlug(fullPayload),
     payloadWithoutImage(fullPayload),
     withoutDiscount,
     payloadWithoutImage(withoutDiscount),
@@ -169,6 +179,7 @@ async function writeProductRow(
         'coming_soon',
         'delivery_starts_at',
         'image_url',
+        'slug',
       ]) ||
       (result.error as { code?: string }).code === 'PGRST204'
 

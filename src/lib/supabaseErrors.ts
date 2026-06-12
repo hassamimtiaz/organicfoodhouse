@@ -25,6 +25,9 @@ export function supabaseErrorMessage(err: unknown): string {
       if (message.includes('order_type') || message.includes('advance_payment')) {
         return 'Database is missing pre-order order columns. Run supabase/migrations/010_orders_preorder_advance.sql in the Supabase SQL editor, then try again.'
       }
+      if (message.includes('slug') && message.includes('products')) {
+        return 'Database is missing product slug column. Run supabase/migrations/011_product_slug.sql in the Supabase SQL editor, then try again.'
+      }
     }
 
     if (code === '42501' || message.toLowerCase().includes('row-level security')) {

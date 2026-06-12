@@ -192,8 +192,8 @@ export default function CategoryPage() {
                   <p>{subcategory.description}</p>
                 )}
                 <span className="product-count">
-                  {products.length} variety
-                  {products.length !== 1 ? 'ies' : ''}
+                  {products.length}
+                  {products.length && products.length !== 1 ? ' Varieties' : ' Variety'}
                 </span>
               </div>
             </header>

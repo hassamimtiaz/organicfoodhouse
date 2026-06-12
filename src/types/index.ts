@@ -15,6 +15,7 @@ export type UnitType = 'single' | 'range'
 export interface Product {
   id: string
   category_id: string
+  slug: string
   name: string
   description: string | null
   price: number
@@ -35,6 +36,7 @@ export interface Product {
 
 export interface ProductFormData {
   category_id: string
+  slug: string
   name: string
   description: string
   price_type: PriceType

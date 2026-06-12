@@ -20,6 +20,14 @@ function loadEnv() {
   return env
 }
 
+function slugFromName(name) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
 const env = { ...loadEnv(), ...process.env }
 const base = (env.VITE_SITE_URL || 'https://organicfoods.pk').replace(/\/$/, '')
 
@@ -27,24 +35,26 @@ const staticPaths = [
   { loc: '/', priority: '1.0', changefreq: 'weekly' },
   { loc: '/category/fruits', priority: '0.9', changefreq: 'weekly' },
   { loc: '/category/fruits/mangoes', priority: '1.0', changefreq: 'daily' },
+  { loc: '/about-us', priority: '0.7', changefreq: 'monthly' },
+  { loc: '/our-values', priority: '0.7', changefreq: 'monthly' },
   { loc: '/search', priority: '0.7', changefreq: 'weekly' },
 ]
 
-const seedProductIds = [
-  'seed-dasheri',
-  'seed-sindhri',
-  'seed-chaunsa',
-  'seed-anwar-ratol',
+const seedProductSlugs = [
+  'dasheri-mango',
+  'sindhri-mango',
+  'premium-chaunsa-mango',
+  'anwar-ratol-mango',
 ]
 
-async function fetchProductIds() {
+async function fetchProductSlugs() {
   const url = env.VITE_SUPABASE_URL
   const key = env.VITE_SUPABASE_ANON_KEY
-  if (!url || !key) return seedProductIds
+  if (!url || !key) return seedProductSlugs
 
   try {
     const res = await fetch(
-      `${url}/rest/v1/products?select=id&order=name.asc`,
+      `${url}/rest/v1/products?select=slug,name&order=name.asc`,
       {
         headers: {
           apikey: key,
@@ -52,19 +62,21 @@ async function fetchProductIds() {
         },
       },
     )
-    if (!res.ok) return seedProductIds
+    if (!res.ok) return seedProductSlugs
     const rows = await res.json()
-    return rows.map((r) => r.id).filter(Boolean)
+    return rows
+      .map((r) => r.slug || slugFromName(r.name || ''))
+      .filter(Boolean)
   } catch {
-    return seedProductIds
+    return seedProductSlugs
   }
 }
 
-const productIds = await fetchProductIds()
+const productSlugs = await fetchProductSlugs()
 const urls = [
   ...staticPaths,
-  ...productIds.map((id) => ({
-    loc: `/product/${id}`,
+  ...productSlugs.map((slug) => ({
+    loc: `/product/${slug}`,
     priority: '0.85',
     changefreq: 'weekly',
   })),

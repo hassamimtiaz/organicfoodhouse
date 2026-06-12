@@ -30,6 +30,7 @@ export const seedCategories: Category[] = [
 export const seedProducts: Product[] = [
   {
     id: 'seed-dasheri',
+    slug: 'dasheri-mango',
     category_id: mangoesSubcategoryId,
     name: 'Dasheri',
     description:
@@ -48,6 +49,7 @@ export const seedProducts: Product[] = [
   },
   {
     id: 'seed-sindhri',
+    slug: 'sindhri-mango',
     category_id: mangoesSubcategoryId,
     name: 'Sindhri',
     description:
@@ -66,6 +68,7 @@ export const seedProducts: Product[] = [
   },
   {
     id: 'seed-chaunsa',
+    slug: 'premium-chaunsa-mango',
     category_id: mangoesSubcategoryId,
     name: 'Premium Chaunsa Mango',
     description:
@@ -84,6 +87,7 @@ export const seedProducts: Product[] = [
   },
   {
     id: 'seed-anwar-ratol',
+    slug: 'anwar-ratol-mango',
     category_id: mangoesSubcategoryId,
     name: 'Anwar Ratol',
     description:

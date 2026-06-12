@@ -200,12 +200,6 @@
   margin: 0 auto;
 }
 
-.order-success .delivery-notice {
-  margin: 1.25rem auto 0;
-  max-width: 36rem;
-  text-align: left;
-}
-
 .success-icon {
   display: inline-flex;
   width: 4rem;

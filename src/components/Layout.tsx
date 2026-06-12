@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 import { SITE, whatsappLink } from '../config/site'
 import { isSupabaseConfigured } from '../lib/supabase'
 import NavProducts from './NavProducts'
@@ -23,12 +23,9 @@ function WhatsAppIcon() {
 }
 
 export default function Layout() {
-  const { pathname } = useLocation()
-  const isHome = pathname === '/'
-
   return (
     <div className="app">
-      {isHome && <NewsHighlights />}
+      <NewsHighlights />
 
       <header className="header">
         <div className="container header-inner">
@@ -39,7 +36,8 @@ export default function Layout() {
           <nav className="nav" aria-label="Main">
             <Link to="/">Home</Link>
             <NavProducts />
-            <Link to="/our-values">Our Values</Link>
+            <Link to="/about-us">About us</Link>
+            <Link to="/our-values">Our values</Link>
           </nav>
 
           <a
@@ -112,7 +110,10 @@ export default function Layout() {
             <h4>About</h4>
             <ul className="footer-links">
               <li>
-                <Link to="/our-values">Our Values</Link>
+                <Link to="/about-us">About us</Link>
+              </li>
+              <li>
+                <Link to="/our-values">Our values</Link>
               </li>
             </ul>
             <p className="footer-note">

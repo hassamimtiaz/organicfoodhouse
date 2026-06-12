@@ -8,6 +8,7 @@ import Layout from './components/Layout'
 import CategoryPage from './pages/CategoryPage'
 import Home from './pages/Home'
 import ProductPage from './pages/ProductPage'
+import AboutUs from './pages/AboutUs'
 import OurValues from './pages/OurValues'
 import Search from './pages/Search'
 
@@ -23,8 +24,9 @@ export default function App() {
             element={<CategoryPage />}
           />
           <Route path="search" element={<Search />} />
+          <Route path="about-us" element={<AboutUs />} />
           <Route path="our-values" element={<OurValues />} />
-          <Route path="product/:id" element={<ProductPage />} />
+          <Route path="product/:slug" element={<ProductPage />} />
         </Route>
 
         <Route path="admin/login" element={<GuestAdminRoute />}>

@@ -7,6 +7,7 @@ import {
 import { formatSubcategoryLabel } from '../../services/api'
 import { formatProductPrice, hasProductDiscount } from '../../config/pricing'
 import { formatUnitLabel } from '../../config/units'
+import { slugFromName } from '../../lib/slugify'
 import ProductImageField from './ProductImageField'
 import type { Category, Product, ProductFormData, PriceType, UnitType } from '../../types'
 
@@ -21,6 +22,7 @@ interface Props {
 
 const emptyProduct: ProductFormData = {
   category_id: '',
+  slug: '',
   name: '',
   description: '',
   price_type: 'single',
@@ -173,10 +175,31 @@ export default function AdminProducts({
               Name
               <input
                 value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                onChange={(e) => {
+                  const name = e.target.value
+                  setForm((f) => ({
+                    ...f,
+                    name,
+                    slug: editingId ? f.slug : slugFromName(name),
+                  }))
+                }}
                 placeholder="e.g. Dasheri"
                 required
               />
+            </label>
+            <label>
+              URL slug
+              <input
+                value={form.slug}
+                onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                placeholder="e.g. chaunsa-mango"
+                pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                title="Lowercase letters, numbers, and hyphens only"
+                required
+              />
+              <span className="field-hint">
+                Product page: /product/{form.slug || 'your-slug'}
+              </span>
             </label>
             <label>
               Description
@@ -492,7 +515,7 @@ export default function AdminProducts({
                   <div className="admin-card-body">
                     <strong>{p.name}</strong>
                     <span className="admin-card-meta">
-                      {sub ? labelFor(sub) : '—'} ·{' '}
+                      {sub ? labelFor(sub) : '—'} · /{p.slug} ·{' '}
                       {formatProductPrice(p, {
                         includeUnit: p,
                         showWasPrice: hasProductDiscount(p),
@@ -508,6 +531,7 @@ export default function AdminProducts({
                         setEditingId(p.id)
                         setForm({
                           category_id: p.category_id,
+                          slug: p.slug,
                           name: p.name,
                           description: p.description ?? '',
                           price_type: p.price_type,

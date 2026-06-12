@@ -14,8 +14,9 @@ import {
 import { hasProductDiscount } from '../config/pricing'
 import { SITE, whatsappLink } from '../config/site'
 import { fetchProductRecommendations } from '../services/api'
+import { getProductUrl } from '../lib/productSlug'
 import {
-  fetchProductById,
+  fetchProductBySlugOrId,
   getProductCategoryPath,
 } from '../services/ordersApi'
 import type { PlaceOrderFormData, Product } from '../types'
@@ -29,7 +30,7 @@ function slugToLabel(slug: string) {
 }
 
 export default function ProductPage() {
-  const { id } = useParams<{ id: string }>()
+  const { slug: urlRef } = useParams<{ slug: string }>()
   const [product, setProduct] = useState<Product | null>(null)
   const [categoryPath, setCategoryPath] = useState<{
     parentSlug: string
@@ -46,7 +47,9 @@ export default function ProductPage() {
   const [alsoLikeProducts, setAlsoLikeProducts] = useState<Product[]>([])
 
   useEffect(() => {
-    if (!id) return
+    if (!urlRef) return
+
+    const ref = urlRef
 
     async function load() {
       setLoading(true)
@@ -54,12 +57,15 @@ export default function ProductPage() {
       setRelatedProducts([])
       setAlsoLikeProducts([])
       try {
-        const p = await fetchProductById(id!)
+        const p = await fetchProductBySlugOrId(ref)
         if (!p) {
           setError('Product not found')
           return
         }
         setProduct(p)
+        if (urlRef !== p.slug) {
+          window.history.replaceState(null, '', getProductUrl(p))
+        }
         const path = await getProductCategoryPath(p)
         setCategoryPath(path)
 
@@ -73,7 +79,7 @@ export default function ProductPage() {
       }
     }
     void load()
-  }, [id])
+  }, [urlRef])
 
   const comingSoon = product ? isComingSoonProduct(product) : false
   const canPreorder = product ? acceptsPreorder(product) : false
@@ -190,7 +196,7 @@ export default function ProductPage() {
               : ' Pre-order available'
           } — delivered across ${SITE.deliveryArea}.`
         }
-        path={`/product/${product.id}`}
+        path={getProductUrl(product)}
       />
 
       <div className="container">
@@ -210,10 +216,8 @@ export default function ProductPage() {
               Thank you, {submittedForm.customer_name}. We received your{' '}
               {isPreorderFlow ? 'pre-order' : 'order'} for{' '}
               <strong>{product.name}</strong> and will contact you on{' '}
-              <strong>{submittedForm.phone}</strong> to confirm delivery and
-              delivery charges for your address.
+              <strong>{submittedForm.phone}</strong> to confirm delivery.
             </p>
-            <DeliveryNotice city={submittedForm.city} compact />
             <div className="hero-actions">
               <Link
                 to={

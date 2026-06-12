@@ -37,6 +37,7 @@ comment on column categories.is_visible is 'When false, hidden from the public s
 create table if not exists products (
   id uuid primary key default gen_random_uuid(),
   category_id uuid not null references categories(id) on delete cascade,
+  slug text,
   name text not null,
   description text,
   price numeric(10, 2) not null check (price >= 0),
@@ -74,6 +75,11 @@ comment on column products.unit is 'Measure name (kg, dozen, box, etc.)';
 comment on column products.unit_min is 'Minimum size/weight when sold in a range; null for fixed unit';
 comment on column products.unit_max is 'Maximum size/weight when sold in a range; null for fixed unit';
 comment on column products.discount_percent is 'Optional sale discount (1–100). Null = no discount.';
+comment on column products.slug is 'URL slug for /product/{slug}';
+
+create unique index if not exists products_slug_unique_idx
+  on products (slug)
+  where slug is not null and slug <> '';
 
 alter table products drop constraint if exists products_price_range_check;
 alter table products add constraint products_price_range_check check (

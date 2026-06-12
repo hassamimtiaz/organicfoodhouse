@@ -1,5 +1,6 @@
 import { normalizePriceType } from '../config/pricing'
 import { PREMIUM_CHAUNSA_DELIVERY_START } from '../config/preorder'
+import { slugFromName } from './slugify'
 import type { PriceType, Product } from '../types'
 
 export function normalizeProductRow(row: Product): Product {
@@ -20,8 +21,11 @@ export function normalizeProductRow(row: Product): Product {
     if (!row.delivery_starts_at) delivery_starts_at = null
   }
 
+  const slug = row.slug?.trim() || slugFromName(row.name) || 'product'
+
   return {
     ...row,
+    slug,
     price: Number(row.price),
     price_type,
     price_max:

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { formatProductPrice } from '../config/pricing'
+import { getProductUrl } from '../lib/productSlug'
 import { searchProducts } from '../services/api'
 import type { Product } from '../types'
 import './ProductSearch.css'
@@ -90,7 +91,7 @@ export default function ProductSearch({ variant = 'header' }: ProductSearchProps
               {results.map((p) => (
                 <li key={p.id}>
                   <Link
-                    to={`/product/${p.id}`}
+                    to={getProductUrl(p)}
                     onClick={() => setOpen(false)}
                   >
                     <span>{p.name}</span>

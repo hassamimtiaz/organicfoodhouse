@@ -21,20 +21,42 @@ import type {
   Product,
 } from '../types'
 
-export async function fetchProductById(id: string): Promise<Product | null> {
+export async function fetchProductBySlugOrId(
+  ref: string,
+): Promise<Product | null> {
   if (!isSupabaseConfigured || !supabase) {
-    return seedProducts.find((p) => p.id === id) ?? null
+    return (
+      seedProducts.find((p) => p.slug === ref) ??
+      seedProducts.find((p) => p.id === ref) ??
+      null
+    )
   }
 
-  const { data, error } = await supabase
+  const { data: bySlug, error: slugError } = await supabase
     .from('products')
     .select('*')
-    .eq('id', id)
+    .eq('slug', ref)
     .maybeSingle()
 
-  if (error) throw error
-  if (!data) return null
-  return normalizeProductRow(data as Product)
+  if (slugError && !isMissingColumnError(slugError, ['slug'])) {
+    throw slugError
+  }
+  if (bySlug) return normalizeProductRow(bySlug as Product)
+
+  const { data: byId, error: idError } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', ref)
+    .maybeSingle()
+
+  if (idError) throw idError
+  if (!byId) return null
+  return normalizeProductRow(byId as Product)
+}
+
+/** @deprecated Use fetchProductBySlugOrId */
+export async function fetchProductById(id: string): Promise<Product | null> {
+  return fetchProductBySlugOrId(id)
 }
 
 export async function getProductCategoryPath(

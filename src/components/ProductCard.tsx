@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { whatsappLink } from '../config/site'
 import { isComingSoonProduct } from '../config/preorder'
+import { getProductUrl } from '../lib/productSlug'
 import ProductPrice from './ProductPrice'
 import PreorderStatus from './PreorderStatus'
 import type { Product } from '../types'
@@ -16,7 +17,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const whatsappMsg = comingSoon
     ? `Hi! I want to pre-order ${product.name} from Organic Food House.`
     : `Hi! I want to order ${product.name} from Organic Food House.`
-  const productUrl = `/product/${product.id}`
+  const productUrl = getProductUrl(product)
 
   return (
     <article className={`product-card ${comingSoon ? 'product-card--coming-soon' : ''}`}>
