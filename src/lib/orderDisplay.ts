@@ -11,7 +11,7 @@ export function formatOrderPackCountLabel(quantity: number): string {
   return n === 1 ? '1 pack' : `${n} packs`
 }
 
-/** Pack size stored on the order line (e.g. "9 – 10 kg") */
+/** Pack size stored on the order line (e.g. "~ 10 kg") */
 export function formatOrderPackSize(unit: string): string {
   return unit.trim()
 }
@@ -20,7 +20,10 @@ export function formatOrderLineSummary(item: OrderItem): string {
   const packs = formatOrderPackCountLabel(item.quantity)
   const size = formatOrderPackSize(item.unit)
   const isSimpleMeasure =
-    size.length <= 4 && !size.includes('–') && !size.includes('-')
+    size.length <= 4 &&
+    !size.includes('~') &&
+    !size.includes('–') &&
+    !size.includes('-')
   if (isSimpleMeasure) {
     return `${packs} · ${size} each`
   }

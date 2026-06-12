@@ -8,7 +8,7 @@ function formatMeasure(unit: string, titleCase?: boolean): string {
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase()
 }
 
-/** e.g. "kg" or "9 – 10 kg" */
+/** e.g. "kg" or "~ 10 kg" for a size range */
 export function formatUnitLabel(
   product: UnitFields,
   options?: { titleCaseMeasure?: boolean },
@@ -18,9 +18,8 @@ export function formatUnitLabel(
   const max = product.unit_max
 
   if (min != null && max != null && max >= min) {
-    const minStr = formatUnitNumber(min)
     const maxStr = formatUnitNumber(max)
-    return minStr === maxStr ? `${minStr} ${measure}` : `${minStr} – ${maxStr} ${measure}`
+    return min === max ? `${maxStr} ${measure}` : `~ ${maxStr} ${measure}`
   }
 
   return measure

@@ -195,9 +195,21 @@
 
 .order-success {
   text-align: center;
-  padding: 3rem 1rem;
-  max-width: 520px;
+  padding: 2.5rem 1rem 1rem;
+  max-width: 36rem;
   margin: 0 auto;
+}
+
+.order-success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.order-success-actions .btn {
+  min-width: 10.5rem;
 }
 
 .success-icon {
@@ -225,11 +237,13 @@
 }
 
 .product-recommendations--success {
-  margin-top: 2.5rem;
+  margin-top: 2rem;
+}
+
+.product-recommendations--success .product-grid-section {
+  margin-top: 0;
   padding-top: 2rem;
   border-top: 1px solid var(--border);
-  text-align: left;
-  max-width: none;
 }
 
 @media (max-width: 900px) {

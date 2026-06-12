@@ -148,6 +148,17 @@ export default function ProductPage() {
     ? slugToLabel(categoryPath.subSlug)
     : null
 
+  const successRecommendations = (() => {
+    const seen = new Set<string>()
+    const items: Product[] = []
+    for (const p of [...relatedProducts, ...alsoLikeProducts]) {
+      if (seen.has(p.id)) continue
+      seen.add(p.id)
+      items.push(p)
+    }
+    return items
+  })()
+
   const recommendations =
     relatedProducts.length > 0 || alsoLikeProducts.length > 0 ? (
       <div className="product-recommendations">
@@ -200,60 +211,66 @@ export default function ProductPage() {
       />
 
       <div className="container">
-        <Breadcrumbs items={breadcrumbItems} />
+        {!orderSuccess && <Breadcrumbs items={breadcrumbItems} />}
 
         {orderSuccess && submittedForm ? (
-          <div className="order-success">
-            <span className="success-icon" aria-hidden="true">
-              ✓
-            </span>
-            <h1>
-              {isPreorderFlow
-                ? 'Pre-order placed successfully!'
-                : 'Order placed successfully!'}
-            </h1>
-            <p>
-              Thank you, {submittedForm.customer_name}. We received your{' '}
-              {isPreorderFlow ? 'pre-order' : 'order'} for{' '}
-              <strong>{product.name}</strong> and will contact you on{' '}
-              <strong>{submittedForm.phone}</strong> to confirm delivery.
-            </p>
-            <div className="hero-actions">
-              <Link
-                to={
-                  categoryPath
-                    ? `/category/${categoryPath.parentSlug}/${categoryPath.subSlug}`
-                    : '/'
-                }
-                className="btn btn-primary"
-              >
-                Continue shopping
-              </Link>
-              <a
-                href={whatsappLink(
-                  `Hi, I placed a website ${isPreorderFlow ? 'pre-order' : 'order'} for ${product.name}. My phone is ${submittedForm.phone}.`,
-                )}
-                className="btn btn-outline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Message on WhatsApp
-              </a>
+          <>
+            <div className="order-success">
+              <span className="success-icon" aria-hidden="true">
+                ✓
+              </span>
+              <h1>
+                {isPreorderFlow
+                  ? 'Pre-order placed successfully!'
+                  : 'Order placed successfully!'}
+              </h1>
+              <p>
+                Thank you, {submittedForm.customer_name}. We received your{' '}
+                {isPreorderFlow ? 'pre-order' : 'order'} for{' '}
+                <strong>{product.name}</strong> and will contact you on{' '}
+                <strong>{submittedForm.phone}</strong> to confirm delivery.
+              </p>
+              <div className="order-success-actions">
+                <Link
+                  to={
+                    categoryPath
+                      ? `/category/${categoryPath.parentSlug}/${categoryPath.subSlug}`
+                      : '/'
+                  }
+                  className="btn btn-primary"
+                >
+                  Continue shopping
+                </Link>
+                <a
+                  href={whatsappLink(
+                    `Hi, I placed a website ${isPreorderFlow ? 'pre-order' : 'order'} for ${product.name}. My phone is ${submittedForm.phone}.`,
+                  )}
+                  className="btn btn-outline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Message on WhatsApp
+                </a>
+              </div>
             </div>
 
-            {(relatedProducts.length > 0 || alsoLikeProducts.length > 0) && (
+            {successRecommendations.length > 0 && (
               <div className="product-recommendations product-recommendations--success">
                 <ProductGridSection
-                  title="Related products"
-                  products={relatedProducts}
-                />
-                <ProductGridSection
-                  title="You may also like"
-                  products={alsoLikeProducts}
+                  title="More you might like"
+                  products={successRecommendations}
+                  viewAll={
+                    categoryPath
+                      ? {
+                          label: `View all ${subcategoryLabel ?? 'products'}`,
+                          to: `/category/${categoryPath.parentSlug}/${categoryPath.subSlug}`,
+                        }
+                      : undefined
+                  }
                 />
               </div>
             )}
-          </div>
+          </>
         ) : (
           <div className="product-detail-grid">
             <div className="product-detail-visual">
