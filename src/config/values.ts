@@ -1,7 +1,7 @@
 export const OUR_VALUES = {
   hero: {
     eyebrow: 'What we stand for',
-    title: 'Our values',
+    title: 'Our Values',
     subtitle:
       'Principles that guide how we source, pack, price, and deliver — so every order reflects what we believe in.',
   },

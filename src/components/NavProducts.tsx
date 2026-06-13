@@ -131,16 +131,6 @@ export default function NavProducts() {
                       >
                         {cat.name}
                       </Link>
-
-                      {hasSubs && (
-                        <Link
-                          to={`/category/${cat.slug}`}
-                          className="nav-category-all"
-                          onClick={closeMenu}
-                        >
-                          All
-                        </Link>
-                      )}
                     </div>
 
                     {hasSubs && (

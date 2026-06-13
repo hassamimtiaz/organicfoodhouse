@@ -22,7 +22,7 @@ export default function AboutUs() {
           <Breadcrumbs
             items={[
               { label: 'Home', to: '/' },
-              { label: 'About us' },
+              { label: 'About Us' },
             ]}
           />
           <span className="company-hero-eyebrow">{hero.eyebrow}</span>

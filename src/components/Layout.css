@@ -211,10 +211,25 @@
     text-align: center;
   }
 
+  .brand {
+    justify-self: center;
+  }
+
   .nav {
     order: 3;
-    justify-content: center;
-    flex-wrap: wrap;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+    width: 100%;
+  }
+
+  .nav > a {
+    display: block;
+    text-align: center;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--radius);
+    background: var(--bg-alt);
   }
 
   .header-actions {
@@ -226,19 +241,17 @@
 
   .header-whatsapp-btn {
     justify-content: center;
+    flex: 1 1 9rem;
+  }
+
+  .header-cart-btn {
+    flex: 1 1 9rem;
+    justify-content: center;
   }
 }
 
 @media (max-width: 768px) {
   .header {
-    position: relative;
-  }
-
-  .nav-products-dropdown {
-    left: 0;
-    right: 0;
-    transform: none;
-    min-width: unset;
-    max-width: calc(100vw - 2rem);
+    position: sticky;
   }
 }

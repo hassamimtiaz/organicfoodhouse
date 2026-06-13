@@ -22,7 +22,7 @@ export default function OurValues() {
           <Breadcrumbs
             items={[
               { label: 'Home', to: '/' },
-              { label: 'Our values' },
+              { label: 'Our Values' },
             ]}
           />
           <span className="company-hero-eyebrow">{hero.eyebrow}</span>

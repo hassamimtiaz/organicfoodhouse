@@ -45,13 +45,13 @@
   }
 
   .nav {
-    gap: 1rem;
+    gap: 0.35rem;
     width: 100%;
   }
 
+  .header-cart-btn,
   .header-whatsapp-btn {
-    width: 100%;
-    justify-content: center;
+    min-height: 44px;
   }
 
   .search-submit {
