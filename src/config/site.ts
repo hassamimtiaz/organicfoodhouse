@@ -7,7 +7,7 @@ export const SITE = {
   email: 'organicfoodhouse786@gmail.com',
   phone: '0335-3412522',
   phoneTel: '+923353412522',
-  whatsapp: '923353412252',
+  whatsapp: '923353412522',
   whatsappDisplay: '0335-3412522',
   deliveryArea: 'Pakistan',
   freeShippingMin: 'Rs. 5,000',
