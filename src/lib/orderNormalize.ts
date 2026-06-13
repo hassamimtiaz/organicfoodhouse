@@ -1,14 +1,23 @@
-import type { Order, OrderItem, OrderType } from '../types'
+import type { Order, OrderItem, OrderSource, OrderType } from '../types'
 
 export function normalizeOrderRow(row: Order): Order {
+  const amountReceived =
+    row.amount_received != null && row.amount_received !== undefined
+      ? Number(row.amount_received)
+      : null
+  const advancePayment =
+    row.advance_payment != null && row.advance_payment !== undefined
+      ? Number(row.advance_payment)
+      : null
+
   return {
     ...row,
     total: Number(row.total),
     order_type: (row.order_type as OrderType) || 'order',
-    advance_payment:
-      row.advance_payment != null && row.advance_payment !== undefined
-        ? Number(row.advance_payment)
-        : null,
+    order_source: (row.order_source as OrderSource) || 'website',
+    advance_payment: advancePayment,
+    amount_received: amountReceived,
+    admin_notes: row.admin_notes ?? null,
   }
 }
 

@@ -212,6 +212,15 @@ create table if not exists public.orders (
   notes text,
   status text not null default 'pending'
     check (status in ('pending', 'confirmed', 'completed', 'cancelled')),
+  order_type text not null default 'order'
+    check (order_type in ('preorder', 'order')),
+  order_source text not null default 'website'
+    check (order_source in ('website', 'whatsapp')),
+  advance_payment numeric(12, 2)
+    check (advance_payment is null or advance_payment >= 0),
+  amount_received numeric(12, 2)
+    check (amount_received is null or amount_received >= 0),
+  admin_notes text,
   total numeric(12, 2) not null check (total >= 0),
   created_at timestamptz not null default now()
 );
@@ -250,6 +259,16 @@ create policy "Admin update orders"
   using (public.is_admin())
   with check (public.is_admin());
 
+drop policy if exists "Admin insert orders" on public.orders;
+create policy "Admin insert orders"
+  on public.orders for insert
+  with check (public.is_admin());
+
+drop policy if exists "Admin delete orders" on public.orders;
+create policy "Admin delete orders"
+  on public.orders for delete
+  using (public.is_admin());
+
 drop policy if exists "Public insert order_items" on public.order_items;
 create policy "Public insert order_items"
   on public.order_items for insert
@@ -259,6 +278,11 @@ drop policy if exists "Admin read order_items" on public.order_items;
 create policy "Admin read order_items"
   on public.order_items for select
   using (public.is_admin());
+
+drop policy if exists "Admin insert order_items" on public.order_items;
+create policy "Admin insert order_items"
+  on public.order_items for insert
+  with check (public.is_admin());
 
 -- -----------------------------------------------------------------------------
 -- Seed data

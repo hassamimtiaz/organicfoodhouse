@@ -16,6 +16,7 @@ import {
 } from '../lib/supabaseErrors'
 import type {
   CheckoutFormData,
+  ManualOrderFormData,
   Order,
   OrderItem,
   OrderStatus,
@@ -148,7 +149,10 @@ export async function placeCartOrder(
       notes: form.notes || null,
       status: 'pending',
       order_type: orderType,
+      order_source: 'website',
       advance_payment: null,
+      amount_received: null,
+      admin_notes: null,
       total,
       created_at: new Date().toISOString(),
     }
@@ -300,29 +304,168 @@ export async function updateOrderStatus(
   if (error) throw error
 }
 
-export async function updateOrderAdvancePayment(
+export async function updateOrderPaymentDetails(
   orderId: string,
-  amount: number | null,
+  details: {
+    amount_received: number | null
+    admin_notes: string | null
+  },
 ): Promise<void> {
   if (!isSupabaseConfigured || !supabase) {
     const order = seedOrders.find((o) => o.id === orderId)
-    if (order) order.advance_payment = amount
+    if (order) {
+      order.amount_received = details.amount_received
+      order.advance_payment = details.amount_received
+      order.admin_notes = details.admin_notes
+    }
     return
+  }
+
+  const payload = {
+    amount_received: details.amount_received,
+    advance_payment: details.amount_received,
+    admin_notes: details.admin_notes?.trim() || null,
   }
 
   const { error } = await supabase
     .from('orders')
-    .update({ advance_payment: amount })
+    .update(payload)
     .eq('id', orderId)
 
   if (error) {
-    if (isMissingColumnError(error, ['advance_payment'])) {
+    if (
+      isMissingColumnError(error, [
+        'amount_received',
+        'admin_notes',
+        'advance_payment',
+      ])
+    ) {
       throw new Error(
-        'Advance payment is not enabled yet. Run migration 010_orders_preorder_advance.sql in Supabase.',
+        'Payment columns are missing. Run supabase/migrations/013_orders_whatsapp_payment_notes.sql in Supabase.',
       )
     }
     throw error
   }
+}
+
+/** @deprecated Use updateOrderPaymentDetails */
+export async function updateOrderAdvancePayment(
+  orderId: string,
+  amount: number | null,
+): Promise<void> {
+  return updateOrderPaymentDetails(orderId, {
+    amount_received: amount,
+    admin_notes: null,
+  })
+}
+
+export async function createManualOrder(
+  form: ManualOrderFormData,
+  products: Product[],
+): Promise<Order> {
+  if (form.lines.length === 0) {
+    throw new Error('Add at least one product to the order.')
+  }
+
+  const prepared = form.lines.map((line) => {
+    const product = products.find((p) => p.id === line.product_id)
+    if (!product) {
+      throw new Error('One or more selected products could not be found.')
+    }
+    const qty = clampPackQuantity(line.quantity)
+    const unitPrice = getOrderUnitPrice(product)
+    const lineTotal = getOrderLineTotal(product, qty)
+    const unitLabel = formatUnitLabel(product)
+    return { product, quantity: qty, unitPrice, lineTotal, unitLabel }
+  })
+
+  const total = prepared.reduce((sum, line) => sum + line.lineTotal, 0)
+  const amountReceived =
+    form.amount_received != null && form.amount_received > 0
+      ? Math.round(form.amount_received)
+      : null
+
+  if (!isSupabaseConfigured || !supabase) {
+    const orderId = `local-order-${crypto.randomUUID()}`
+    const order: Order = {
+      id: orderId,
+      customer_name: form.customer_name.trim(),
+      phone: form.phone.trim(),
+      email: form.email.trim() || null,
+      address_line: form.address_line.trim(),
+      city: form.city.trim(),
+      notes: form.notes.trim() || null,
+      status: 'pending',
+      order_type: form.order_type,
+      order_source: 'whatsapp',
+      advance_payment: amountReceived,
+      amount_received: amountReceived,
+      admin_notes: form.admin_notes.trim() || null,
+      total,
+      created_at: new Date().toISOString(),
+    }
+    const items: OrderItem[] = prepared.map((line) => ({
+      id: `local-item-${crypto.randomUUID()}`,
+      order_id: orderId,
+      product_id: line.product.id,
+      product_name: line.product.name,
+      quantity: line.quantity,
+      unit_price: line.unitPrice,
+      unit: line.unitLabel,
+      line_total: line.lineTotal,
+    }))
+    seedOrders.unshift(order)
+    seedOrderItems.push(...items)
+    return { ...order, items }
+  }
+
+  const orderId = crypto.randomUUID()
+  const orderPayload = {
+    id: orderId,
+    customer_name: form.customer_name.trim(),
+    phone: form.phone.trim(),
+    email: form.email.trim() || null,
+    address_line: form.address_line.trim(),
+    city: form.city.trim(),
+    notes: form.notes.trim() || null,
+    status: 'pending' as const,
+    total,
+    order_type: form.order_type,
+    order_source: 'whatsapp' as const,
+    amount_received: amountReceived,
+    advance_payment: amountReceived,
+    admin_notes: form.admin_notes.trim() || null,
+  }
+
+  const { error: orderError } = await supabase
+    .from('orders')
+    .insert(orderPayload)
+
+  if (orderError) {
+    throw new Error(supabaseErrorMessage(orderError))
+  }
+
+  const { error: itemsError } = await supabase.from('order_items').insert(
+    prepared.map((line) => ({
+      order_id: orderId,
+      product_id: line.product.id,
+      product_name: line.product.name,
+      quantity: line.quantity,
+      unit_price: line.unitPrice,
+      unit: line.unitLabel,
+      line_total: line.lineTotal,
+    })),
+  )
+
+  if (itemsError) {
+    await supabase.from('orders').delete().eq('id', orderId)
+    throw new Error(supabaseErrorMessage(itemsError))
+  }
+
+  return normalizeOrderRow({
+    ...orderPayload,
+    created_at: new Date().toISOString(),
+  } as Order)
 }
 
 export async function deleteOrder(orderId: string): Promise<void> {

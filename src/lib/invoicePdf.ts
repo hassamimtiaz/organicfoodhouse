@@ -7,6 +7,7 @@ import {
   getInvoiceSequence,
 } from './orderDisplay'
 import type { InvoiceContext } from './invoice'
+import { getOrderAmountReceived, getOrderBalanceDue } from './orderPayment'
 import type { Order } from '../types'
 
 const GREEN: [number, number, number] = [20, 83, 45]
@@ -83,11 +84,8 @@ export function downloadOrderInvoicePdf(
   const invoiceDate = formatInvoiceDate(order.created_at)
   const isPreorder = order.order_type === 'preorder'
   const total = Number(order.total)
-  const advance =
-    order.advance_payment != null && order.advance_payment > 0
-      ? Number(order.advance_payment)
-      : null
-  const balance = advance != null ? Math.max(0, total - advance) : null
+  const received = getOrderAmountReceived(order)
+  const balance = getOrderBalanceDue(order)
 
   let y = 18
 
@@ -231,14 +229,14 @@ export function downloadOrderInvoicePdf(
     true,
   )
   totalsY += 7
-  if (advance != null) {
+  if (received != null) {
     drawTotalsRow(
       doc,
       totalsLabelRight,
       totalsRight,
       totalsY,
-      'Advance paid',
-      formatPricePdf(advance),
+      'Amount received',
+      formatPricePdf(received),
     )
     totalsY += 7
     drawTotalsRow(
@@ -251,6 +249,20 @@ export function downloadOrderInvoicePdf(
       true,
     )
     totalsY += 7
+  }
+
+  if (order.admin_notes) {
+    totalsY += 4
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(9)
+    doc.setTextColor(...TEXT)
+    doc.text('Accounting note:', margin, totalsY)
+    totalsY += 5
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...MUTED)
+    const adminLines = doc.splitTextToSize(order.admin_notes, pageWidth - margin * 2)
+    doc.text(adminLines, margin, totalsY)
+    totalsY += adminLines.length * 4.5
   }
 
   if (order.notes) {

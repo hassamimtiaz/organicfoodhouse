@@ -1,0 +1,139 @@
+.admin-manual-order {
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-lg);
+}
+
+.admin-manual-order-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-manual-order-header h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.admin-manual-order-header p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.admin-manual-order-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.admin-manual-order-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.admin-manual-order-fieldset {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.admin-manual-order-fieldset legend {
+  padding: 0 0.35rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.admin-manual-order-fieldset label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.admin-manual-order-fieldset input,
+.admin-manual-order-fieldset select,
+.admin-manual-order-fieldset textarea {
+  font: inherit;
+  font-weight: 400;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.admin-manual-order-fieldset .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.admin-manual-order-lines {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-manual-order-line {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.65rem;
+  align-items: end;
+}
+
+.admin-manual-order-line label {
+  margin-bottom: 0;
+}
+
+.admin-manual-order-line-total {
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  padding-bottom: 0.55rem;
+}
+
+.admin-manual-order-remove {
+  background: none;
+  border: none;
+  color: #b91c1c;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding-bottom: 0.55rem;
+}
+
+.admin-manual-order-estimated {
+  margin: 0.75rem 0 0;
+  font-size: 0.95rem;
+}
+
+.admin-manual-order-accounting {
+  grid-column: 1 / -1;
+}
+
+.admin-manual-order-error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .admin-manual-order-grid,
+  .admin-manual-order-fieldset .form-row,
+  .admin-manual-order-line {
+    grid-template-columns: 1fr;
+  }
+}

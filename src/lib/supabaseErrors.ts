@@ -25,6 +25,13 @@ export function supabaseErrorMessage(err: unknown): string {
       if (message.includes('order_type') || message.includes('advance_payment')) {
         return 'Database is missing pre-order order columns. Run supabase/migrations/010_orders_preorder_advance.sql in the Supabase SQL editor, then try again.'
       }
+      if (
+        message.includes('order_source') ||
+        message.includes('amount_received') ||
+        message.includes('admin_notes')
+      ) {
+        return 'Database is missing WhatsApp/payment columns. Run supabase/migrations/013_orders_whatsapp_payment_notes.sql in the Supabase SQL editor, then try again.'
+      }
       if (message.includes('slug') && message.includes('products')) {
         return 'Database is missing product slug column. Run supabase/migrations/011_product_slug.sql in the Supabase SQL editor, then try again.'
       }

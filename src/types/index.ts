@@ -64,6 +64,7 @@ export interface CategoryFormData {
 
 export type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled'
 export type OrderType = 'preorder' | 'order'
+export type OrderSource = 'website' | 'whatsapp'
 
 export interface OrderItem {
   id: string
@@ -86,10 +87,31 @@ export interface Order {
   notes: string | null
   status: OrderStatus
   order_type: OrderType
+  order_source: OrderSource
   advance_payment: number | null
+  amount_received: number | null
+  admin_notes: string | null
   total: number
   created_at: string
   items?: OrderItem[]
+}
+
+export interface ManualOrderLineForm {
+  product_id: string
+  quantity: number
+}
+
+export interface ManualOrderFormData {
+  customer_name: string
+  phone: string
+  email: string
+  address_line: string
+  city: string
+  notes: string
+  order_type: OrderType
+  admin_notes: string
+  amount_received: number | null
+  lines: ManualOrderLineForm[]
 }
 
 export interface PlaceOrderFormData {

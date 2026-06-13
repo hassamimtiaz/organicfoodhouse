@@ -94,7 +94,7 @@ export default function AdminPortal() {
           ))}
         </div>
 
-        {tab === 'orders' && <AdminOrders />}
+        {tab === 'orders' && <AdminOrders products={products} />}
 
         {tab === 'major' && (
           <AdminMajorCategories

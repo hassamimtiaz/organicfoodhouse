@@ -4,6 +4,7 @@ import {
   formatOrderPackSize,
   getInvoiceSequence,
 } from './orderDisplay'
+import { getOrderAmountReceived, getOrderBalanceDue } from './orderPayment'
 import type { Order } from '../types'
 
 function escapeHtml(text: string): string {
@@ -41,11 +42,8 @@ export function buildOrderInvoiceHtml(
   const invNo = getInvoiceSequence(order, context.allOrders)
   const isPreorder = order.order_type === 'preorder'
   const total = Number(order.total)
-  const advance =
-    order.advance_payment != null && order.advance_payment > 0
-      ? Number(order.advance_payment)
-      : null
-  const balance = advance != null ? Math.max(0, total - advance) : null
+  const received = getOrderAmountReceived(order)
+  const balance = getOrderBalanceDue(order)
   const invoiceDate = formatInvoiceDate(order.created_at)
 
   const itemsHtml =
@@ -326,13 +324,19 @@ export function buildOrderInvoiceHtml(
           <dd>${escapeHtml(formatPricePKR(total))}</dd>
         </div>
         ${
-          advance != null
-            ? `<div class="totals-row"><dt>Advance paid</dt><dd>${escapeHtml(formatPricePKR(advance))}</dd></div>
+          received != null
+            ? `<div class="totals-row"><dt>Amount received</dt><dd>${escapeHtml(formatPricePKR(received))}</dd></div>
         <div class="totals-row grand balance"><dt>Balance due</dt><dd>${escapeHtml(formatPricePKR(balance!))}</dd></div>`
             : ''
         }
       </dl>
     </div>
+
+    ${
+      order.admin_notes
+        ? `<div class="notes"><strong>Accounting note:</strong> ${escapeHtml(order.admin_notes)}</div>`
+        : ''
+    }
 
     ${
       order.notes
