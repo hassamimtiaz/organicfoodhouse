@@ -1,14 +1,14 @@
 export const SITE = {
-  name: 'Organic Food House',
+  name: 'Organic Fruit House',
   tagline: 'Seasonal organic produce, delivered fresh',
   description:
     'Shop seasonal organic fruits and farm-fresh produce online in Pakistan. Carbide-free, naturally ripened — pre-order in-season items. Delivery charges apply based on your address.',
-  url: import.meta.env.VITE_SITE_URL ?? 'https://organicfoodhouse.pk',
+  url: import.meta.env.VITE_SITE_URL ?? 'https://organicfruithouse.com',
   email: 'organicfoodhouse786@gmail.com',
-  phone: '0335-3412522',
-  phoneTel: '+923353412522',
-  whatsapp: '923353412522',
-  whatsappDisplay: '0335-3412522',
+  phone: '0339-6622020',
+  phoneTel: '+923396622020',
+  whatsapp: '923396622020',
+  whatsappDisplay: '0339-6622020',
   deliveryArea: 'Pakistan',
   freeShippingMin: 'Rs. 5,000',
 } as const

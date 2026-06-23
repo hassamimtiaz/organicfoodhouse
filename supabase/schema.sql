@@ -110,6 +110,86 @@ create index if not exists products_category_id_idx
   on products (category_id);
 
 -- -----------------------------------------------------------------------------
+-- Product packaging options (fixed pack sizes + prices)
+-- -----------------------------------------------------------------------------
+
+create table if not exists public.product_packagings (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references public.products(id) on delete cascade,
+  label text not null default '',
+  weight numeric(10, 2) not null check (weight > 0),
+  unit text not null default 'kg',
+  price numeric(10, 2) not null check (price >= 0),
+  sort_order int not null default 0,
+  in_stock boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists product_packagings_product_id_idx
+  on public.product_packagings (product_id, sort_order);
+
+alter table public.product_packagings enable row level security;
+
+drop policy if exists "Public read product_packagings" on public.product_packagings;
+create policy "Public read product_packagings"
+  on public.product_packagings for select
+  using (true);
+
+drop policy if exists "Admin insert product_packagings" on public.product_packagings;
+create policy "Admin insert product_packagings"
+  on public.product_packagings for insert
+  with check (public.is_admin());
+
+drop policy if exists "Admin update product_packagings" on public.product_packagings;
+create policy "Admin update product_packagings"
+  on public.product_packagings for update
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "Admin delete product_packagings" on public.product_packagings;
+create policy "Admin delete product_packagings"
+  on public.product_packagings for delete
+  using (public.is_admin());
+
+-- -----------------------------------------------------------------------------
+-- Product gallery images
+-- -----------------------------------------------------------------------------
+
+create table if not exists public.product_images (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references public.products(id) on delete cascade,
+  image_url text not null,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists product_images_product_id_idx
+  on public.product_images (product_id, sort_order);
+
+alter table public.product_images enable row level security;
+
+drop policy if exists "Public read product_images" on public.product_images;
+create policy "Public read product_images"
+  on public.product_images for select
+  using (true);
+
+drop policy if exists "Admin insert product_images" on public.product_images;
+create policy "Admin insert product_images"
+  on public.product_images for insert
+  with check (public.is_admin());
+
+drop policy if exists "Admin update product_images" on public.product_images;
+create policy "Admin update product_images"
+  on public.product_images for update
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "Admin delete product_images" on public.product_images;
+create policy "Admin delete product_images"
+  on public.product_images for delete
+  using (public.is_admin());
+
+-- -----------------------------------------------------------------------------
 -- Admin allowlist
 -- -----------------------------------------------------------------------------
 

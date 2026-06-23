@@ -46,7 +46,7 @@
 
 .portal-grid {
   display: grid;
-  grid-template-columns: minmax(0, 400px) 1fr;
+  grid-template-columns: minmax(0, 480px) 1fr;
   gap: 1.5rem;
   align-items: start;
 }
@@ -60,7 +60,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .portal-panel h2 {
@@ -73,6 +73,15 @@
   font-size: var(--text-sm);
   color: var(--muted);
   line-height: 1.5;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--muted);
+  line-height: 1.45;
 }
 
 .admin-form {
@@ -389,5 +398,89 @@
     flex: 1 1 calc(50% - 0.25rem);
     text-align: center;
     padding-inline: 0.65rem;
+  }
+}
+
+.price-type-fieldset.is-muted {
+  opacity: 0.72;
+}
+
+.packaging-fieldset-intro {
+  margin: 0 0 1rem;
+}
+
+.packaging-admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-bottom: 0.875rem;
+}
+
+.packaging-admin-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.packaging-admin-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.packaging-admin-card-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.packaging-admin-label-full {
+  width: 100%;
+}
+
+.packaging-admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.packaging-admin-metrics label {
+  min-width: 0;
+}
+
+.packaging-admin-stock {
+  margin: 0;
+}
+
+.packaging-admin-preview {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--muted);
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius);
+  word-break: break-word;
+}
+
+.packaging-admin-preview strong {
+  color: var(--text);
+}
+
+.packaging-admin-add {
+  align-self: flex-start;
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 520px) {
+  .packaging-admin-metrics {
+    grid-template-columns: 1fr;
   }
 }

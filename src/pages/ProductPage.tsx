@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import AddToCartButton from '../components/AddToCartButton'
 import Breadcrumbs from '../components/Breadcrumbs'
 import ProductGridSection from '../components/ProductGridSection'
+import ProductGallery from '../components/ProductGallery'
 import PreorderStatus from '../components/PreorderStatus'
 import ProductDetailPricing from '../components/ProductDetailPricing'
 import DeliveryNotice from '../components/DeliveryNotice'
@@ -12,6 +13,8 @@ import {
   isComingSoonProduct,
 } from '../config/preorder'
 import { hasProductDiscount } from '../config/pricing'
+import { getDefaultPackaging, hasPackagings } from '../config/packaging'
+import { getProductImageUrls } from '../config/productImages'
 import { SITE, whatsappLink } from '../config/site'
 import { saveDirectCheckout } from '../lib/checkoutStorage'
 import { fetchProductRecommendations } from '../services/api'
@@ -42,6 +45,23 @@ export default function ProductPage() {
   const [error, setError] = useState<string | null>(null)
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
   const [alsoLikeProducts, setAlsoLikeProducts] = useState<Product[]>([])
+  const [selectedPackagingId, setSelectedPackagingId] = useState<string | null>(
+    null,
+  )
+
+  useEffect(() => {
+    if (!product || !hasPackagings(product)) {
+      setSelectedPackagingId(null)
+      return
+    }
+    const fallback = getDefaultPackaging(product)
+    setSelectedPackagingId((current) => {
+      if (current && product.packagings?.some((p) => p.id === current)) {
+        return current
+      }
+      return fallback?.id ?? null
+    })
+  }, [product])
 
   useEffect(() => {
     if (!urlRef) return
@@ -97,7 +117,14 @@ export default function ProductPage() {
 
   function handleBuyNow() {
     if (!product) return
-    saveDirectCheckout([{ productId: product.id, quantity: 1 }])
+    if (hasPackagings(product) && !selectedPackagingId) return
+    saveDirectCheckout([
+      {
+        productId: product.id,
+        packagingId: selectedPackagingId,
+        quantity: 1,
+      },
+    ])
     navigate('/order')
   }
 
@@ -200,22 +227,15 @@ export default function ProductPage() {
         <Breadcrumbs items={breadcrumbItems} />
 
         <div className="product-detail-grid">
-          <div className="product-detail-visual">
-            {product.image_url ? (
-              <img src={product.image_url} alt={product.name} />
-            ) : (
-              <span className="product-detail-emoji" aria-hidden="true">
-                🥭
-              </span>
-            )}
-            {detailBadge && (
-              <span
-                className={`product-detail-badge ${comingSoon ? 'product-detail-badge--soon' : ''}`}
-              >
-                {detailBadge}
-              </span>
-            )}
-          </div>
+          <ProductGallery
+            images={getProductImageUrls(product)}
+            alt={product.name}
+            fallbackEmoji={
+              product.name.toLowerCase().includes('mango') ? '🥭' : '🍎'
+            }
+            badge={detailBadge}
+            badgeVariant={comingSoon ? 'soon' : 'default'}
+          />
 
           <div className="product-detail-info">
             <p className="product-detail-origin">
@@ -229,7 +249,11 @@ export default function ProductPage() {
             <PreorderStatus product={product} variant="detail" />
 
             <div className="product-detail-price-box">
-              <ProductDetailPricing product={product} />
+              <ProductDetailPricing
+                product={product}
+                selectedPackagingId={selectedPackagingId}
+                onPackagingChange={setSelectedPackagingId}
+              />
             </div>
 
             <DeliveryNotice compact />
@@ -240,10 +264,16 @@ export default function ProductPage() {
                   type="button"
                   className="btn btn-primary"
                   onClick={handleBuyNow}
+                  disabled={hasPackagings(product) && !selectedPackagingId}
                 >
                   {isPreorderFlow ? 'Pre-order now' : 'Buy now'}
                 </button>
-                <AddToCartButton product={product} variant="outline" />
+                <AddToCartButton
+                  product={product}
+                  packagingId={selectedPackagingId}
+                  variant="outline"
+                  disabled={hasPackagings(product) && !selectedPackagingId}
+                />
                 <a
                   href={whatsappLink(whatsappMsg)}
                   className="btn btn-outline"

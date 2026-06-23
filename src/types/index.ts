@@ -12,6 +12,40 @@ export interface Category {
 export type PriceType = 'single' | 'range'
 export type UnitType = 'single' | 'range'
 
+export interface ProductImage {
+  id: string
+  product_id: string
+  image_url: string
+  sort_order: number
+}
+
+export interface ProductImageFormData {
+  id?: string
+  image_url: string
+  sort_order?: number
+}
+
+export interface ProductPackaging {
+  id: string
+  product_id: string
+  label: string
+  weight: number
+  unit: string
+  price: number
+  sort_order: number
+  in_stock: boolean
+}
+
+export interface ProductPackagingFormData {
+  id?: string
+  label: string
+  weight: number
+  unit: string
+  price: number
+  sort_order: number
+  in_stock: boolean
+}
+
 export interface Product {
   id: string
   category_id: string
@@ -30,6 +64,8 @@ export interface Product {
   coming_soon: boolean
   delivery_starts_at: string | null
   created_at?: string
+  packagings?: ProductPackaging[]
+  images?: ProductImage[]
   subcategory?: Category
   parent_category?: Category
 }
@@ -51,6 +87,8 @@ export interface ProductFormData {
   in_stock: boolean
   coming_soon: boolean
   delivery_starts_at: string
+  packagings: ProductPackagingFormData[]
+  images: ProductImageFormData[]
 }
 
 export interface CategoryFormData {
@@ -98,6 +136,7 @@ export interface Order {
 
 export interface ManualOrderLineForm {
   product_id: string
+  packaging_id?: string | null
   quantity: number
 }
 
@@ -128,6 +167,7 @@ export type CheckoutFormData = Omit<PlaceOrderFormData, 'quantity'>
 
 export interface CartLine {
   product: Product
+  packaging_id?: string | null
   quantity: number
 }
 

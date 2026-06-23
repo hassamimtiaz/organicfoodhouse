@@ -1,23 +1,34 @@
 import type { Order, OrderItem } from '../types'
 
-/** Whole number of packs ordered (1, 2, or 3) */
+/** Whole number of boxes ordered (1, 2, or 3) */
 export function formatOrderPackCount(quantity: number): string {
   const n = Math.round(quantity)
   return String(n)
 }
 
-export function formatOrderPackCountLabel(quantity: number): string {
+/** @deprecated Use formatOrderBoxCountLabel */
+export const formatOrderPackCountLabel = formatOrderBoxCountLabel
+
+export function formatOrderBoxCountLabel(quantity: number): string {
   const n = Math.round(quantity)
-  return n === 1 ? '1 pack' : `${n} packs`
+  return `${n}`
 }
 
-/** Pack size stored on the order line (e.g. "~ 10 kg") */
+/** Box contents / size stored on the order line (e.g. "5 kg · Gift box") */
 export function formatOrderPackSize(unit: string): string {
   return unit.trim()
 }
 
+export function formatPricePerBox(): string {
+  return '/ Box'
+}
+
+export function formatPerBoxPhrase(): string {
+  return 'per Box'
+}
+
 export function formatOrderLineSummary(item: OrderItem): string {
-  const packs = formatOrderPackCountLabel(item.quantity)
+  const boxes = formatOrderBoxCountLabel(item.quantity)
   const size = formatOrderPackSize(item.unit)
   const isSimpleMeasure =
     size.length <= 4 &&
@@ -25,9 +36,9 @@ export function formatOrderLineSummary(item: OrderItem): string {
     !size.includes('–') &&
     !size.includes('-')
   if (isSimpleMeasure) {
-    return `${packs} · ${size} each`
+    return `${boxes} · ${size} each`
   }
-  return `${packs} · ${size} per pack`
+  return `${boxes} · ${size} ${formatPerBoxPhrase()}`
 }
 
 /** Sequential invoice number across all orders (000001, 000002, …) */

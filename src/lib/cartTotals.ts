@@ -4,10 +4,10 @@ import {
   getOrderUnitPrice,
   isPriceRange,
 } from '../config/pricing'
-import type { CartLine, Product } from '../types'
+import type { CartLine } from '../types'
 
 export function getCartLineTotal(line: CartLine): number {
-  return getOrderLineTotal(line.product, line.quantity)
+  return getOrderLineTotal(line.product, line.quantity, line.packaging_id)
 }
 
 export function getCartSubtotal(lines: CartLine[]): number {
@@ -26,6 +26,6 @@ export function getCartItemCount(lines: CartLine[]): number {
   return lines.reduce((sum, line) => sum + line.quantity, 0)
 }
 
-export function formatCartLineUnitPrice(product: Product): number {
-  return getOrderUnitPrice(product)
+export function formatCartLineUnitPrice(line: CartLine): number {
+  return getOrderUnitPrice(line.product, line.packaging_id)
 }

@@ -1,10 +1,19 @@
 import { formatUnitLabel } from '../config/units'
+import {
+  formatPackagingLabel,
+  getPackagingById,
+  getPackagingPriceRange,
+  getPackagingUnitPrice,
+  hasPackagings,
+  packagingPricePrefix,
+} from './packaging'
 import { formatPricePKR } from './site'
 import type { PriceType, Product } from '../types'
 
 type PriceFields = Pick<Product, 'price' | 'price_max' | 'price_type'>
 type UnitFields = Pick<Product, 'unit' | 'unit_min' | 'unit_max'>
-type DiscountableProduct = PriceFields & Pick<Product, 'discount_percent'>
+type DiscountableProduct = PriceFields &
+  Partial<Pick<Product, 'discount_percent' | 'packagings'>>
 
 export function normalizePriceType(
   price_type?: PriceType | null,
@@ -24,7 +33,7 @@ export function isPriceRange(product: PriceFields): boolean {
 }
 
 export function hasProductDiscount(
-  product: Pick<Product, 'discount_percent'>,
+  product: Partial<Pick<Product, 'discount_percent'>>,
 ): boolean {
   return (
     product.discount_percent != null &&
@@ -80,6 +89,18 @@ export function formatProductPrice(
     showWasPrice?: boolean
   },
 ): string {
+  if (hasPackagings(product)) {
+    const range = getPackagingPriceRange(product)
+    if (range) {
+      const prefix = packagingPricePrefix(product)
+      const saleText =
+        range.min === range.max
+          ? formatPricePKR(range.min)
+          : `${formatPricePKR(range.min)} – ${formatPricePKR(range.max)}`
+      return prefix ? `${prefix} ${saleText}` : saleText
+    }
+  }
+
   const applyDiscount = options?.applyDiscount !== false
   const displayProduct =
     applyDiscount && hasProductDiscount(product)
@@ -113,20 +134,43 @@ export function formatProductPrice(
 }
 
 /** Prefix for range products on cards (e.g. "From") */
-export function productPricePrefix(product: PriceFields): string | null {
+export function productPricePrefix(
+  product: PriceFields & Pick<Product, 'packagings'>,
+): string | null {
+  if (hasPackagings(product)) return packagingPricePrefix(product)
   return isPriceRange(product) ? 'From' : null
 }
 
 /** Unit price used for order estimates (minimum of range, after discount) */
-export function getOrderUnitPrice(product: DiscountableProduct): number {
+export function getOrderUnitPrice(
+  product: DiscountableProduct,
+  packagingId?: string | null,
+): number {
+  if (hasPackagings(product) && packagingId) {
+    const packaging = getPackagingById(product, packagingId)
+    if (packaging) return getPackagingUnitPrice(product, packaging)
+  }
   return getDiscountedPriceFields(product).price
 }
 
 export function getOrderLineTotal(
   product: DiscountableProduct,
   quantity: number,
+  packagingId?: string | null,
 ): number {
-  return getOrderUnitPrice(product) * quantity
+  return getOrderUnitPrice(product, packagingId) * quantity
+}
+
+/** Box size label stored on order lines */
+export function getOrderUnitLabel(
+  product: Product,
+  packagingId?: string | null,
+): string {
+  if (hasPackagings(product) && packagingId) {
+    const packaging = getPackagingById(product, packagingId)
+    if (packaging) return formatPackagingLabel(packaging)
+  }
+  return formatUnitLabel(product)
 }
 
 export function getPriceRangeNote(): string {

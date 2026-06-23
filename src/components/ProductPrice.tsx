@@ -1,6 +1,10 @@
 import { formatUnitLabel, getUnitRowLabel } from '../config/units'
 import { formatPricePKR } from '../config/site'
 import {
+  getPackagingPriceRange,
+  hasPackagings,
+} from '../config/packaging'
+import {
   getDiscountedPriceFields,
   hasProductDiscount,
   isPriceRange,
@@ -19,6 +23,7 @@ interface ProductPriceProps {
     | 'unit'
     | 'unit_min'
     | 'unit_max'
+    | 'packagings'
   >
   /** large = product detail page */
   size?: 'default' | 'large'
@@ -30,8 +35,19 @@ interface ProductPriceProps {
 }
 
 function formatAmount(
-  product: Pick<Product, 'price' | 'price_max' | 'price_type'>,
+  product: Pick<
+    Product,
+    'price' | 'price_max' | 'price_type' | 'packagings' | 'discount_percent'
+  >,
 ) {
+  if (hasPackagings(product)) {
+    const range = getPackagingPriceRange(product)
+    if (range) {
+      return range.min === range.max
+        ? formatPricePKR(range.min)
+        : `${formatPricePKR(range.min)} – ${formatPricePKR(range.max)}`
+    }
+  }
   if (isPriceRange(product)) {
     return `${formatPricePKR(Number(product.price))} – ${formatPricePKR(Number(product.price_max))}`
   }
@@ -86,8 +102,12 @@ export default function ProductPrice({
   className = '',
 }: ProductPriceProps) {
   const discounted = hasProductDiscount(product)
-  const range = isPriceRange(product)
-  const unitLabel = showUnit ? formatUnitLabel(product, { titleCaseMeasure: true }) : ''
+  const range = isPriceRange(product) && !hasPackagings(product)
+  const packaged = hasPackagings(product)
+  const unitLabel =
+    showUnit && !packaged
+      ? formatUnitLabel(product, { titleCaseMeasure: true })
+      : ''
   const unitRowLabel = getUnitRowLabel(product)
 
   const rootClass = [
@@ -95,6 +115,7 @@ export default function ProductPrice({
     `product-price-display--${size}`,
     layout === 'labeled' ? 'product-price-display--labeled' : '',
     range ? 'is-range' : '',
+    packaged ? 'has-packagings' : '',
     discounted ? 'has-discount' : '',
     className,
   ]
@@ -104,9 +125,11 @@ export default function ProductPrice({
   if (layout === 'inline') {
     const unitSuffix = unitLabel ? ` / ${unitLabel}` : ''
     const salePrices = getDiscountedPriceFields(product)
-    const saleAmountText = range
-      ? `${formatPricePKR(salePrices.price)} – ${formatPricePKR(salePrices.price_max!)}`
-      : formatPricePKR(salePrices.price)
+    const saleAmountText = packaged
+      ? formatAmount(product)
+      : range
+        ? `${formatPricePKR(salePrices.price)} – ${formatPricePKR(salePrices.price_max!)}`
+        : formatPricePKR(salePrices.price)
     const originalAmountText = discounted ? formatAmount(product) : null
     const prefix = productPricePrefix(product)
 
@@ -146,6 +169,14 @@ export default function ProductPrice({
           <PriceAmount product={product} discounted={discounted} />
         </span>
       </div>
+      {showUnit && packaged && (
+        <div className="product-price-line product-price-line--unit">
+          <span className="product-price-line-label">Options</span>
+          <span className="product-price-line-value product-price-line-value--unit">
+            Multiple box sizes
+          </span>
+        </div>
+      )}
       {showUnit && unitLabel && (
         <div className="product-price-line product-price-line--unit">
           <span className="product-price-line-label">{unitRowLabel}</span>

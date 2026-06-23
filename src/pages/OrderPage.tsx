@@ -3,10 +3,12 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import Seo from '../components/Seo'
 import { isComingSoonProduct } from '../config/preorder'
 import { getPriceRangeNote } from '../config/pricing'
-import { formatUnitLabel } from '../config/units'
+import { getOrderUnitLabel } from '../config/pricing'
 import { formatPricePKR, SITE } from '../config/site'
 import { useCart } from '../contexts/CartContext'
 import { MAX_PACKS_PER_ITEM } from '../lib/cartStorage'
+import { formatPerBoxPhrase } from '../lib/orderDisplay'
+import { getCartLineKey } from '../lib/cartLineKey'
 import {
   cartHasPreorder,
   cartHasPriceRange,
@@ -57,7 +59,11 @@ export default function OrderPage() {
         for (const snap of direct) {
           const product = await fetchProductBySlugOrId(snap.productId)
           if (product?.in_stock) {
-            loaded.push({ product, quantity: snap.quantity })
+            loaded.push({
+              product,
+              packaging_id: snap.packagingId ?? null,
+              quantity: snap.quantity,
+            })
           }
         }
         setFromCart(false)
@@ -85,15 +91,16 @@ export default function OrderPage() {
   const hasPreorder = useMemo(() => cartHasPreorder(checkoutLines), [checkoutLines])
   const hasPriceRange = useMemo(() => cartHasPriceRange(checkoutLines), [checkoutLines])
 
-  function handleQuantityChange(productId: string, quantity: number) {
+  function handleQuantityChange(lineKey: string, quantity: number) {
     setCheckoutLines((prev) => {
       const next = prev.map((line) =>
-        line.product.id === productId ? { ...line, quantity } : line,
+        getCartLineKey(line) === lineKey ? { ...line, quantity } : line,
       )
       if (!fromCart) {
         updateDirectCheckout(
           next.map((line) => ({
             productId: line.product.id,
+            packagingId: line.packaging_id ?? null,
             quantity: line.quantity,
           })),
         )
@@ -102,7 +109,7 @@ export default function OrderPage() {
     })
 
     if (fromCart) {
-      setQuantity(productId, quantity)
+      setQuantity(lineKey, quantity)
     }
   }
 
@@ -114,13 +121,7 @@ export default function OrderPage() {
     setFormError(null)
 
     try {
-      await placeCartOrder(
-        checkoutLines.map((line) => ({
-          product: line.product,
-          quantity: line.quantity,
-        })),
-        form,
-      )
+      await placeCartOrder(checkoutLines, form)
 
       const categoryPath =
         checkoutLines.length > 0
@@ -185,9 +186,10 @@ export default function OrderPage() {
             <h2>Your order</h2>
             <ul className="order-lines-list">
               {checkoutLines.map((line) => {
+                const lineKey = getCartLineKey(line)
                 const comingSoon = isComingSoonProduct(line.product)
                 return (
-                  <li key={line.product.id} className="order-line">
+                  <li key={lineKey} className="order-line">
                     <div className="order-line-info">
                       <Link
                         to={getProductUrl(line.product)}
@@ -199,18 +201,16 @@ export default function OrderPage() {
                         <span className="order-line-badge">Pre-order</span>
                       )}
                       <p className="order-line-unit">
-                        {formatUnitLabel(line.product, {
-                          titleCaseMeasure: true,
-                        })}{' '}
-                        per pack
+                        {getOrderUnitLabel(line.product, line.packaging_id)}{' '}
+                        {formatPerBoxPhrase()}
                       </p>
                       <label className="order-line-qty">
-                        Packs
+                        Boxes
                         <select
                           value={line.quantity}
                           onChange={(e) =>
                             handleQuantityChange(
-                              line.product.id,
+                              lineKey,
                               Number(e.target.value),
                             )
                           }

@@ -262,9 +262,9 @@ function OrderList({
                         <thead>
                           <tr>
                             <th>Product</th>
-                            <th>Packs</th>
-                            <th>Pack size</th>
-                            <th>Price / pack</th>
+                            <th>Boxes</th>
+                            <th>Box size</th>
+                            <th>Price / box</th>
                             <th>Total</th>
                           </tr>
                         </thead>

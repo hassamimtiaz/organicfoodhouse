@@ -308,9 +308,9 @@ export function buildOrderInvoiceHtml(
       <thead>
         <tr>
           <th class="col-product">Product</th>
-          <th class="col-packs">Packs</th>
-          <th class="col-size">Pack size</th>
-          <th class="col-money">Price / pack</th>
+          <th class="col-packs">Boxes</th>
+          <th class="col-size">Box size</th>
+          <th class="col-money">Price / box</th>
           <th class="col-money">Line total</th>
         </tr>
       </thead>

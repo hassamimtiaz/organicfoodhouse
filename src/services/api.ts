@@ -1,4 +1,5 @@
 import { seedCategories, seedProducts } from '../data/seed'
+import { enrichProducts } from '../lib/productImages'
 import { normalizeProductRow } from '../lib/productNormalize'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import type { Category, Product } from '../types'
@@ -66,6 +67,10 @@ function normalizeProduct(row: Product): Product {
 
 function normalizeProducts(rows: Product[]): Product[] {
   return rows.map(normalizeProduct)
+}
+
+async function withPackagings(products: Product[]): Promise<Product[]> {
+  return enrichProducts(products)
 }
 
 export async function fetchTopLevelCategories(
@@ -246,7 +251,7 @@ export async function fetchProductsBySubcategory(
     .order('name')
 
   if (error) throw error
-  return normalizeProducts(data ?? [])
+  return withPackagings(normalizeProducts(data ?? []))
 }
 
 export async function fetchAllProducts(): Promise<Product[]> {
@@ -260,7 +265,7 @@ export async function fetchAllProducts(): Promise<Product[]> {
     .order('name')
 
   if (error) throw error
-  return normalizeProducts(data ?? [])
+  return withPackagings(normalizeProducts(data ?? []))
 }
 
 export async function fetchVisibleProducts(): Promise<Product[]> {
@@ -366,7 +371,7 @@ export async function searchProducts(query: string): Promise<Product[]> {
 
   if (error) throw error
 
-  const products = normalizeProducts(data ?? [])
+  const products = await withPackagings(normalizeProducts(data ?? []))
   const categories = await loadAllCategoriesRaw()
   const visibleSubIds = getVisibleSubcategoryIds(categories)
   return products.filter((p) => visibleSubIds.has(p.category_id))

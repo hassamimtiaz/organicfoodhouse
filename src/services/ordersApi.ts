@@ -5,11 +5,13 @@ import {
   normalizeOrderItemRow,
   normalizeOrderRow,
 } from '../lib/orderNormalize'
-import { getOrderLineTotal, getOrderUnitPrice } from '../config/pricing'
-import { formatUnitLabel } from '../config/units'
+import { getOrderLineTotal, getOrderUnitLabel, getOrderUnitPrice } from '../config/pricing'
+import { hasPackagings } from '../config/packaging'
 import { isComingSoonProduct } from '../config/preorder'
 import { clampPackQuantity } from '../lib/cartStorage'
 import { normalizeProductRow } from '../lib/productNormalize'
+import { attachImagesToProduct } from '../lib/productImages'
+import { attachPackagingsToProduct } from '../lib/productPackagings'
 import {
   isMissingColumnError,
   supabaseErrorMessage,
@@ -23,6 +25,7 @@ import type {
   OrderType,
   PlaceOrderFormData,
   Product,
+  CartLine,
 } from '../types'
 
 export async function fetchProductBySlugOrId(
@@ -45,7 +48,11 @@ export async function fetchProductBySlugOrId(
   if (slugError && !isMissingColumnError(slugError, ['slug'])) {
     throw slugError
   }
-  if (bySlug) return normalizeProductRow(bySlug as Product)
+  if (bySlug) {
+    const product = normalizeProductRow(bySlug as Product)
+    const withPackagings = await attachPackagingsToProduct(product)
+    return attachImagesToProduct(withPackagings)
+  }
 
   const { data: byId, error: idError } = await supabase
     .from('products')
@@ -55,7 +62,9 @@ export async function fetchProductBySlugOrId(
 
   if (idError) throw idError
   if (!byId) return null
-  return normalizeProductRow(byId as Product)
+  const product = normalizeProductRow(byId as Product)
+  const withPackagings = await attachPackagingsToProduct(product)
+  return attachImagesToProduct(withPackagings)
 }
 
 /** @deprecated Use fetchProductBySlugOrId */
@@ -115,18 +124,21 @@ function buildOrderInsert(
 }
 
 export async function placeCartOrder(
-  lines: { product: Product; quantity: number }[],
+  lines: CartLine[],
   form: CheckoutFormData,
 ): Promise<Order> {
   if (lines.length === 0) {
     throw new Error('Your cart is empty.')
   }
 
-  const prepared = lines.map(({ product, quantity }) => {
+  const prepared = lines.map(({ product, quantity, packaging_id }) => {
+    if (hasPackagings(product) && !packaging_id) {
+      throw new Error(`Select a ox option for ${product.name}.`)
+    }
     const qty = clampPackQuantity(quantity)
-    const unitPrice = getOrderUnitPrice(product)
-    const lineTotal = getOrderLineTotal(product, qty)
-    const unitLabel = formatUnitLabel(product)
+    const unitPrice = getOrderUnitPrice(product, packaging_id)
+    const lineTotal = getOrderLineTotal(product, qty, packaging_id)
+    const unitLabel = getOrderUnitLabel(product, packaging_id)
     return { product, quantity: qty, unitPrice, lineTotal, unitLabel }
   })
 
@@ -372,10 +384,13 @@ export async function createManualOrder(
     if (!product) {
       throw new Error('One or more selected products could not be found.')
     }
+    if (hasPackagings(product) && !line.packaging_id) {
+      throw new Error(`Select a box option for ${product.name}.`)
+    }
     const qty = clampPackQuantity(line.quantity)
-    const unitPrice = getOrderUnitPrice(product)
-    const lineTotal = getOrderLineTotal(product, qty)
-    const unitLabel = formatUnitLabel(product)
+    const unitPrice = getOrderUnitPrice(product, line.packaging_id)
+    const lineTotal = getOrderLineTotal(product, qty, line.packaging_id)
+    const unitLabel = getOrderUnitLabel(product, line.packaging_id)
     return { product, quantity: qty, unitPrice, lineTotal, unitLabel }
   })
 

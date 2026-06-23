@@ -179,7 +179,7 @@ export function downloadOrderInvoicePdf(
 
   autoTable(doc, {
     startY: y,
-    head: [['Product', 'Packs', 'Pack size', 'Price / pack', 'Total']],
+    head: [['Product', 'Boxes', 'Box size', 'Price / box', 'Total']],
     body: tableBody,
     margin: { left: margin, right: margin },
     styles: {

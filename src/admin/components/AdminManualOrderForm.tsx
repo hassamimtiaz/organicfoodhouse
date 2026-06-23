@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import { getOrderLineTotal, getOrderUnitPrice } from '../../config/pricing'
-import { formatUnitLabel } from '../../config/units'
+import { getOrderLineTotal, getOrderUnitLabel, getOrderUnitPrice } from '../../config/pricing'
+import { formatPackagingLabel, hasPackagings } from '../../config/packaging'
 import { formatPricePKR } from '../../config/site'
 import { clampPackQuantity, MAX_PACKS_PER_ITEM } from '../../lib/cartStorage'
 import { parseAdvancePayment } from '../../lib/orderNormalize'
@@ -18,7 +18,7 @@ const emptyForm = (): ManualOrderFormData => ({
   order_type: 'order',
   admin_notes: '',
   amount_received: null,
-  lines: [{ product_id: '', quantity: 1 }],
+  lines: [{ product_id: '', packaging_id: null, quantity: 1 }],
 })
 
 interface Props {
@@ -50,9 +50,9 @@ export default function AdminManualOrderForm({
       return {
         product,
         quantity: qty,
-        unitPrice: getOrderUnitPrice(product),
-        lineTotal: getOrderLineTotal(product, qty),
-        unitLabel: formatUnitLabel(product, { titleCaseMeasure: true }),
+        unitPrice: getOrderUnitPrice(product, line.packaging_id),
+        lineTotal: getOrderLineTotal(product, qty, line.packaging_id),
+        unitLabel: getOrderUnitLabel(product, line.packaging_id),
       }
     })
   }, [form.lines, sortedProducts])
@@ -77,7 +77,7 @@ export default function AdminManualOrderForm({
   function addLine() {
     setForm((prev) => ({
       ...prev,
-      lines: [...prev.lines, { product_id: '', quantity: 1 }],
+      lines: [...prev.lines, { product_id: '', packaging_id: null, quantity: 1 }],
     }))
   }
 
@@ -219,15 +219,30 @@ export default function AdminManualOrderForm({
           <fieldset className="admin-manual-order-fieldset">
             <legend>Products</legend>
             <ul className="admin-manual-order-lines">
-              {form.lines.map((line, index) => (
+              {form.lines.map((line, index) => {
+                const selectedProduct = sortedProducts.find(
+                  (p) => p.id === line.product_id,
+                )
+                const packagingOptions = selectedProduct?.packagings ?? []
+
+                return (
                 <li key={index} className="admin-manual-order-line">
                   <label>
                     Product *
                     <select
                       value={line.product_id}
-                      onChange={(e) =>
-                        updateLine(index, { product_id: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const product = sortedProducts.find(
+                          (p) => p.id === e.target.value,
+                        )
+                        updateLine(index, {
+                          product_id: e.target.value,
+                          packaging_id:
+                            product && hasPackagings(product)
+                              ? product.packagings?.[0]?.id ?? null
+                              : null,
+                        })
+                      }}
                       required={index === 0}
                     >
                       <option value="">Select product…</option>
@@ -238,8 +253,29 @@ export default function AdminManualOrderForm({
                       ))}
                     </select>
                   </label>
+                  {selectedProduct && hasPackagings(selectedProduct) && (
+                    <label>
+                      Box *
+                      <select
+                        value={line.packaging_id ?? ''}
+                        onChange={(e) =>
+                          updateLine(index, {
+                            packaging_id: e.target.value || null,
+                          })
+                        }
+                        required
+                      >
+                        <option value="">Select box…</option>
+                        {packagingOptions.map((packaging) => (
+                          <option key={packaging.id} value={packaging.id}>
+                            {formatPackagingLabel(packaging)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
                   <label>
-                    Packs
+                    Boxes
                     <select
                       value={line.quantity}
                       onChange={(e) =>
@@ -271,7 +307,8 @@ export default function AdminManualOrderForm({
                     </button>
                   )}
                 </li>
-              ))}
+                )
+              })}
             </ul>
             <button
               type="button"

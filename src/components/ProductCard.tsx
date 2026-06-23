@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { whatsappLink } from '../config/site'
 import { isComingSoonProduct } from '../config/preorder'
+import { getProductPrimaryImage } from '../config/productImages'
 import { getProductUrl } from '../lib/productSlug'
 import AddToCartButton from './AddToCartButton'
 import ProductPrice from './ProductPrice'
@@ -19,6 +20,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     ? `Hi! I want to pre-order ${product.name} from Organic Food House.`
     : `Hi! I want to order ${product.name} from Organic Food House.`
   const productUrl = getProductUrl(product)
+  const coverImage = getProductPrimaryImage(product)
 
   return (
     <article className={`product-card ${comingSoon ? 'product-card--coming-soon' : ''}`}>
@@ -28,8 +30,8 @@ export default function ProductCard({ product }: ProductCardProps) {
         aria-label={`View ${product.name} details`}
       />
       <div className="product-card-visual">
-        {product.image_url ? (
-          <img src={product.image_url} alt="" loading="lazy" />
+        {coverImage ? (
+          <img src={coverImage} alt="" loading="lazy" />
         ) : (
           <span className="product-emoji" aria-hidden="true">
             {emoji}

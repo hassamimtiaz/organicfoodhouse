@@ -1,4 +1,6 @@
 import { seedCategories, seedProducts } from '../data/seed'
+import { sortPackagings, syncProductPriceFromPackagings } from '../config/packaging'
+import { normalizeProductImages } from '../config/productImages'
 import { normalizeProductRow } from '../lib/productNormalize'
 import { slugFromName } from '../lib/slugify'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
@@ -11,6 +13,10 @@ import type {
   CategoryFormData,
   Product,
   ProductFormData,
+  ProductPackaging,
+  ProductPackagingFormData,
+  ProductImage,
+  ProductImageFormData,
 } from '../types'
 
 function unitFields(form: ProductFormData) {
@@ -45,6 +51,43 @@ function discountField(form: ProductFormData) {
   return { discount_percent: form.discount_percent }
 }
 
+function validatePackagings(packagings: ProductPackagingFormData[]) {
+  for (const row of packagings) {
+    if (!row.label.trim()) {
+      throw new Error('Each Box option needs a label (e.g. Gift Box).')
+    }
+    if (row.weight <= 0) {
+      throw new Error('Box weight must be greater than zero.')
+    }
+    if (row.price < 0) {
+      throw new Error('Box price cannot be negative.')
+    }
+  }
+}
+
+function normalizePackagingFormRows(
+  packagings: ProductPackagingFormData[],
+): ProductPackagingFormData[] {
+  return packagings.map((row, index) => ({
+    ...row,
+    label: row.label.trim(),
+    unit: row.unit.trim() || 'kg',
+    sort_order: index,
+  }))
+}
+
+function normalizeImageFormRows(
+  images: ProductImageFormData[],
+): ProductImageFormData[] {
+  return images
+    .map((row, index) => ({
+      ...row,
+      image_url: row.image_url.trim(),
+      sort_order: index,
+    }))
+    .filter((row) => row.image_url.length > 0)
+}
+
 function productPayload(form: ProductFormData) {
   if (form.price_type === 'range') {
     if (form.price_max == null || form.price_max < form.price) {
@@ -54,17 +97,46 @@ function productPayload(form: ProductFormData) {
     }
   }
 
+  const packagings = normalizePackagingFormRows(form.packagings ?? [])
+  if (packagings.length > 0) {
+    validatePackagings(packagings)
+  }
+
+  const synced = syncProductPriceFromPackagings(
+    { price: form.price, unit: form.unit },
+    packagings.map((row, index) => ({
+      id: row.id ?? `temp-${index}`,
+      product_id: '',
+      label: row.label,
+      weight: row.weight,
+      unit: row.unit,
+      price: row.price,
+      sort_order: row.sort_order,
+      in_stock: row.in_stock,
+    })),
+  )
+
   return {
     category_id: form.category_id,
     slug: (form.slug || slugFromName(form.name)).trim() || 'product',
     name: form.name,
     description: form.description || null,
-    price: form.price,
-    price_type: form.price_type,
-    price_max: form.price_type === 'range' ? form.price_max : null,
-    ...unitFields(form),
+    price: packagings.length > 0 ? synced.price : form.price,
+    price_type: packagings.length > 0 ? 'single' : form.price_type,
+    price_max:
+      packagings.length > 0
+        ? null
+        : form.price_type === 'range'
+          ? form.price_max
+          : null,
+    ...(packagings.length > 0
+      ? { unit: synced.unit, unit_min: null, unit_max: null }
+      : unitFields(form)),
     ...discountField(form),
-    image_url: form.image_url || null,
+    image_url:
+      normalizeImageFormRows(form.images ?? [])[0]?.image_url ||
+      form.image_url ||
+      null,
     in_stock: form.in_stock,
     coming_soon: form.coming_soon,
     delivery_starts_at:
@@ -125,6 +197,170 @@ function payloadWithoutSlug(
   return rest
 }
 
+async function syncProductPackagings(
+  productId: string,
+  packagings: ProductPackagingFormData[],
+): Promise<ProductPackaging[]> {
+  if (!isSupabaseConfigured || !supabase) {
+    const rows: ProductPackaging[] = packagings.map((row, index) => ({
+      id: row.id ?? `local-pack-${crypto.randomUUID()}`,
+      product_id: productId,
+      label: row.label,
+      weight: row.weight,
+      unit: row.unit,
+      price: row.price,
+      sort_order: index,
+      in_stock: row.in_stock,
+    }))
+    const product = seedProducts.find((p) => p.id === productId)
+    if (product) product.packagings = sortPackagings(rows)
+    return rows
+  }
+
+  const normalized = normalizePackagingFormRows(packagings)
+  const { data: existing, error: readError } = await supabase
+    .from('product_packagings')
+    .select('id')
+    .eq('product_id', productId)
+
+  if (readError) {
+    if ((readError as { code?: string }).code === '42P01') return []
+    throw new Error(supabaseErrorMessage(readError))
+  }
+
+  const keepIds = new Set(
+    normalized.map((row) => row.id).filter((id): id is string => Boolean(id)),
+  )
+  const deleteIds = (existing ?? [])
+    .map((row) => row.id as string)
+    .filter((id) => !keepIds.has(id))
+
+  if (deleteIds.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('product_packagings')
+      .delete()
+      .in('id', deleteIds)
+    if (deleteError) throw new Error(supabaseErrorMessage(deleteError))
+  }
+
+  if (normalized.length === 0) return []
+
+  const saved: ProductPackaging[] = []
+  for (const [index, row] of normalized.entries()) {
+    const payload = {
+      product_id: productId,
+      label: row.label,
+      weight: row.weight,
+      unit: row.unit,
+      price: row.price,
+      sort_order: index,
+      in_stock: row.in_stock,
+    }
+
+    if (row.id) {
+      const { data, error } = await supabase
+        .from('product_packagings')
+        .update(payload)
+        .eq('id', row.id)
+        .select()
+        .single()
+      if (error) throw new Error(supabaseErrorMessage(error))
+      saved.push(data as ProductPackaging)
+      continue
+    }
+
+    const { data, error } = await supabase
+      .from('product_packagings')
+      .insert(payload)
+      .select()
+      .single()
+    if (error) throw new Error(supabaseErrorMessage(error))
+    saved.push(data as ProductPackaging)
+  }
+
+  return sortPackagings(saved)
+}
+
+async function syncProductImages(
+  productId: string,
+  images: ProductImageFormData[],
+): Promise<ProductImage[]> {
+  const normalized = normalizeImageFormRows(images)
+
+  if (!isSupabaseConfigured || !supabase) {
+    const rows: ProductImage[] = normalized.map((row, index) => ({
+      id: row.id ?? `local-img-${crypto.randomUUID()}`,
+      product_id: productId,
+      image_url: row.image_url,
+      sort_order: index,
+    }))
+    const product = seedProducts.find((p) => p.id === productId)
+    if (product) {
+      product.images = normalizeProductImages(rows)
+      product.image_url = rows[0]?.image_url ?? null
+    }
+    return rows
+  }
+
+  const { data: existing, error: readError } = await supabase
+    .from('product_images')
+    .select('id')
+    .eq('product_id', productId)
+
+  if (readError) {
+    if ((readError as { code?: string }).code === '42P01') return []
+    throw new Error(supabaseErrorMessage(readError))
+  }
+
+  const keepIds = new Set(
+    normalized.map((row) => row.id).filter((id): id is string => Boolean(id)),
+  )
+  const deleteIds = (existing ?? [])
+    .map((row) => row.id as string)
+    .filter((id) => !keepIds.has(id))
+
+  if (deleteIds.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('product_images')
+      .delete()
+      .in('id', deleteIds)
+    if (deleteError) throw new Error(supabaseErrorMessage(deleteError))
+  }
+
+  if (normalized.length === 0) return []
+
+  const saved: ProductImage[] = []
+  for (const [index, row] of normalized.entries()) {
+    const payload = {
+      product_id: productId,
+      image_url: row.image_url,
+      sort_order: index,
+    }
+
+    if (row.id) {
+      const { data, error } = await supabase
+        .from('product_images')
+        .update(payload)
+        .eq('id', row.id)
+        .select()
+        .single()
+      if (error) throw new Error(supabaseErrorMessage(error))
+      saved.push(data as ProductImage)
+      continue
+    }
+
+    const { data, error } = await supabase
+      .from('product_images')
+      .insert(payload)
+      .select()
+      .single()
+    if (error) throw new Error(supabaseErrorMessage(error))
+    saved.push(data as ProductImage)
+  }
+
+  return normalizeProductImages(saved)
+}
+
 async function writeProductRow(
   mode: 'insert' | 'update',
   id: string | null,
@@ -166,7 +402,19 @@ async function writeProductRow(
             .select()
             .single()
 
-    if (!result.error) return normalizeProductRow(result.data as Product)
+    if (!result.error) {
+      const product = normalizeProductRow(result.data as Product)
+      const [packagings, images] = await Promise.all([
+        syncProductPackagings(product.id, form.packagings ?? []),
+        syncProductImages(product.id, form.images ?? []),
+      ])
+      return {
+        ...product,
+        packagings,
+        images,
+        image_url: images[0]?.image_url ?? product.image_url,
+      }
+    }
 
     lastError = result.error
     const retryable =
@@ -198,14 +446,20 @@ function requireSupabaseForWrite() {
 }
 
 export async function createProduct(form: ProductFormData): Promise<Product> {
-  const payload = productPayload(form)
-
   if (!isSupabaseConfigured || !supabase) {
+    const packagings = normalizePackagingFormRows(form.packagings ?? [])
+    if (packagings.length > 0) validatePackagings(packagings)
+    const payload = productPayload(form)
     const product: Product = {
       id: `local-${crypto.randomUUID()}`,
       ...payload,
+      packagings: [],
+      images: [],
     }
     seedProducts.push(product)
+    product.packagings = await syncProductPackagings(product.id, packagings)
+    product.images = await syncProductImages(product.id, form.images ?? [])
+    product.image_url = product.images[0]?.image_url ?? product.image_url
     return product
   }
 
@@ -220,12 +474,17 @@ export async function updateProduct(
   if (!isSupabaseConfigured || !supabase) {
     const index = seedProducts.findIndex((p) => p.id === id)
     if (index === -1) throw new Error('Product not found')
+    const packagings = normalizePackagingFormRows(form.packagings ?? [])
+    if (packagings.length > 0) validatePackagings(packagings)
     const updated: Product = {
       ...seedProducts[index],
       ...productPayload(form),
       id,
     }
     seedProducts[index] = updated
+    updated.packagings = await syncProductPackagings(id, packagings)
+    updated.images = await syncProductImages(id, form.images ?? [])
+    updated.image_url = updated.images[0]?.image_url ?? updated.image_url
     return updated
   }
 

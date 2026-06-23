@@ -1,4 +1,6 @@
 import { getPriceRangeNote, isPriceRange } from '../config/pricing'
+import { hasPackagings } from '../config/packaging'
+import PackagingSelector from './PackagingSelector'
 import type { Product } from '../types'
 import ProductPrice from './ProductPrice'
 import './ProductDetailPricing.css'
@@ -14,15 +16,34 @@ interface ProductDetailPricingProps {
     | 'unit_min'
     | 'unit_max'
     | 'in_stock'
+    | 'packagings'
+    | 'id'
   >
+  selectedPackagingId?: string | null
+  onPackagingChange?: (packagingId: string) => void
 }
 
-export default function ProductDetailPricing({ product }: ProductDetailPricingProps) {
-  const priceRange = isPriceRange(product)
+export default function ProductDetailPricing({
+  product,
+  selectedPackagingId = null,
+  onPackagingChange,
+}: ProductDetailPricingProps) {
+  const priceRange = isPriceRange(product) && !hasPackagings(product)
+  const packaged = hasPackagings(product)
 
   return (
     <div className="product-detail-pricing">
-      <ProductPrice product={product} size="large" layout="labeled" />
+      {!packaged && (
+        <ProductPrice product={product} size="large" layout="labeled" />
+      )}
+      {packaged && onPackagingChange && (
+        <PackagingSelector
+          product={product}
+          value={selectedPackagingId}
+          onChange={onPackagingChange}
+          size="large"
+        />
+      )}
       {priceRange && (
         <p className="price-range-note">{getPriceRangeNote()}</p>
       )}

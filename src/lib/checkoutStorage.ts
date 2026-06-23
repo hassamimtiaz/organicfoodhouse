@@ -2,6 +2,7 @@ import { clampPackQuantity } from './cartStorage'
 
 export interface CheckoutLineSnapshot {
   productId: string
+  packagingId?: string | null
   quantity: number
 }
 
@@ -23,6 +24,7 @@ export function loadDirectCheckout(): CheckoutLineSnapshot[] | null {
     if (!Array.isArray(parsed) || parsed.length === 0) return null
     return parsed.map((line) => ({
       productId: String(line.productId),
+      packagingId: line.packagingId ?? null,
       quantity: clampPackQuantity(line.quantity),
     }))
   } catch {

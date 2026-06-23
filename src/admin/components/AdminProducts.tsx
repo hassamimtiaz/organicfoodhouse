@@ -6,10 +6,21 @@ import {
 } from '../../services/adminApi'
 import { formatSubcategoryLabel } from '../../services/api'
 import { formatProductPrice, hasProductDiscount } from '../../config/pricing'
+import { formatPackagingLabel, hasPackagings } from '../../config/packaging'
+import { getProductPrimaryImage } from '../../config/productImages'
+import { formatPricePKR } from '../../config/site'
 import { formatUnitLabel } from '../../config/units'
 import { slugFromName } from '../../lib/slugify'
-import ProductImageField from './ProductImageField'
-import type { Category, Product, ProductFormData, PriceType, UnitType } from '../../types'
+import ProductImagesField from './ProductImagesField'
+import type {
+  Category,
+  Product,
+  ProductFormData,
+  ProductImageFormData,
+  ProductPackagingFormData,
+  PriceType,
+  UnitType,
+} from '../../types'
 
 interface Props {
   topLevel: Category[]
@@ -37,6 +48,45 @@ const emptyProduct: ProductFormData = {
   in_stock: true,
   coming_soon: false,
   delivery_starts_at: '',
+  packagings: [],
+  images: [],
+}
+
+function imagesFromProduct(product: Product): ProductImageFormData[] {
+  if (product.images?.length) {
+    return product.images.map((row) => ({
+      id: row.id,
+      image_url: row.image_url,
+      sort_order: row.sort_order,
+    }))
+  }
+  if (product.image_url?.trim()) {
+    return [{ image_url: product.image_url.trim() }]
+  }
+  return []
+}
+
+function emptyPackagingRow(): ProductPackagingFormData {
+  return {
+    label: '',
+    weight: 5,
+    unit: 'kg',
+    price: 0,
+    sort_order: 0,
+    in_stock: true,
+  }
+}
+
+function packagingsFromProduct(product: Product): ProductPackagingFormData[] {
+  return (product.packagings ?? []).map((row) => ({
+    id: row.id,
+    label: row.label,
+    weight: Number(row.weight),
+    unit: row.unit,
+    price: Number(row.price),
+    sort_order: row.sort_order,
+    in_stock: row.in_stock,
+  }))
 }
 
 function unitTypeFromProduct(product: Product): UnitType {
@@ -99,12 +149,70 @@ export default function AdminProducts({
     }))
   }
 
+  function addPackagingRow() {
+    setForm((f) => ({
+      ...f,
+      packagings: [...f.packagings, emptyPackagingRow()],
+    }))
+  }
+
+  function updatePackagingRow(
+    index: number,
+    patch: Partial<ProductPackagingFormData>,
+  ) {
+    setForm((f) => ({
+      ...f,
+      packagings: f.packagings.map((row, i) =>
+        i === index ? { ...row, ...patch } : row,
+      ),
+    }))
+  }
+
+  function removePackagingRow(index: number) {
+    setForm((f) => ({
+      ...f,
+      packagings: f.packagings.filter((_, i) => i !== index),
+    }))
+  }
+
+  const usesPackagings = form.packagings.length > 0
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!form.category_id) {
       onMessage({ type: 'error', text: 'Select a subcategory.' })
       return
     }
+
+    if (usesPackagings) {
+      for (const [index, row] of form.packagings.entries()) {
+        if (!row.label.trim()) {
+          onMessage({
+            type: 'error',
+            text: `Box option ${index + 1}: enter a label (e.g. Gift box).`,
+          })
+          return
+        }
+        if (row.weight <= 0) {
+          onMessage({
+            type: 'error',
+            text: `Box option ${index + 1}: weight must be greater than zero.`,
+          })
+          return
+        }
+        if (row.price <= 0) {
+          onMessage({
+            type: 'error',
+            text: `Box option ${index + 1}: enter a price in PKR.`,
+          })
+          return
+        }
+      }
+    } else if (form.price <= 0) {
+      onMessage({ type: 'error', text: 'Enter a product price.' })
+      return
+    }
+
     setSaving(true)
     try {
       if (editingId) {
@@ -153,7 +261,7 @@ export default function AdminProducts({
             Create a major category and subcategory before adding products.
           </p>
         ) : (
-          <form onSubmit={handleSubmit} className="admin-form">
+          <form onSubmit={handleSubmit} className="admin-form" noValidate>
             <label>
               Subcategory
               <select
@@ -212,12 +320,190 @@ export default function AdminProducts({
               />
             </label>
 
-            <ProductImageField
-              imageUrl={form.image_url}
-              onImageUrlChange={(image_url) => setForm({ ...form, image_url })}
+            <ProductImagesField
+              images={form.images}
+              onChange={(images) => setForm({ ...form, images })}
               disabled={saving}
             />
 
+            <fieldset className="price-type-fieldset packaging-fieldset">
+              <legend>Box options &amp; pricing</legend>
+              <p className="field-hint packaging-fieldset-intro">
+                Add box sizes with a fixed price each — e.g. 5 kg Premium gift
+                box at Rs 2,500. Leave empty to use a single product price
+                instead.
+              </p>
+
+              {form.packagings.length > 0 && (
+                <div className="packaging-admin-list">
+                  {form.packagings.map((row, index) => (
+                    <div
+                      key={row.id ?? `new-${index}`}
+                      className="packaging-admin-card"
+                    >
+                      <div className="packaging-admin-card-header">
+                        <span className="packaging-admin-card-title">
+                          Option {index + 1}
+                        </span>
+                        <button
+                          type="button"
+                          className="btn-link danger"
+                          onClick={() => removePackagingRow(index)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+
+                      <label className="packaging-admin-label-full">
+                        Box name
+                        <input
+                          value={row.label}
+                          onChange={(e) =>
+                            updatePackagingRow(index, { label: e.target.value })
+                          }
+                          placeholder="e.g. Premium gift box"
+                        />
+                      </label>
+
+                      <div className="packaging-admin-metrics">
+                        <label>
+                          Weight
+                          <input
+                            type="number"
+                            min="0.5"
+                            step="0.5"
+                            inputMode="decimal"
+                            value={row.weight > 0 ? row.weight : ''}
+                            onChange={(e) =>
+                              updatePackagingRow(index, {
+                                weight:
+                                  e.target.value === ''
+                                    ? 0
+                                    : parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            placeholder="5"
+                          />
+                        </label>
+                        <label>
+                          Unit
+                          <input
+                            value={row.unit}
+                            onChange={(e) =>
+                              updatePackagingRow(index, { unit: e.target.value })
+                            }
+                            placeholder="kg"
+                          />
+                        </label>
+                        <label>
+                          Price (PKR)
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            inputMode="numeric"
+                            value={row.price > 0 ? row.price : ''}
+                            onChange={(e) =>
+                              updatePackagingRow(index, {
+                                price:
+                                  e.target.value === ''
+                                    ? 0
+                                    : parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            placeholder="2500"
+                          />
+                        </label>
+                      </div>
+
+                      <label className="checkbox-label packaging-admin-stock">
+                        <input
+                          type="checkbox"
+                          checked={row.in_stock}
+                          onChange={(e) =>
+                            updatePackagingRow(index, {
+                              in_stock: e.target.checked,
+                            })
+                          }
+                        />
+                        Available to order
+                      </label>
+
+                      <p className="packaging-admin-preview">
+                        <span>Customer sees:</span>{' '}
+                        <strong>
+                          {formatPackagingLabel({
+                            id: row.id ?? 'preview',
+                            product_id: '',
+                            label: row.label.trim() || 'Gift box',
+                            weight: row.weight > 0 ? row.weight : 5,
+                            unit: row.unit.trim() || 'kg',
+                            price: row.price,
+                            sort_order: index,
+                            in_stock: row.in_stock,
+                          })}
+                          {row.price > 0
+                            ? ` — ${formatPricePKR(row.price)}`
+                            : ''}
+                        </strong>
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="btn btn-outline btn-sm packaging-admin-add"
+                onClick={addPackagingRow}
+              >
+                + Add box option
+              </button>
+
+              {usesPackagings && (
+                <>
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={form.discount_percent != null}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          discount_percent: e.target.checked ? 10 : null,
+                        })
+                      }
+                    />
+                    Apply discount to all box sizes
+                  </label>
+
+                  {form.discount_percent != null && (
+                    <label>
+                      Discount (%)
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        step="1"
+                        value={form.discount_percent || ''}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            discount_percent: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                      />
+                    </label>
+                  )}
+
+                  <p className="field-hint">
+                    Shop cards show <strong>From</strong> the lowest box price.
+                    Customers pick a size on the product page.
+                  </p>
+                </>
+              )}
+            </fieldset>
+
+            {!usesPackagings && (
             <fieldset className="price-type-fieldset">
               <legend>Pricing</legend>
               <div className="price-type-options" role="radiogroup" aria-label="Price type">
@@ -255,7 +541,6 @@ export default function AdminProducts({
                         price: parseFloat(e.target.value) || 0,
                       })
                     }
-                    required
                   />
                 </label>
               ) : (
@@ -273,7 +558,6 @@ export default function AdminProducts({
                           price: parseFloat(e.target.value) || 0,
                         })
                       }
-                      required
                     />
                   </label>
                   <label>
@@ -289,7 +573,6 @@ export default function AdminProducts({
                           price_max: parseFloat(e.target.value) || 0,
                         })
                       }
-                      required
                     />
                   </label>
                 </div>
@@ -324,7 +607,6 @@ export default function AdminProducts({
                         discount_percent: parseFloat(e.target.value) || 0,
                       })
                     }
-                    required
                   />
                 </label>
               )}
@@ -333,15 +615,25 @@ export default function AdminProducts({
                 <p className="panel-hint">
                   Customer price preview:{' '}
                   <strong>
-                    {formatProductPrice(form, {
-                      includeUnit: form,
-                      showWasPrice: true,
-                    })}
+                    {formatProductPrice(
+                      {
+                        price: form.price,
+                        price_max: form.price_max,
+                        price_type: form.price_type,
+                        discount_percent: form.discount_percent,
+                      },
+                      {
+                        includeUnit: form,
+                        showWasPrice: true,
+                      },
+                    )}
                   </strong>
                 </p>
               )}
             </fieldset>
+            )}
 
+            {!usesPackagings && (
             <fieldset className="price-type-fieldset">
               <legend>Unit / size</legend>
               <div className="price-type-options" role="radiogroup" aria-label="Unit type">
@@ -371,7 +663,6 @@ export default function AdminProducts({
                   value={form.unit}
                   onChange={(e) => setForm({ ...form, unit: e.target.value })}
                   placeholder="kg, dozen, box…"
-                  required
                 />
               </label>
 
@@ -390,7 +681,6 @@ export default function AdminProducts({
                           unit_min: parseFloat(e.target.value) || 0,
                         })
                       }
-                      required
                     />
                   </label>
                   <label>
@@ -406,7 +696,6 @@ export default function AdminProducts({
                           unit_max: parseFloat(e.target.value) || 0,
                         })
                       }
-                      required
                     />
                   </label>
                 </div>
@@ -422,6 +711,7 @@ export default function AdminProducts({
                 </p>
               )}
             </fieldset>
+            )}
 
             <label className="checkbox-label">
               <input
@@ -504,8 +794,8 @@ export default function AdminProducts({
               return (
                 <li key={p.id} className="admin-card admin-product-card">
                   <div className="admin-product-thumb">
-                    {p.image_url ? (
-                      <img src={p.image_url} alt="" />
+                    {getProductPrimaryImage(p) ? (
+                      <img src={getProductPrimaryImage(p)!} alt="" />
                     ) : (
                       <span aria-hidden="true">
                         {p.name.toLowerCase().includes('mango') ? '🥭' : '🍎'}
@@ -516,10 +806,12 @@ export default function AdminProducts({
                     <strong>{p.name}</strong>
                     <span className="admin-card-meta">
                       {sub ? labelFor(sub) : '—'} · /{p.slug} ·{' '}
-                      {formatProductPrice(p, {
-                        includeUnit: p,
-                        showWasPrice: hasProductDiscount(p),
-                      })}
+                      {hasPackagings(p)
+                        ? ` · ${p.packagings!.map((row) => formatPackagingLabel(row)).join(' · ')}`
+                        : ` · ${formatProductPrice(p, {
+                            includeUnit: p,
+                            showWasPrice: hasProductDiscount(p),
+                          })}`}
                       {p.coming_soon ? ' · Coming soon' : ''}
                     </span>
                   </div>
@@ -546,9 +838,11 @@ export default function AdminProducts({
                               ? Number(p.discount_percent)
                               : null,
                           image_url: p.image_url ?? '',
+                          images: imagesFromProduct(p),
                           in_stock: p.in_stock,
                           coming_soon: p.coming_soon,
                           delivery_starts_at: p.delivery_starts_at ?? '',
+                          packagings: packagingsFromProduct(p),
                         })
                         window.scrollTo({ top: 0, behavior: 'smooth' })
                       }}

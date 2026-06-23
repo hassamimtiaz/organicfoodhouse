@@ -1,7 +1,14 @@
+import { normalizeProductImages } from '../config/productImages'
+import { normalizePackagingRow, sortPackagings } from '../config/packaging'
 import { normalizePriceType } from '../config/pricing'
 import { PREMIUM_CHAUNSA_DELIVERY_START } from '../config/preorder'
 import { slugFromName } from './slugify'
-import type { PriceType, Product } from '../types'
+import type {
+  PriceType,
+  Product,
+  ProductImage,
+  ProductPackaging,
+} from '../types'
 
 export function normalizeProductRow(row: Product): Product {
   const price_type: PriceType = normalizePriceType(row.price_type, row.price_max)
@@ -23,8 +30,15 @@ export function normalizeProductRow(row: Product): Product {
 
   const slug = row.slug?.trim() || slugFromName(row.name) || 'product'
 
+  const packagings = normalizeProductPackagings(row.packagings)
+  const images = normalizeProductImages(row.images)
+  const primaryImage = images[0]?.image_url ?? row.image_url ?? null
+
   return {
     ...row,
+    packagings,
+    images,
+    image_url: primaryImage,
     slug,
     price: Number(row.price),
     price_type,
@@ -43,4 +57,17 @@ export function normalizeProductRow(row: Product): Product {
     coming_soon,
     delivery_starts_at,
   }
+}
+
+export function normalizeProductPackagings(
+  raw: ProductPackaging[] | undefined | null,
+): ProductPackaging[] {
+  if (!raw?.length) return []
+  return sortPackagings(raw.map(normalizePackagingRow))
+}
+
+export function normalizeProductImagesFromRows(
+  raw: ProductImage[] | undefined | null,
+): ProductImage[] {
+  return normalizeProductImages(raw)
 }

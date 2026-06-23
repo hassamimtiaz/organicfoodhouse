@@ -3,7 +3,7 @@ import { SITE } from './site'
 export const ABOUT_US = {
   hero: {
     eyebrow: 'Our story',
-    title: 'About us',
+    title: 'About Us',
     subtitle:
       'We are mango lovers who started this venture to share the taste and quality we love — straight from the farms of Rahim Yar Khan to homes across Pakistan.',
   },

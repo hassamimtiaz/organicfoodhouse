@@ -12,6 +12,11 @@ import {
   loadCartFromStorage,
   saveCartToStorage,
 } from '../lib/cartStorage'
+import { getCartLineKey } from '../lib/cartLineKey'
+import {
+  getDefaultPackaging,
+  hasPackagings,
+} from '../config/packaging'
 import {
   cartHasPreorder,
   cartHasPriceRange,
@@ -26,9 +31,9 @@ interface CartContextValue {
   subtotal: number
   hasPriceRange: boolean
   hasPreorder: boolean
-  addItem: (product: Product, quantity?: number) => void
-  setQuantity: (productId: string, quantity: number) => void
-  removeItem: (productId: string) => void
+  addItem: (product: Product, quantity?: number, packagingId?: string | null) => void
+  setQuantity: (lineKey: string, quantity: number) => void
+  removeItem: (lineKey: string) => void
   clearCart: () => void
 }
 
@@ -41,37 +46,67 @@ export function CartProvider({ children }: { children: ReactNode }) {
     saveCartToStorage(items)
   }, [items])
 
-  const addItem = useCallback((product: Product, quantity = 1) => {
-    if (!product.in_stock) return
+  const addItem = useCallback(
+    (product: Product, quantity = 1, packagingId?: string | null) => {
+      if (!product.in_stock) return
 
-    const addQty = clampPackQuantity(quantity)
-    setItems((prev) => {
-      const existing = prev.find((line) => line.product.id === product.id)
-      if (existing) {
-        return prev.map((line) =>
-          line.product.id === product.id
-            ? {
-                product,
-                quantity: clampPackQuantity(line.quantity + addQty),
-              }
-            : line,
-        )
+      let resolvedPackagingId = packagingId ?? null
+      if (hasPackagings(product)) {
+        const packaging =
+          product.packagings?.find(
+            (p) => p.id === resolvedPackagingId && p.in_stock,
+          ) ?? getDefaultPackaging(product)
+        if (!packaging) return
+        resolvedPackagingId = packaging.id
+      } else {
+        resolvedPackagingId = null
       }
-      return [...prev, { product, quantity: addQty }]
-    })
-  }, [])
 
-  const setQuantity = useCallback((productId: string, quantity: number) => {
+      const addQty = clampPackQuantity(quantity)
+      const lineKey = getCartLineKey({
+        product,
+        packaging_id: resolvedPackagingId,
+      })
+
+      setItems((prev) => {
+        const existing = prev.find(
+          (line) => getCartLineKey(line) === lineKey,
+        )
+        if (existing) {
+          return prev.map((line) =>
+            getCartLineKey(line) === lineKey
+              ? {
+                  product,
+                  packaging_id: resolvedPackagingId,
+                  quantity: clampPackQuantity(line.quantity + addQty),
+                }
+              : line,
+          )
+        }
+        return [
+          ...prev,
+          {
+            product,
+            packaging_id: resolvedPackagingId,
+            quantity: addQty,
+          },
+        ]
+      })
+    },
+    [],
+  )
+
+  const setQuantity = useCallback((lineKey: string, quantity: number) => {
     const qty = clampPackQuantity(quantity)
     setItems((prev) =>
       prev.map((line) =>
-        line.product.id === productId ? { ...line, quantity: qty } : line,
+        getCartLineKey(line) === lineKey ? { ...line, quantity: qty } : line,
       ),
     )
   }, [])
 
-  const removeItem = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((line) => line.product.id !== productId))
+  const removeItem = useCallback((lineKey: string) => {
+    setItems((prev) => prev.filter((line) => getCartLineKey(line) !== lineKey))
   }, [])
 
   const clearCart = useCallback(() => {
