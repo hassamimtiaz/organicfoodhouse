@@ -15,8 +15,13 @@ import {
 import { getCartLineKey } from '../lib/cartLineKey'
 import {
   getDefaultPackaging,
+  getPackagingById,
   hasPackagings,
 } from '../config/packaging'
+import {
+  clampToPackagingStock,
+  isPackagingOrderable,
+} from '../lib/packagingStock'
 import {
   cartHasPreorder,
   cartHasPriceRange,
@@ -51,18 +56,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (!product.in_stock) return
 
       let resolvedPackagingId = packagingId ?? null
+      let packaging = null as ReturnType<typeof getPackagingById>
       if (hasPackagings(product)) {
-        const packaging =
+        packaging =
           product.packagings?.find(
-            (p) => p.id === resolvedPackagingId && p.in_stock,
+            (p) => p.id === resolvedPackagingId && isPackagingOrderable(p),
           ) ?? getDefaultPackaging(product)
-        if (!packaging) return
+        if (!packaging || !isPackagingOrderable(packaging)) return
         resolvedPackagingId = packaging.id
       } else {
         resolvedPackagingId = null
       }
 
-      const addQty = clampPackQuantity(quantity)
       const lineKey = getCartLineKey({
         product,
         packaging_id: resolvedPackagingId,
@@ -72,13 +77,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const existing = prev.find(
           (line) => getCartLineKey(line) === lineKey,
         )
+        const alreadyInCart = existing?.quantity ?? 0
+        let addQty = clampPackQuantity(quantity)
+        if (packaging) {
+          addQty = clampToPackagingStock(
+            packaging,
+            addQty,
+            alreadyInCart,
+          )
+          if (addQty < 1) return prev
+        }
+
         if (existing) {
           return prev.map((line) =>
             getCartLineKey(line) === lineKey
               ? {
                   product,
                   packaging_id: resolvedPackagingId,
-                  quantity: clampPackQuantity(line.quantity + addQty),
+                  quantity: clampPackQuantity(alreadyInCart + addQty),
                 }
               : line,
           )
@@ -97,11 +113,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   )
 
   const setQuantity = useCallback((lineKey: string, quantity: number) => {
-    const qty = clampPackQuantity(quantity)
     setItems((prev) =>
-      prev.map((line) =>
-        getCartLineKey(line) === lineKey ? { ...line, quantity: qty } : line,
-      ),
+      prev.map((line) => {
+        if (getCartLineKey(line) !== lineKey) return line
+        let qty = clampPackQuantity(quantity)
+        if (hasPackagings(line.product) && line.packaging_id) {
+          const packaging = getPackagingById(line.product, line.packaging_id)
+          if (packaging) {
+            qty = clampToPackagingStock(packaging, qty)
+          }
+        }
+        return { ...line, quantity: qty }
+      }),
     )
   }, [])
 
@@ -125,7 +148,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       clearCart,
     }),
-    [items, addItem, setQuantity, removeItem, clearCart],
+    [items, addItem, setQuantity, removeItem],
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

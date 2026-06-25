@@ -73,3 +73,13 @@
   font-size: 0.8125rem;
   color: var(--text-muted, #6b7280);
 }
+
+.packaging-option-low-stock {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #c2410c;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}

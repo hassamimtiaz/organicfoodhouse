@@ -5,6 +5,11 @@
   background: #f8fafc;
 }
 
+/* Wider than storefront .container (1180px) for admin tables & forms */
+.admin-app .container {
+  width: min(1280px, 100% - 2rem);
+}
+
 .admin-header {
   background: #0f172a;
   color: #f8fafc;

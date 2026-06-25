@@ -6,12 +6,13 @@ import {
 } from '../../services/api'
 import type { Category, Product } from '../../types'
 import AdminOrders from '../AdminOrders'
+import AdminAccounting from '../AdminAccounting'
 import AdminMajorCategories from '../components/AdminMajorCategories'
 import AdminSubcategories from '../components/AdminSubcategories'
 import AdminProducts from '../components/AdminProducts'
 import './Portal.css'
 
-type Tab = 'major' | 'subcategories' | 'products' | 'orders'
+type Tab = 'major' | 'subcategories' | 'products' | 'orders' | 'accounting'
 
 export default function AdminPortal() {
   const [tab, setTab] = useState<Tab>('products')
@@ -58,6 +59,7 @@ export default function AdminPortal() {
     { id: 'subcategories', label: 'Subcategories' },
     { id: 'products', label: 'Products' },
     { id: 'orders', label: 'Orders' },
+    { id: 'accounting', label: 'Accounting' },
   ]
 
   return (
@@ -95,6 +97,8 @@ export default function AdminPortal() {
         </div>
 
         {tab === 'orders' && <AdminOrders products={products} />}
+
+        {tab === 'accounting' && <AdminAccounting />}
 
         {tab === 'major' && (
           <AdminMajorCategories

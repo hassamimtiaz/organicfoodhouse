@@ -7,7 +7,7 @@ import {
   getInvoiceSequence,
 } from './orderDisplay'
 import type { InvoiceContext } from './invoice'
-import { getOrderAmountReceived, getOrderBalanceDue } from './orderPayment'
+import { getOrderAmountReceived, getOrderBalanceDue, getOrderDeliveryCharge, getOrderDiscount, getOrderGrandTotal, getOrderProductTotal } from './orderPayment'
 import type { Order } from '../types'
 
 const GREEN: [number, number, number] = [20, 83, 45]
@@ -83,7 +83,10 @@ export function downloadOrderInvoicePdf(
   const invNo = getInvoiceSequence(order, context.allOrders)
   const invoiceDate = formatInvoiceDate(order.created_at)
   const isPreorder = order.order_type === 'preorder'
-  const total = Number(order.total)
+  const productTotal = getOrderProductTotal(order)
+  const deliveryCharge = getOrderDeliveryCharge(order)
+  const discount = getOrderDiscount(order)
+  const grandTotal = getOrderGrandTotal(order)
   const received = getOrderAmountReceived(order)
   const balance = getOrderBalanceDue(order)
 
@@ -224,8 +227,39 @@ export function downloadOrderInvoicePdf(
     totalsLabelRight,
     totalsRight,
     totalsY,
-    'Total',
-    formatPricePdf(total),
+    'Product total',
+    formatPricePdf(productTotal),
+  )
+  totalsY += 7
+  if (deliveryCharge > 0) {
+    drawTotalsRow(
+      doc,
+      totalsLabelRight,
+      totalsRight,
+      totalsY,
+      'Delivery charge',
+      formatPricePdf(deliveryCharge),
+    )
+    totalsY += 7
+  }
+  if (discount > 0) {
+    drawTotalsRow(
+      doc,
+      totalsLabelRight,
+      totalsRight,
+      totalsY,
+      'Discount',
+      `-${formatPricePdf(discount)}`,
+    )
+    totalsY += 7
+  }
+  drawTotalsRow(
+    doc,
+    totalsLabelRight,
+    totalsRight,
+    totalsY,
+    'Amount due',
+    formatPricePdf(grandTotal),
     true,
   )
   totalsY += 7

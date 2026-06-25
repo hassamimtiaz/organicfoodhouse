@@ -7,6 +7,10 @@ import {
 } from '../lib/orderNormalize'
 import { getOrderLineTotal, getOrderUnitLabel, getOrderUnitPrice } from '../config/pricing'
 import { hasPackagings } from '../config/packaging'
+import {
+  decrementPackagingStockForLines,
+  validateCartPackagingStock,
+} from '../lib/packagingStock'
 import { isComingSoonProduct } from '../config/preorder'
 import { clampPackQuantity } from '../lib/cartStorage'
 import { normalizeProductRow } from '../lib/productNormalize'
@@ -139,8 +143,10 @@ export async function placeCartOrder(
     const unitPrice = getOrderUnitPrice(product, packaging_id)
     const lineTotal = getOrderLineTotal(product, qty, packaging_id)
     const unitLabel = getOrderUnitLabel(product, packaging_id)
-    return { product, quantity: qty, unitPrice, lineTotal, unitLabel }
+    return { product, quantity: qty, unitPrice, lineTotal, unitLabel, packaging_id }
   })
+
+  await validateCartPackagingStock(lines)
 
   const total = prepared.reduce((sum, line) => sum + line.lineTotal, 0)
   const orderType: OrderType = prepared.some((line) =>
@@ -165,6 +171,8 @@ export async function placeCartOrder(
       advance_payment: null,
       amount_received: null,
       admin_notes: null,
+      delivery_charge: null,
+      discount: null,
       total,
       created_at: new Date().toISOString(),
     }
@@ -180,6 +188,12 @@ export async function placeCartOrder(
     }))
     seedOrders.unshift(order)
     seedOrderItems.push(...items)
+    await decrementPackagingStockForLines(
+      prepared.map((line) => ({
+        packaging_id: line.packaging_id,
+        quantity: line.quantity,
+      })),
+    )
     return { ...order, items }
   }
 
@@ -236,6 +250,19 @@ export async function placeCartOrder(
   if (itemsError) {
     await supabase.from('orders').delete().eq('id', orderId)
     throw new Error(supabaseErrorMessage(itemsError))
+  }
+
+  try {
+    await decrementPackagingStockForLines(
+      prepared.map((line) => ({
+        packaging_id: line.packaging_id,
+        quantity: line.quantity,
+      })),
+    )
+  } catch (stockError) {
+    await supabase.from('orders').delete().eq('id', orderId)
+    await supabase.from('order_items').delete().eq('order_id', orderId)
+    throw stockError
   }
 
   const order = normalizeOrderRow({
@@ -320,6 +347,8 @@ export async function updateOrderPaymentDetails(
   orderId: string,
   details: {
     amount_received: number | null
+    delivery_charge: number | null
+    discount: number | null
     admin_notes: string | null
   },
 ): Promise<void> {
@@ -328,6 +357,8 @@ export async function updateOrderPaymentDetails(
     if (order) {
       order.amount_received = details.amount_received
       order.advance_payment = details.amount_received
+      order.delivery_charge = details.delivery_charge
+      order.discount = details.discount
       order.admin_notes = details.admin_notes
     }
     return
@@ -336,6 +367,8 @@ export async function updateOrderPaymentDetails(
   const payload = {
     amount_received: details.amount_received,
     advance_payment: details.amount_received,
+    delivery_charge: details.delivery_charge,
+    discount: details.discount,
     admin_notes: details.admin_notes?.trim() || null,
   }
 
@@ -350,10 +383,12 @@ export async function updateOrderPaymentDetails(
         'amount_received',
         'admin_notes',
         'advance_payment',
+        'delivery_charge',
+        'discount',
       ])
     ) {
       throw new Error(
-        'Payment columns are missing. Run supabase/migrations/013_orders_whatsapp_payment_notes.sql in Supabase.',
+        'Payment, delivery, or discount columns are missing. Run supabase migrations 013, 016, and 017 in Supabase.',
       )
     }
     throw error
@@ -367,6 +402,8 @@ export async function updateOrderAdvancePayment(
 ): Promise<void> {
   return updateOrderPaymentDetails(orderId, {
     amount_received: amount,
+    delivery_charge: null,
+    discount: null,
     admin_notes: null,
   })
 }
@@ -391,14 +428,35 @@ export async function createManualOrder(
     const unitPrice = getOrderUnitPrice(product, line.packaging_id)
     const lineTotal = getOrderLineTotal(product, qty, line.packaging_id)
     const unitLabel = getOrderUnitLabel(product, line.packaging_id)
-    return { product, quantity: qty, unitPrice, lineTotal, unitLabel }
+    return {
+      product,
+      quantity: qty,
+      unitPrice,
+      lineTotal,
+      unitLabel,
+      packaging_id: line.packaging_id,
+    }
   })
+
+  await validateCartPackagingStock(
+    prepared.map((line) => ({
+      product: line.product,
+      packaging_id: line.packaging_id,
+      quantity: line.quantity,
+    })),
+  )
 
   const total = prepared.reduce((sum, line) => sum + line.lineTotal, 0)
   const amountReceived =
     form.amount_received != null && form.amount_received > 0
       ? Math.round(form.amount_received)
       : null
+  const deliveryCharge =
+    form.delivery_charge != null && form.delivery_charge > 0
+      ? Math.round(form.delivery_charge)
+      : null
+  const discount =
+    form.discount != null && form.discount > 0 ? Math.round(form.discount) : null
 
   if (!isSupabaseConfigured || !supabase) {
     const orderId = `local-order-${crypto.randomUUID()}`
@@ -416,6 +474,8 @@ export async function createManualOrder(
       advance_payment: amountReceived,
       amount_received: amountReceived,
       admin_notes: form.admin_notes.trim() || null,
+      delivery_charge: deliveryCharge,
+      discount,
       total,
       created_at: new Date().toISOString(),
     }
@@ -431,6 +491,12 @@ export async function createManualOrder(
     }))
     seedOrders.unshift(order)
     seedOrderItems.push(...items)
+    await decrementPackagingStockForLines(
+      prepared.map((line) => ({
+        packaging_id: line.packaging_id,
+        quantity: line.quantity,
+      })),
+    )
     return { ...order, items }
   }
 
@@ -450,6 +516,8 @@ export async function createManualOrder(
     amount_received: amountReceived,
     advance_payment: amountReceived,
     admin_notes: form.admin_notes.trim() || null,
+    delivery_charge: deliveryCharge,
+    discount,
   }
 
   const { error: orderError } = await supabase
@@ -475,6 +543,19 @@ export async function createManualOrder(
   if (itemsError) {
     await supabase.from('orders').delete().eq('id', orderId)
     throw new Error(supabaseErrorMessage(itemsError))
+  }
+
+  try {
+    await decrementPackagingStockForLines(
+      prepared.map((line) => ({
+        packaging_id: line.packaging_id,
+        quantity: line.quantity,
+      })),
+    )
+  } catch (stockError) {
+    await supabase.from('orders').delete().eq('id', orderId)
+    await supabase.from('order_items').delete().eq('order_id', orderId)
+    throw stockError
   }
 
   return normalizeOrderRow({

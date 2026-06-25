@@ -4,7 +4,7 @@ import {
   formatOrderPackSize,
   getInvoiceSequence,
 } from './orderDisplay'
-import { getOrderAmountReceived, getOrderBalanceDue } from './orderPayment'
+import { getOrderAmountReceived, getOrderBalanceDue, getOrderDeliveryCharge, getOrderDiscount, getOrderGrandTotal, getOrderProductTotal } from './orderPayment'
 import type { Order } from '../types'
 
 function escapeHtml(text: string): string {
@@ -41,7 +41,10 @@ export function buildOrderInvoiceHtml(
 ): string {
   const invNo = getInvoiceSequence(order, context.allOrders)
   const isPreorder = order.order_type === 'preorder'
-  const total = Number(order.total)
+  const productTotal = getOrderProductTotal(order)
+  const deliveryCharge = getOrderDeliveryCharge(order)
+  const discount = getOrderDiscount(order)
+  const grandTotal = getOrderGrandTotal(order)
   const received = getOrderAmountReceived(order)
   const balance = getOrderBalanceDue(order)
   const invoiceDate = formatInvoiceDate(order.created_at)
@@ -319,9 +322,23 @@ export function buildOrderInvoiceHtml(
 
     <div class="totals-wrap">
       <dl class="totals">
+        <div class="totals-row">
+          <dt>Product total</dt>
+          <dd>${escapeHtml(formatPricePKR(productTotal))}</dd>
+        </div>
+        ${
+          deliveryCharge > 0
+            ? `<div class="totals-row"><dt>Delivery charge</dt><dd>${escapeHtml(formatPricePKR(deliveryCharge))}</dd></div>`
+            : ''
+        }
+        ${
+          discount > 0
+            ? `<div class="totals-row"><dt>Discount</dt><dd>−${escapeHtml(formatPricePKR(discount))}</dd></div>`
+            : ''
+        }
         <div class="totals-row grand">
-          <dt>Total</dt>
-          <dd>${escapeHtml(formatPricePKR(total))}</dd>
+          <dt>Amount due</dt>
+          <dd>${escapeHtml(formatPricePKR(grandTotal))}</dd>
         </div>
         ${
           received != null

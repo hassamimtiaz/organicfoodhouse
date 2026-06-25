@@ -1,5 +1,6 @@
 import type { CartLine } from '../types'
 import { getDefaultPackaging, hasPackagings } from '../config/packaging'
+import { isPackagingOrderable } from '../lib/packagingStock'
 
 export const CART_STORAGE_KEY = 'ofh-cart'
 
@@ -18,7 +19,7 @@ function normalizeCartLine(line: CartLine): CartLine | null {
   let packaging_id = line.packaging_id ?? null
   if (hasPackagings(line.product)) {
     const packaging = line.product.packagings?.find((p) => p.id === packaging_id)
-    if (!packaging || !packaging.in_stock) {
+    if (!packaging || !isPackagingOrderable(packaging)) {
       const fallback = getDefaultPackaging(line.product)
       packaging_id = fallback?.id ?? null
     }

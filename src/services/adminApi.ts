@@ -65,6 +65,18 @@ function validatePackagings(packagings: ProductPackagingFormData[]) {
   }
 }
 
+function packagingStockFields(row: ProductPackagingFormData) {
+  const stockQuantity =
+    row.stock_quantity != null && row.stock_quantity >= 0
+      ? Math.round(row.stock_quantity)
+      : null
+  return {
+    stock_quantity: stockQuantity,
+    in_stock:
+      stockQuantity != null ? stockQuantity > 0 : row.in_stock !== false,
+  }
+}
+
 function normalizePackagingFormRows(
   packagings: ProductPackagingFormData[],
 ): ProductPackagingFormData[] {
@@ -112,7 +124,7 @@ function productPayload(form: ProductFormData) {
       unit: row.unit,
       price: row.price,
       sort_order: row.sort_order,
-      in_stock: row.in_stock,
+      ...packagingStockFields(row),
     })),
   )
 
@@ -210,7 +222,7 @@ async function syncProductPackagings(
       unit: row.unit,
       price: row.price,
       sort_order: index,
-      in_stock: row.in_stock,
+      ...packagingStockFields(row),
     }))
     const product = seedProducts.find((p) => p.id === productId)
     if (product) product.packagings = sortPackagings(rows)
@@ -254,7 +266,7 @@ async function syncProductPackagings(
       unit: row.unit,
       price: row.price,
       sort_order: index,
-      in_stock: row.in_stock,
+      ...packagingStockFields(row),
     }
 
     if (row.id) {

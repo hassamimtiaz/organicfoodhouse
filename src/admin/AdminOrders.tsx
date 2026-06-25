@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   deleteOrder,
   fetchAllOrders,
-  updateOrderPaymentDetails,
   updateOrderStatus,
 } from '../services/ordersApi'
 import { downloadOrderInvoiceHtml } from '../lib/invoice'
@@ -14,10 +13,10 @@ import {
   getOrderAmountReceived,
   getOrderBalanceDue,
 } from '../lib/orderPayment'
-import { parseAdvancePayment } from '../lib/orderNormalize'
 import { formatPricePKR } from '../config/site'
 import type { Order, OrderStatus, Product } from '../types'
 import AdminManualOrderForm from './components/AdminManualOrderForm'
+import AdminPaymentEditor from './components/AdminPaymentEditor'
 import './AdminOrders.css'
 
 const STATUS_OPTIONS: OrderStatus[] = [
@@ -27,108 +26,21 @@ const STATUS_OPTIONS: OrderStatus[] = [
   'cancelled',
 ]
 
+type StatusFilter = 'all' | OrderStatus
+
+const STATUS_FILTER_OPTIONS: { id: StatusFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'pending', label: 'Pending' },
+  { id: 'confirmed', label: 'Confirmed' },
+  { id: 'completed', label: 'Completed' },
+  { id: 'cancelled', label: 'Cancelled' },
+]
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('en-PK', {
     dateStyle: 'medium',
     timeStyle: 'short',
   })
-}
-
-function PaymentRecordingEditor({
-  order,
-  onSaved,
-}: {
-  order: Order
-  onSaved: () => void
-}) {
-  const received = getOrderAmountReceived(order)
-  const [amountValue, setAmountValue] = useState(
-    received != null ? String(received) : '',
-  )
-  const [adminNotes, setAdminNotes] = useState(order.admin_notes ?? '')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const current = getOrderAmountReceived(order)
-    setAmountValue(current != null ? String(current) : '')
-    setAdminNotes(order.admin_notes ?? '')
-  }, [order.id, order.amount_received, order.advance_payment, order.admin_notes])
-
-  const balance = getOrderBalanceDue(order)
-
-  async function handleSave() {
-    setSaving(true)
-    setError(null)
-    try {
-      const amount =
-        amountValue.trim() === '' ? null : parseAdvancePayment(amountValue)
-      if (amountValue.trim() !== '' && amount == null) {
-        setError('Enter a valid amount in PKR.')
-        return
-      }
-      await updateOrderPaymentDetails(order.id, {
-        amount_received: amount,
-        admin_notes: adminNotes.trim() || null,
-      })
-      onSaved()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not save payment details')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="order-advance-editor">
-      <p className="order-advance-editor-hint">
-        Record payment received (full or partial) and any internal notes for
-        accounting — e.g. personal discount given to a friend.
-      </p>
-      <label className="order-advance-label">
-        Amount received (PKR)
-        <input
-          type="number"
-          min="0"
-          step="1"
-          value={amountValue}
-          onChange={(e) => setAmountValue(e.target.value)}
-          placeholder="e.g. 5000"
-          disabled={saving}
-        />
-      </label>
-      <label className="order-advance-label">
-        Admin / accounting notes
-        <textarea
-          rows={3}
-          value={adminNotes}
-          onChange={(e) => setAdminNotes(e.target.value)}
-          placeholder="e.g. Gave 10% friend discount — adjusted total verbally on WhatsApp"
-          disabled={saving}
-        />
-      </label>
-      {balance != null && (
-        <p className="order-advance-balance">
-          <strong>Balance due:</strong> {formatPricePKR(balance)}
-        </p>
-      )}
-      {error && (
-        <p className="order-advance-error" role="alert">
-          {error}
-        </p>
-      )}
-      <div className="order-advance-actions">
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          disabled={saving}
-          onClick={() => void handleSave()}
-        >
-          {saving ? 'Saving…' : 'Save payment details'}
-        </button>
-      </div>
-    </div>
-  )
 }
 
 function OrderList({
@@ -363,7 +275,7 @@ function OrderList({
                           </div>
                         )}
                       </dl>
-                      <PaymentRecordingEditor
+                      <AdminPaymentEditor
                         order={order}
                         onSaved={onAdvanceSaved}
                       />
@@ -385,17 +297,25 @@ export default function AdminOrders({ products }: { products: Product[] }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [showAddOrder, setShowAddOrder] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+
+  const filteredOrders = useMemo(() => {
+    if (statusFilter === 'all') return orders
+    return orders.filter((o) => o.status === statusFilter)
+  }, [orders, statusFilter])
 
   const { whatsappOrders, preorders, currentOrders } = useMemo(() => {
-    const whatsappOrders = orders.filter((o) => o.order_source === 'whatsapp')
-    const preorders = orders.filter(
+    const whatsappOrders = filteredOrders.filter(
+      (o) => o.order_source === 'whatsapp',
+    )
+    const preorders = filteredOrders.filter(
       (o) => o.order_source !== 'whatsapp' && o.order_type === 'preorder',
     )
-    const currentOrders = orders.filter(
+    const currentOrders = filteredOrders.filter(
       (o) => o.order_source !== 'whatsapp' && o.order_type !== 'preorder',
     )
     return { whatsappOrders, preorders, currentOrders }
-  }, [orders])
+  }, [filteredOrders])
 
   async function loadOrders() {
     setLoading(true)
@@ -440,7 +360,10 @@ export default function AdminOrders({ products }: { products: Product[] }) {
   return (
     <section className="admin-orders">
       <div className="admin-orders-header">
-        <h2>Orders ({orders.length})</h2>
+        <h2>
+          Orders ({statusFilter === 'all' ? orders.length : filteredOrders.length}
+          {statusFilter !== 'all' ? ` of ${orders.length}` : ''})
+        </h2>
         <div className="admin-orders-header-actions">
           <button
             type="button"
@@ -461,6 +384,25 @@ export default function AdminOrders({ products }: { products: Product[] }) {
 
       {message && <p className="admin-orders-msg">{message}</p>}
 
+      {!loading && orders.length > 0 && (
+        <div
+          className="admin-orders-filters"
+          role="group"
+          aria-label="Filter by status"
+        >
+          {STATUS_FILTER_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={statusFilter === option.id ? 'active' : ''}
+              onClick={() => setStatusFilter(option.id)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {showAddOrder && (
         <AdminManualOrderForm
           products={products}
@@ -477,6 +419,10 @@ export default function AdminOrders({ products }: { products: Product[] }) {
         <p className="status-msg">Loading orders…</p>
       ) : orders.length === 0 ? (
         <p className="status-msg">No orders yet. Add a WhatsApp order to get started.</p>
+      ) : filteredOrders.length === 0 ? (
+        <p className="status-msg">
+          No {statusFilter} orders. Try another status or show all.
+        </p>
       ) : (
         <>
           <div className="admin-orders-section">

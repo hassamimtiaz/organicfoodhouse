@@ -34,6 +34,8 @@ export interface ProductPackaging {
   price: number
   sort_order: number
   in_stock: boolean
+  /** Boxes remaining; null = unlimited / not tracked */
+  stock_quantity: number | null
 }
 
 export interface ProductPackagingFormData {
@@ -44,6 +46,7 @@ export interface ProductPackagingFormData {
   price: number
   sort_order: number
   in_stock: boolean
+  stock_quantity: number | null
 }
 
 export interface Product {
@@ -129,6 +132,10 @@ export interface Order {
   advance_payment: number | null
   amount_received: number | null
   admin_notes: string | null
+  /** Delivery fee charged (PKR), separate from product line total */
+  delivery_charge: number | null
+  /** Discount given (PKR), reduces grand total for balance due */
+  discount: number | null
   total: number
   created_at: string
   items?: OrderItem[]
@@ -150,6 +157,8 @@ export interface ManualOrderFormData {
   order_type: OrderType
   admin_notes: string
   amount_received: number | null
+  delivery_charge: number | null
+  discount: number | null
   lines: ManualOrderLineForm[]
 }
 

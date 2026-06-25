@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import Seo from '../components/Seo'
 import { MIN_PACKS_PER_ITEM } from '../lib/cartStorage'
+import { getCartLineMaxQuantity } from '../lib/packagingStock'
 import { getCartLineKey } from '../lib/cartLineKey'
 import {
   formatCartLineUnitPrice,
@@ -91,6 +92,7 @@ export default function CartPage() {
                   const coverImage = getProductPrimaryImage(line.product)
                   const unitPrice = formatCartLineUnitPrice(line)
                   const lineTotal = getCartLineTotal(line)
+                  const maxQty = getCartLineMaxQuantity(line)
                   const packLabel = getOrderUnitLabel(
                     line.product,
                     line.packaging_id,
@@ -171,6 +173,7 @@ export default function CartPage() {
                               type="number"
                               className="cart-qty-input"
                               min={MIN_PACKS_PER_ITEM}
+                              max={maxQty ?? undefined}
                               step={1}
                               inputMode="numeric"
                               value={line.quantity}
@@ -188,6 +191,9 @@ export default function CartPage() {
                             <button
                               type="button"
                               className="cart-qty-btn"
+                              disabled={
+                                maxQty != null && line.quantity >= maxQty
+                              }
                               onClick={() =>
                                 setQuantity(lineKey, line.quantity + 1)
                               }

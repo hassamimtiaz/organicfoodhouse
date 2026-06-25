@@ -18,6 +18,8 @@ const emptyForm = (): ManualOrderFormData => ({
   order_type: 'order',
   admin_notes: '',
   amount_received: null,
+  delivery_charge: null,
+  discount: null,
   lines: [{ product_id: '', packaging_id: null, quantity: 1 }],
 })
 
@@ -34,6 +36,8 @@ export default function AdminManualOrderForm({
 }: Props) {
   const [form, setForm] = useState<ManualOrderFormData>(emptyForm)
   const [amountInput, setAmountInput] = useState('')
+  const [deliveryInput, setDeliveryInput] = useState('')
+  const [discountInput, setDiscountInput] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -100,9 +104,21 @@ export default function AdminManualOrderForm({
 
     const amountReceived =
       amountInput.trim() === '' ? null : parseAdvancePayment(amountInput)
+    const deliveryCharge =
+      deliveryInput.trim() === '' ? null : parseAdvancePayment(deliveryInput)
+    const discount =
+      discountInput.trim() === '' ? null : parseAdvancePayment(discountInput)
 
     if (amountInput.trim() !== '' && amountReceived == null) {
       setError('Enter a valid amount received in PKR.')
+      return
+    }
+    if (deliveryInput.trim() !== '' && deliveryCharge == null) {
+      setError('Enter a valid delivery charge in PKR.')
+      return
+    }
+    if (discountInput.trim() !== '' && discount == null) {
+      setError('Enter a valid discount in PKR.')
       return
     }
 
@@ -113,6 +129,8 @@ export default function AdminManualOrderForm({
           ...form,
           lines: validLines,
           amount_received: amountReceived,
+          delivery_charge: deliveryCharge,
+          discount,
         },
         products,
       )
@@ -325,6 +343,28 @@ export default function AdminManualOrderForm({
         <fieldset className="admin-manual-order-fieldset admin-manual-order-accounting">
           <legend>Accounting (optional)</legend>
           <div className="form-row">
+            <label>
+              Delivery charge (PKR)
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={deliveryInput}
+                onChange={(e) => setDeliveryInput(e.target.value)}
+                placeholder="e.g. 500"
+              />
+            </label>
+            <label>
+              Discount (PKR)
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={discountInput}
+                onChange={(e) => setDiscountInput(e.target.value)}
+                placeholder="e.g. friend discount"
+              />
+            </label>
             <label>
               Amount received (PKR)
               <input

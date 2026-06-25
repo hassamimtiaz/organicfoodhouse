@@ -4,6 +4,12 @@ import {
   getPackagingUnitPrice,
   hasPackagings,
 } from '../config/packaging'
+import {
+  formatPackagingStockHint,
+  getPackagingRemaining,
+  isPackagingOrderable,
+  shouldShowLowStock,
+} from '../lib/packagingStock'
 import type { Product, ProductPackaging } from '../types'
 import './PackagingSelector.css'
 
@@ -55,8 +61,11 @@ function PackagingOption({
   checked: boolean
   onSelect: () => void
 }) {
-  const disabled = !packaging.in_stock
+  const disabled = !isPackagingOrderable(packaging)
   const price = getPackagingUnitPrice(product, packaging)
+  const remaining = getPackagingRemaining(packaging)
+  const showLowStock =
+    remaining != null && shouldShowLowStock(remaining) && !disabled
 
   return (
     <label
@@ -77,8 +86,13 @@ function PackagingOption({
           {formatPackagingLabel(packaging)}
         </span>
         <span className="packaging-option-price">{formatPricePKR(price)}</span>
+        {showLowStock && (
+          <span className="packaging-option-low-stock">
+            {formatPackagingStockHint(remaining)}
+          </span>
+        )}
         {disabled && (
-          <span className="packaging-option-unavailable">Unavailable</span>
+          <span className="packaging-option-unavailable">Sold out</span>
         )}
       </span>
     </label>

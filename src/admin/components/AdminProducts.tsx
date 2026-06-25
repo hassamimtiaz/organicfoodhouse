@@ -74,6 +74,7 @@ function emptyPackagingRow(): ProductPackagingFormData {
     price: 0,
     sort_order: 0,
     in_stock: true,
+    stock_quantity: null,
   }
 }
 
@@ -86,6 +87,7 @@ function packagingsFromProduct(product: Product): ProductPackagingFormData[] {
     price: Number(row.price),
     sort_order: row.sort_order,
     in_stock: row.in_stock,
+    stock_quantity: row.stock_quantity ?? null,
   }))
 }
 
@@ -416,17 +418,54 @@ export default function AdminProducts({
                         </label>
                       </div>
 
+                      <label className="packaging-admin-label-full">
+                        Boxes in stock
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          inputMode="numeric"
+                          value={
+                            row.stock_quantity != null ? row.stock_quantity : ''
+                          }
+                          onChange={(e) =>
+                            updatePackagingRow(index, {
+                              stock_quantity:
+                                e.target.value === ''
+                                  ? null
+                                  : Math.max(
+                                      0,
+                                      parseInt(e.target.value, 10) || 0,
+                                    ),
+                              in_stock:
+                                e.target.value === ''
+                                  ? row.in_stock
+                                  : (parseInt(e.target.value, 10) || 0) > 0,
+                            })
+                          }
+                          placeholder="Leave empty for unlimited"
+                        />
+                      </label>
+                      <p className="field-hint packaging-stock-hint">
+                        Set how many boxes are left for this size. At 0 it goes
+                        out of stock automatically. Leave empty if you do not
+                        track quantity.
+                      </p>
+
                       <label className="checkbox-label packaging-admin-stock">
                         <input
                           type="checkbox"
                           checked={row.in_stock}
+                          disabled={row.stock_quantity != null}
                           onChange={(e) =>
                             updatePackagingRow(index, {
                               in_stock: e.target.checked,
                             })
                           }
                         />
-                        Available to order
+                        {row.stock_quantity != null
+                          ? 'In stock (auto from quantity above)'
+                          : 'Available to order'}
                       </label>
 
                       <p className="packaging-admin-preview">
@@ -441,6 +480,7 @@ export default function AdminProducts({
                             price: row.price,
                             sort_order: index,
                             in_stock: row.in_stock,
+                            stock_quantity: row.stock_quantity,
                           })}
                           {row.price > 0
                             ? ` — ${formatPricePKR(row.price)}`

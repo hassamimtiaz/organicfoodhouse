@@ -18,6 +18,14 @@ export function normalizeOrderRow(row: Order): Order {
     advance_payment: advancePayment,
     amount_received: amountReceived,
     admin_notes: row.admin_notes ?? null,
+    delivery_charge:
+      row.delivery_charge != null && row.delivery_charge !== undefined
+        ? Number(row.delivery_charge)
+        : null,
+    discount:
+      row.discount != null && row.discount !== undefined
+        ? Number(row.discount)
+        : null,
   }
 }
 

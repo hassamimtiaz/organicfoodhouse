@@ -14,6 +14,7 @@ import {
 } from '../config/preorder'
 import { hasProductDiscount } from '../config/pricing'
 import { getDefaultPackaging, hasPackagings } from '../config/packaging'
+import { isPackagingOrderable } from '../lib/packagingStock'
 import { getProductImageUrls } from '../config/productImages'
 import { SITE, whatsappLink } from '../config/site'
 import { saveDirectCheckout } from '../lib/checkoutStorage'
@@ -56,7 +57,12 @@ export default function ProductPage() {
     }
     const fallback = getDefaultPackaging(product)
     setSelectedPackagingId((current) => {
-      if (current && product.packagings?.some((p) => p.id === current)) {
+      if (
+        current &&
+        product.packagings?.some(
+          (p) => p.id === current && isPackagingOrderable(p),
+        )
+      ) {
         return current
       }
       return fallback?.id ?? null

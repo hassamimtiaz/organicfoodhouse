@@ -122,6 +122,8 @@ create table if not exists public.product_packagings (
   price numeric(10, 2) not null check (price >= 0),
   sort_order int not null default 0,
   in_stock boolean not null default true,
+  stock_quantity integer
+    check (stock_quantity is null or stock_quantity >= 0),
   created_at timestamptz not null default now()
 );
 
@@ -301,6 +303,10 @@ create table if not exists public.orders (
   amount_received numeric(12, 2)
     check (amount_received is null or amount_received >= 0),
   admin_notes text,
+  delivery_charge numeric(12, 2)
+    check (delivery_charge is null or delivery_charge >= 0),
+  discount numeric(12, 2)
+    check (discount is null or discount >= 0),
   total numeric(12, 2) not null check (total >= 0),
   created_at timestamptz not null default now()
 );

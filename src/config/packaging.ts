@@ -14,7 +14,16 @@ export function getInStockPackagings(
   product: Pick<Product, 'packagings'>,
 ): ProductPackaging[] {
   if (!product.packagings?.length) return []
-  return product.packagings.filter((p) => p.in_stock)
+  return product.packagings.filter((p) => isPackagingOrderable(p))
+}
+
+function isPackagingOrderable(
+  packaging: Pick<ProductPackaging, 'in_stock' | 'stock_quantity'>,
+): boolean {
+  if (packaging.stock_quantity != null) {
+    return Number(packaging.stock_quantity) > 0
+  }
+  return packaging.in_stock !== false
 }
 
 export function getPackagingById(
@@ -73,6 +82,13 @@ export function packagingPricePrefix(
 }
 
 export function normalizePackagingRow(row: ProductPackaging): ProductPackaging {
+  const stockQuantity =
+    row.stock_quantity != null && row.stock_quantity !== undefined
+      ? Math.max(0, Math.round(Number(row.stock_quantity)))
+      : null
+  const inStock =
+    stockQuantity != null ? stockQuantity > 0 : row.in_stock !== false
+
   return {
     ...row,
     weight: Number(row.weight),
@@ -80,7 +96,8 @@ export function normalizePackagingRow(row: ProductPackaging): ProductPackaging {
     sort_order: Number(row.sort_order ?? 0),
     label: row.label ?? '',
     unit: row.unit?.trim() || 'kg',
-    in_stock: row.in_stock !== false,
+    stock_quantity: stockQuantity,
+    in_stock: inStock,
   }
 }
 
