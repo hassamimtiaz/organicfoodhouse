@@ -99,6 +99,24 @@
   font-weight: 600;
 }
 
+.order-line-qty input {
+  font: inherit;
+  font-weight: 400;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  max-width: 5.5rem;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.order-line-qty input::-webkit-outer-spin-button,
+.order-line-qty input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 .order-line-qty select {
   font: inherit;
   font-weight: 400;

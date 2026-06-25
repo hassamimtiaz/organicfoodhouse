@@ -1,6 +1,6 @@
 import type { Order, OrderItem } from '../types'
 
-/** Whole number of boxes ordered (1, 2, or 3) */
+/** Whole number of boxes ordered */
 export function formatOrderPackCount(quantity: number): string {
   const n = Math.round(quantity)
   return String(n)

@@ -1,13 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom'
 import Seo from '../components/Seo'
-import { MAX_PACKS_PER_ITEM } from '../lib/cartStorage'
+import { MIN_PACKS_PER_ITEM } from '../lib/cartStorage'
 import { getCartLineKey } from '../lib/cartLineKey'
 import {
   formatCartLineUnitPrice,
   getCartLineTotal,
 } from '../lib/cartTotals'
 import { clearDirectCheckout } from '../lib/checkoutStorage'
-import { formatOrderBoxCountLabel, formatPricePerBox } from '../lib/orderDisplay'
+import { formatPricePerBox } from '../lib/orderDisplay'
 import { getOrderUnitLabel } from '../config/pricing'
 import { getProductPrimaryImage } from '../config/productImages'
 import { formatPricePKR, SITE } from '../config/site'
@@ -167,13 +167,27 @@ export default function CartPage() {
                             >
                               −
                             </button>
-                            <span className="cart-qty-value">
-                              {formatOrderBoxCountLabel(line.quantity)}
-                            </span>
+                            <input
+                              type="number"
+                              className="cart-qty-input"
+                              min={MIN_PACKS_PER_ITEM}
+                              step={1}
+                              inputMode="numeric"
+                              value={line.quantity}
+                              onChange={(e) => {
+                                const next = Number(e.target.value)
+                                if (next >= MIN_PACKS_PER_ITEM) {
+                                  setQuantity(lineKey, next)
+                                }
+                              }}
+                              onBlur={(e) => {
+                                setQuantity(lineKey, Number(e.target.value))
+                              }}
+                              aria-label={`Boxes for ${line.product.name}`}
+                            />
                             <button
                               type="button"
                               className="cart-qty-btn"
-                              disabled={line.quantity >= MAX_PACKS_PER_ITEM}
                               onClick={() =>
                                 setQuantity(lineKey, line.quantity + 1)
                               }

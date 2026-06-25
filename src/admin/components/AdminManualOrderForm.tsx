@@ -2,7 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { getOrderLineTotal, getOrderUnitLabel, getOrderUnitPrice } from '../../config/pricing'
 import { formatPackagingLabel, hasPackagings } from '../../config/packaging'
 import { formatPricePKR } from '../../config/site'
-import { clampPackQuantity, MAX_PACKS_PER_ITEM } from '../../lib/cartStorage'
+import { clampPackQuantity, MIN_PACKS_PER_ITEM } from '../../lib/cartStorage'
 import { parseAdvancePayment } from '../../lib/orderNormalize'
 import { createManualOrder } from '../../services/ordersApi'
 import type { ManualOrderFormData, Product } from '../../types'
@@ -276,21 +276,20 @@ export default function AdminManualOrderForm({
                   )}
                   <label>
                     Boxes
-                    <select
+                    <input
+                      type="number"
+                      min={MIN_PACKS_PER_ITEM}
+                      step={1}
                       value={line.quantity}
                       onChange={(e) =>
                         updateLine(index, { quantity: Number(e.target.value) })
                       }
-                    >
-                      {Array.from(
-                        { length: MAX_PACKS_PER_ITEM },
-                        (_, i) => i + 1,
-                      ).map((q) => (
-                        <option key={q} value={q}>
-                          {q}
-                        </option>
-                      ))}
-                    </select>
+                      onBlur={(e) =>
+                        updateLine(index, {
+                          quantity: clampPackQuantity(Number(e.target.value)),
+                        })
+                      }
+                    />
                   </label>
                   {lineDetails[index] && (
                     <span className="admin-manual-order-line-total">

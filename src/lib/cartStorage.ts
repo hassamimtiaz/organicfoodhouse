@@ -2,10 +2,13 @@ import type { CartLine } from '../types'
 import { getDefaultPackaging, hasPackagings } from '../config/packaging'
 
 export const CART_STORAGE_KEY = 'ofh-cart'
-export const MAX_PACKS_PER_ITEM = 3
+
+/** Minimum boxes per cart line */
+export const MIN_PACKS_PER_ITEM = 1
 
 export function clampPackQuantity(quantity: number): number {
-  return Math.min(MAX_PACKS_PER_ITEM, Math.max(1, Math.round(quantity)))
+  if (!Number.isFinite(quantity)) return MIN_PACKS_PER_ITEM
+  return Math.max(MIN_PACKS_PER_ITEM, Math.round(quantity))
 }
 
 function normalizeCartLine(line: CartLine): CartLine | null {

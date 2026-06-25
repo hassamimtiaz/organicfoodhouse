@@ -6,7 +6,7 @@ import { getPriceRangeNote } from '../config/pricing'
 import { getOrderUnitLabel } from '../config/pricing'
 import { formatPricePKR, SITE } from '../config/site'
 import { useCart } from '../contexts/CartContext'
-import { MAX_PACKS_PER_ITEM } from '../lib/cartStorage'
+import { MIN_PACKS_PER_ITEM } from '../lib/cartStorage'
 import { formatPerBoxPhrase } from '../lib/orderDisplay'
 import { getCartLineKey } from '../lib/cartLineKey'
 import {
@@ -206,24 +206,22 @@ export default function OrderPage() {
                       </p>
                       <label className="order-line-qty">
                         Boxes
-                        <select
+                        <input
+                          type="number"
+                          min={MIN_PACKS_PER_ITEM}
+                          step={1}
+                          inputMode="numeric"
                           value={line.quantity}
-                          onChange={(e) =>
-                            handleQuantityChange(
-                              lineKey,
-                              Number(e.target.value),
-                            )
+                          onChange={(e) => {
+                            const next = Number(e.target.value)
+                            if (next >= MIN_PACKS_PER_ITEM) {
+                              handleQuantityChange(lineKey, next)
+                            }
+                          }}
+                          onBlur={(e) =>
+                            handleQuantityChange(lineKey, Number(e.target.value))
                           }
-                        >
-                          {Array.from(
-                            { length: MAX_PACKS_PER_ITEM },
-                            (_, i) => i + 1,
-                          ).map((q) => (
-                            <option key={q} value={q}>
-                              {q}
-                            </option>
-                          ))}
-                        </select>
+                        />
                       </label>
                     </div>
                     <span className="order-line-price">
