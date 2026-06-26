@@ -328,8 +328,8 @@ export default function OrderPage() {
                   rows={2}
                   placeholder={
                     hasPreorder
-                      ? 'Preferred delivery window, gift message, etc.'
-                      : 'Delivery preferences, gift message, etc.'
+                      ? 'e.g. Visiting Aunt Sara — pack as gift; preferred delivery window'
+                      : 'e.g. Home visit gift — pack as gift basket; delivery notes'
                   }
                 />
               </label>

@@ -10,6 +10,11 @@ const badges = [
     desc: 'Charges based on your address',
   },
   { icon: '✅', title: 'Best quality', desc: 'Export-grade care' },
+  {
+    icon: '🎁',
+    title: 'Ready to gift',
+    desc: 'Boxes & baskets for home visits',
+  },
   { icon: '💬', title: 'Pre-order savings', desc: 'Discounts on select items' },
 ]
 

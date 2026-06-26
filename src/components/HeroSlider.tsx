@@ -23,7 +23,7 @@ function HeroSlideCopy({
           {ctaLabel}
         </Link>
         <a
-          href={whatsappLink('Hi! I saw your mango boxes on the website and would like to order.')}
+          href={whatsappLink('Hi! I need a fruit gift box or basket for a home visit.')}
           className="btn btn-hero-secondary"
           target="_blank"
           rel="noopener noreferrer"

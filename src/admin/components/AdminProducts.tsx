@@ -191,7 +191,7 @@ export default function AdminProducts({
         if (!row.label.trim()) {
           onMessage({
             type: 'error',
-            text: `Box option ${index + 1}: enter a label (e.g. Gift box).`,
+            text: `Box option ${index + 1}: enter a label (e.g. Host gift box).`,
           })
           return
         }
@@ -331,8 +331,8 @@ export default function AdminProducts({
             <fieldset className="price-type-fieldset packaging-fieldset">
               <legend>Box options &amp; pricing</legend>
               <p className="field-hint packaging-fieldset-intro">
-                Add box sizes with a fixed price each — e.g. 5 kg Premium gift
-                box at Rs 2,500. Leave empty to use a single product price
+                Add box sizes with a fixed price each — e.g. 5 kg Host gift
+                box or Visit gift basket at Rs 2,500. Leave empty to use a single product price
                 instead.
               </p>
 
@@ -363,7 +363,7 @@ export default function AdminProducts({
                           onChange={(e) =>
                             updatePackagingRow(index, { label: e.target.value })
                           }
-                          placeholder="e.g. Premium gift box"
+                          placeholder="e.g. Host gift box"
                         />
                       </label>
 

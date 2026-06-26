@@ -14,6 +14,8 @@ const STATIC_PATHS = [
   '/',
   '/about-us',
   '/our-values',
+  '/gifting',
+  '/catalog',
   '/category/fruits',
   '/category/fruits/mangoes',
 ]

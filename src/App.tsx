@@ -5,8 +5,10 @@ import ProtectedAdminRoute from './admin/ProtectedAdminRoute'
 import AdminLogin from './admin/pages/Login'
 import AdminPortal from './admin/pages/Portal'
 import Layout from './components/Layout'
+import CatalogPage from './pages/CatalogPage'
 import CategoryPage from './pages/CategoryPage'
 import CartPage from './pages/CartPage'
+import GiftingPage from './pages/GiftingPage'
 import Home from './pages/Home'
 import OrderSuccessPage from './pages/OrderSuccessPage'
 import OrderPage from './pages/OrderPage'
@@ -27,8 +29,10 @@ export default function App() {
             element={<CategoryPage />}
           />
           <Route path="search" element={<Search />} />
+          <Route path="catalog" element={<CatalogPage />} />
           <Route path="about-us" element={<AboutUs />} />
           <Route path="our-values" element={<OurValues />} />
+          <Route path="gifting" element={<GiftingPage />} />
           <Route path="cart" element={<CartPage />} />
           <Route path="order" element={<OrderPage />} />
           <Route path="order/success" element={<OrderSuccessPage />} />

@@ -23,9 +23,9 @@ export const promoSlides: PromoSlide[] = [
     badge: 'Our signature packaging',
     title: 'Premium mango boxes, made to impress',
     subtitle:
-      'Export-grade mangoes in gift-ready boxes — perfect for family, friends, and corporate gifting across Pakistan.',
-    ctaLabel: 'Shop mango boxes',
-    ctaLink: '/category/fruits/mangoes',
+      'Export-grade mangoes in gift-ready boxes — perfect when you visit family, friends, or clients instead of bringing sweets.',
+    ctaLabel: 'Shop gift boxes',
+    ctaLink: '/gifting',
   },
   {
     id: 'fresh-mangoes-box',
@@ -45,12 +45,12 @@ export const promoSlides: PromoSlide[] = [
     image: '/images/hero/gift-basket.png',
     imageAlt: 'Decorated mango gift basket with green ribbon and thank-you card',
     layout: 'portrait',
-    badge: 'Perfect for gifting',
-    title: 'Gift baskets that delight',
+    badge: 'Host gift idea',
+    title: 'Visiting someone\'s home? Bring fruit, not mithai',
     subtitle:
-      'Hand-finished baskets with ribbon, mesh wrap, and a personal touch — ideal for Eid, weddings, and thank-yous.',
-    ctaLabel: 'Browse gift options',
-    ctaLink: '/category/fruits/mangoes',
+      'Ready-to-gift buckets and boxes — carbide-free mangoes from Rahim Yar Khan & Multan, beautifully packed for the visit.',
+    ctaLabel: 'Gift boxes & baskets',
+    ctaLink: '/gifting',
   },
   {
     id: 'farm-fresh',
@@ -86,6 +86,6 @@ export const promoSlides: PromoSlide[] = [
     subtitle:
       'Order online or on WhatsApp — we deliver premium organic fruit with packaging you will be proud to give.',
     ctaLabel: 'Start your order',
-    ctaLink: '/category/fruits/mangoes',
+    ctaLink: '/gifting',
   },
 ]

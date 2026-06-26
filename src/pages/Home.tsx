@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import HostGiftSection from '../components/HostGiftSection'
 import HeroSlider from '../components/HeroSlider'
 import JsonLd from '../components/JsonLd'
 import MangoSeoContent from '../components/MangoSeoContent'
@@ -72,6 +73,8 @@ export default function Home() {
       </section> */}
 
       <TrustBadges />
+
+      <HostGiftSection />
 
       {/* Seasonal marketplace */}
 

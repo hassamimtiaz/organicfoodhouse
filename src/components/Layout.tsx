@@ -54,6 +54,7 @@ export default function Layout() {
 
           <nav className="nav" aria-label="Main">
             <Link to="/">Home</Link>
+            <Link to="/catalog">Catalog</Link>
             <NavProducts />
             <Link to="/about-us">About Us</Link>
             <Link to="/our-values">Our Values</Link>
@@ -127,7 +128,13 @@ export default function Layout() {
             <h4>Shop</h4>
             <ul className="footer-links">
               <li>
+                <Link to="/catalog">Catalog</Link>
+              </li>
+              <li>
                 <Link to="/category/fruits">Fruits</Link>
+              </li>
+              <li>
+                <Link to="/gifting">Gift fruit (boxes &amp; baskets)</Link>
               </li>
               <li>
                 <Link to="/category/fruits/mangoes">Mangoes (in season)</Link>
