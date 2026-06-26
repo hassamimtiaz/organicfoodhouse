@@ -34,6 +34,7 @@ export default function Search() {
       <Seo
         title={q ? `Search: ${q}` : 'Search products'}
         path={`/search${q ? `?q=${encodeURIComponent(q)}` : ''}`}
+        robots="noindex, follow"
         description={
           q
             ? `Search results for "${q}" at ${SITE.name} — seasonal organic produce.`

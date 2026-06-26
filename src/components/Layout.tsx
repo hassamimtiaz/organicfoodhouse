@@ -110,9 +110,6 @@ export default function Layout() {
             <h4>Contact</h4>
             <ul className="footer-links">
               <li>
-                <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
-              </li>
-              <li>
                 <a href={`tel:${SITE.phoneTel}`}>{SITE.phone}</a>
               </li>
               <li>
@@ -148,8 +145,8 @@ export default function Layout() {
               </li>
             </ul>
             <p className="footer-note">
-              Mango lovers bringing farm-fresh quality from Rahim Yar Khan to your
-              home. Pre-order early for the best selection.
+              Mango lovers bringing farm-fresh quality from Rahim Yar Khan and
+              Multan to your home. Pre-order early for the best selection.
             </p>
           </div>
         </div>

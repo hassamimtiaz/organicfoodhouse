@@ -77,6 +77,7 @@ export default function OrderSuccessPage() {
         title="Order placed"
         description={`Thank you for your order at ${SITE.name}.`}
         path="/order/success"
+        robots="noindex, follow"
       />
 
       <div className="container">

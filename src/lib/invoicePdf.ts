@@ -104,8 +104,6 @@ export function downloadOrderInvoicePdf(
   doc.text(SITE.tagline, margin, y)
   y += 5
   doc.text(`Phone: ${SITE.phone}`, margin, y)
-  y += 5
-  doc.text(`Email: ${SITE.email}`, margin, y)
 
   const metaBoxLeft = pageWidth - margin - 62
   const metaLabelEnd = metaBoxLeft + 26

@@ -24,8 +24,9 @@ export default function MangoSeoContent({ variant = 'home' }: MangoSeoContentPro
 
         <p>
           {SITE.name} brings you <strong>organic mangoes online</strong> each
-          season — carbide-free, tree-ripened, and packed for{' '}
-          <strong>mango delivery</strong> to Lahore and cities nationwide.
+          season — carbide-free, tree-ripened, sourced from partner farms in{' '}
+          <strong>Rahim Yar Khan</strong> and <strong>Multan</strong>, and packed
+          for <strong>mango delivery</strong> to Lahore and cities nationwide.
           Whether you are searching for <strong>mangoes in Lahore</strong>,
           reliable <strong>online mangoes</strong>, or the{' '}
           <strong>best Chaunsa</strong>, <strong>best Sindhri</strong>,{' '}

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { whatsappLink } from '../config/site'
+import { SITE, whatsappLink } from '../config/site'
 import { isComingSoonProduct } from '../config/preorder'
 import { getProductPrimaryImage } from '../config/productImages'
 import { getProductUrl } from '../lib/productSlug'
@@ -17,8 +17,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const emoji = product.name.toLowerCase().includes('mango') ? '🥭' : '🍎'
   const comingSoon = isComingSoonProduct(product)
   const whatsappMsg = comingSoon
-    ? `Hi! I want to pre-order ${product.name} from Organic Food House.`
-    : `Hi! I want to order ${product.name} from Organic Food House.`
+    ? `Hi! I want to pre-order ${product.name} from ${SITE.name}.`
+    : `Hi! I want to order ${product.name} from ${SITE.name}.`
   const productUrl = getProductUrl(product)
   const coverImage = getProductPrimaryImage(product)
 
@@ -31,7 +31,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       />
       <div className="product-card-visual">
         {coverImage ? (
-          <img src={coverImage} alt="" loading="lazy" />
+          <img src={coverImage} alt={product.name} loading="lazy" />
         ) : (
           <span className="product-emoji" aria-hidden="true">
             {emoji}

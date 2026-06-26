@@ -62,6 +62,7 @@ export default function CartPage() {
         title="Your cart"
         description={`Review items in your cart and checkout on ${SITE.name}.`}
         path="/cart"
+        robots="noindex, follow"
       />
 
       <div className="container">

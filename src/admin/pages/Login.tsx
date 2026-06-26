@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
+import { SITE } from '../../config/site'
 import { useAuth } from '../../contexts/AuthContext'
 import './Login.css'
 
@@ -40,7 +41,7 @@ export default function AdminLogin() {
         </Link>
         <h1>Admin sign in</h1>
         <p className="admin-login-sub">
-          Manage products and categories for Organic Foods.
+          Manage products and categories for {SITE.name}.
         </p>
 
         {demoMode && (

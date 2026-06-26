@@ -1,5 +1,5 @@
 -- =============================================================================
--- Organic Foods — baseline schema (run once on a new Supabase project)
+-- Organic Fruit House — baseline schema (run once on a new Supabase project)
 -- =============================================================================
 --
 -- Where: Supabase Dashboard → SQL → New query → paste & run this entire file

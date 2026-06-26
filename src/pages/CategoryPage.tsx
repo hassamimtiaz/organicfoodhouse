@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Breadcrumbs from '../components/Breadcrumbs'
+import JsonLdScript from '../components/JsonLdScript'
+import MangoSeoContent from '../components/MangoSeoContent'
 import Seo from '../components/Seo'
 import { SITE } from '../config/site'
+import { buildBreadcrumbListSchema } from '../lib/seo'
 import ProductCard from '../components/ProductCard'
 import SubcategoryCard from '../components/SubcategoryCard'
 import {
@@ -114,6 +117,10 @@ export default function CategoryPage() {
         description={`Shop ${subcategory?.name ?? category?.name ?? 'seasonal organic'} at ${SITE.name}. Pre-order seasonal items — discounts shown on each product. Delivered across ${SITE.deliveryArea}.`}
         path={seoPath}
       />
+      <JsonLdScript
+        id="json-ld-breadcrumbs"
+        data={buildBreadcrumbListSchema(breadcrumbItems)}
+      />
       <div className="container">
         <Breadcrumbs items={breadcrumbItems} />
 
@@ -134,7 +141,7 @@ export default function CategoryPage() {
               {category.image_url ? (
                 <img
                   src={category.image_url}
-                  alt=""
+                  alt={category.name}
                   className="category-page-image"
                 />
               ) : (
@@ -177,7 +184,7 @@ export default function CategoryPage() {
               {subcategory.image_url ? (
                 <img
                   src={subcategory.image_url}
-                  alt=""
+                  alt={subcategory.name}
                   className="category-page-image"
                 />
               ) : (
@@ -212,6 +219,10 @@ export default function CategoryPage() {
           </>
         )}
       </div>
+
+      {subcategorySlug === 'mangoes' && !loading && !error && (
+        <MangoSeoContent variant="category" />
+      )}
     </div>
   )
 }

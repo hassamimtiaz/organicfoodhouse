@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
+import { SITE } from '../config/site'
 import { useAuth } from '../contexts/AuthContext'
 import './AdminLayout.css'
 
@@ -10,7 +11,7 @@ export default function AdminLayout() {
       <header className="admin-header">
         <div className="container admin-header-inner">
           <Link to="/admin" className="admin-brand">
-            Organic Food House <span>Admin</span>
+            {SITE.name} <span>Admin</span>
           </Link>
           <nav className="admin-nav">
             <NavLink to="/admin" end>

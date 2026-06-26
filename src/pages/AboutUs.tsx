@@ -12,9 +12,9 @@ export default function AboutUs() {
     <div className="company-page">
       <Seo
         title="About Us"
-        description={`Learn about ${SITE.name} — mango lovers bringing farm-fresh organic produce from Rahim Yar Khan to homes across Pakistan.`}
+        description={`Learn about ${SITE.name} — mango lovers bringing farm-fresh organic produce from Rahim Yar Khan and Multan to homes across Pakistan.`}
         path="/about-us"
-        keywords="about organic food house, Rahim Yar Khan mangoes, farm fresh organic Pakistan, mango lovers Lahore"
+        keywords="about organic fruit house, Rahim Yar Khan mangoes, Multan mangoes, farm fresh organic Pakistan, mango lovers Lahore"
       />
 
       <section className="company-hero">
@@ -66,10 +66,14 @@ export default function AboutUs() {
               ))}
             </ul>
           </div>
-          <div className="company-farm-visual" aria-hidden="true">
-            <span>🌾</span>
-            <strong>Rahim Yar Khan</strong>
-            <small>Southern Punjab · Mango belt</small>
+          <div className="company-farm-locations" aria-hidden="true">
+            {farmSpotlight.locations.map((location) => (
+              <div key={location.name} className="company-farm-visual">
+                <span>🌾</span>
+                <strong>{location.name}</strong>
+                <small>{location.region}</small>
+              </div>
+            ))}
           </div>
         </div>
       </section>

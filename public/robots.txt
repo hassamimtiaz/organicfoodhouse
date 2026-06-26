@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /order
 
-Sitemap: https://organicfoods.pk/sitemap.xml
+Sitemap: https://www.organicfruithouse.com/sitemap.xml

@@ -12,9 +12,9 @@ export default function OurValues() {
     <div className="company-page">
       <Seo
         title="Our Values"
-        description={`The values behind ${SITE.name} — quality, transparency, organic growing, seasonal integrity, and care in every order.`}
+        description={`The values behind ${SITE.name} — quality, transparency, organic growing, and fresh mangoes from Rahim Yar Khan and Multan.`}
         path="/our-values"
-        keywords="organic food values, carbide free commitment, farm fresh quality Pakistan, seasonal organic principles"
+        keywords="organic food values, carbide free commitment, Rahim Yar Khan Multan mangoes, farm fresh quality Pakistan, seasonal organic principles"
       />
 
       <section className="company-hero company-hero--values">

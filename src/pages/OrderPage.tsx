@@ -173,6 +173,7 @@ export default function OrderPage() {
         title={hasPreorder ? 'Pre-order checkout' : 'Checkout'}
         description={`Complete your order on ${SITE.name}.`}
         path="/order"
+        robots="noindex, follow"
       />
 
       <div className="container">

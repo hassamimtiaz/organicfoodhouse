@@ -3,7 +3,7 @@ export const OUR_VALUES = {
     eyebrow: 'What we stand for',
     title: 'Our Values',
     subtitle:
-      'Principles that guide how we source, pack, price, and deliver — so every order reflects what we believe in.',
+      'Principles that guide how we source from farms in Rahim Yar Khan and Multan, pack, price, and deliver — so every order reflects what we believe in.',
   },
   intro:
     'These are not marketing lines. They are the standards we hold ourselves to before a product goes on the website, before a box leaves our hands, and before we ask you to trust us with your order.',
@@ -36,7 +36,7 @@ export const OUR_VALUES = {
       icon: '🤝',
       title: 'Fair to farmers',
       description:
-        'Growers deserve fair pay for careful work. Direct relationships with farms in Rahim Yar Khan and beyond keep that promise real.',
+        'Growers deserve fair pay for careful work. Direct relationships with farms in Rahim Yar Khan, Multan, and beyond keep that promise real.',
     },
     {
       icon: '💚',
@@ -48,7 +48,7 @@ export const OUR_VALUES = {
   commitments: {
     title: 'Our commitments to you',
     items: [
-      'We taste and vet produce before listing it on the website.',
+      'We taste and vet fresh mangoes from our partner farms in Rahim Yar Khan and Multan before listing them on the website.',
       'We never use carbide or artificial ripening on what we sell.',
       'We tell you when something is pre-order, in stock, or coming soon.',
       'We confirm orders personally and communicate clearly on delivery.',

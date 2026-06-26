@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import HeroSlider from '../components/HeroSlider'
 import JsonLd from '../components/JsonLd'
+import MangoSeoContent from '../components/MangoSeoContent'
 import Seo from '../components/Seo'
 import TrustBadges from '../components/TrustBadges'
 import ProductCard from '../components/ProductCard'
@@ -31,9 +32,13 @@ export default function Home() {
       <Seo
         path="/"
         description={SITE.description}
-        keywords="organic food online Pakistan, seasonal fruits, buy organic produce, farm fresh delivery, carbide free fruits, pre order organic"
+        keywords="organic fruit house, organic food online Pakistan, seasonal fruits, buy organic produce, farm fresh delivery, carbide free fruits, Rahim Yar Khan mangoes, Multan mangoes, pre order organic"
       />
       <JsonLd />
+
+      <h1 className="sr-only">
+        {SITE.name} — seasonal organic fruits online in Pakistan
+      </h1>
 
       <HeroSlider />
 
@@ -116,10 +121,7 @@ export default function Home() {
           </div>
           <div className="home-help-card">
             <h3>Need help ordering?</h3>
-            <p>Our team is happy to guide you — call, email, or WhatsApp.</p>
-            <a className="home-contact-link" href={`mailto:${SITE.email}`}>
-              {SITE.email}
-            </a>
+            <p>Our team is happy to guide you — call or WhatsApp.</p>
             <a className="home-contact-link" href={`tel:${SITE.phoneTel}`}>
               {SITE.phone}
             </a>
@@ -134,6 +136,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <MangoSeoContent variant="home" />
 
       <section className="section cta-final">
         <div className="container cta-final-inner">

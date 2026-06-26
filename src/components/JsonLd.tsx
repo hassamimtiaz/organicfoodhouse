@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { SITE } from '../config/site'
+import { absoluteSiteUrl, DEFAULT_OG_IMAGE } from '../lib/seo'
 
 export default function JsonLd() {
   useEffect(() => {
@@ -9,7 +10,7 @@ export default function JsonLd() {
       name: SITE.name,
       description: SITE.description,
       url: SITE.url,
-      email: SITE.email,
+      image: absoluteSiteUrl(DEFAULT_OG_IMAGE),
       telephone: SITE.phoneTel,
       address: {
         '@type': 'PostalAddress',

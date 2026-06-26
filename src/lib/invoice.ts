@@ -271,7 +271,6 @@ export function buildOrderInvoiceHtml(
         <h1>${escapeHtml(SITE.name)}</h1>
         <p>${escapeHtml(SITE.tagline)}</p>
         <p>Phone: ${escapeHtml(SITE.phone)}</p>
-        <p>Email: ${escapeHtml(SITE.email)}</p>
       </div>
       <div class="inv-meta">
         <h2>INVOICE</h2>

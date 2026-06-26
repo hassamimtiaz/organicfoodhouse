@@ -8,6 +8,7 @@ import PreorderStatus from '../components/PreorderStatus'
 import ProductDetailPricing from '../components/ProductDetailPricing'
 import DeliveryNotice from '../components/DeliveryNotice'
 import Seo from '../components/Seo'
+import JsonLdScript from '../components/JsonLdScript'
 import {
   acceptsPreorder,
   isComingSoonProduct,
@@ -15,8 +16,9 @@ import {
 import { hasProductDiscount } from '../config/pricing'
 import { getDefaultPackaging, hasPackagings } from '../config/packaging'
 import { isPackagingOrderable } from '../lib/packagingStock'
-import { getProductImageUrls } from '../config/productImages'
+import { getProductImageUrls, getProductPrimaryImage } from '../config/productImages'
 import { SITE, whatsappLink } from '../config/site'
+import { buildBreadcrumbListSchema, buildProductSchema } from '../lib/seo'
 import { saveDirectCheckout } from '../lib/checkoutStorage'
 import { fetchProductRecommendations } from '../services/api'
 import { getProductUrl } from '../lib/productSlug'
@@ -117,8 +119,8 @@ export default function ProductPage() {
 
   const whatsappMsg = product
     ? isPreorderFlow
-      ? `Hi! I want to pre-order ${product.name} from Organic Food House.`
-      : `Hi! I want to order ${product.name} from Organic Food House.`
+      ? `Hi! I want to pre-order ${product.name} from ${SITE.name}.`
+      : `Hi! I want to order ${product.name} from ${SITE.name}.`
     : ''
 
   function handleBuyNow() {
@@ -227,6 +229,12 @@ export default function ProductPage() {
           } — delivered across ${SITE.deliveryArea}.`
         }
         path={getProductUrl(product)}
+        image={getProductPrimaryImage(product) ?? undefined}
+      />
+      <JsonLdScript id="json-ld-product" data={buildProductSchema(product)} />
+      <JsonLdScript
+        id="json-ld-breadcrumbs"
+        data={buildBreadcrumbListSchema(breadcrumbItems)}
       />
 
       <div className="container">

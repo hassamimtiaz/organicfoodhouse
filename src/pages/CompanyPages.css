@@ -247,6 +247,12 @@
   font-weight: 800;
 }
 
+.company-farm-locations {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .company-farm-visual {
   display: flex;
   flex-direction: column;
