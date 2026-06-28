@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect } from 'react'
 import { SITE } from '../config/site'
 import { absoluteSiteUrl, resolveOgImage } from '../lib/seo'

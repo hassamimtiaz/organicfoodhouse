@@ -3,7 +3,10 @@ export const SITE = {
   tagline: 'Seasonal organic produce, delivered fresh',
   description:
     'Shop seasonal organic fruits and farm-fresh produce online in Pakistan. Carbide-free, naturally ripened — pre-order in-season items. Delivery charges apply based on your address.',
-  url: import.meta.env.VITE_SITE_URL ?? 'https://www.organicfruithouse.com',
+  url:
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    process.env.VITE_SITE_URL ??
+    'https://www.organicfruithouse.com',
   phone: '0339-6622020',
   phoneTel: '+923396622020',
   whatsapp: '923396622020',

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import type { Category } from '../types'
 import './SubcategoryCard.css'
 
@@ -21,7 +21,7 @@ export default function SubcategoryCard({
 
   return (
     <Link
-      to={`/category/${parentSlug}/${subcategory.slug}`}
+      href={`/category/${parentSlug}/${subcategory.slug}`}
       className="subcategory-card"
     >
       <div className="subcategory-card-visual">

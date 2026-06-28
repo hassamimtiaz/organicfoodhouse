@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import ProductCard from './ProductCard'
 import type { Product } from '../types'
 import './ProductGridSection.css'
@@ -26,7 +26,7 @@ export default function ProductGridSection({
           {description && <p>{description}</p>}
         </div>
         {viewAll && (
-          <Link to={viewAll.to} className="product-grid-section-link">
+          <Link href={viewAll.to} className="product-grid-section-link">
             {viewAll.label} →
           </Link>
         )}

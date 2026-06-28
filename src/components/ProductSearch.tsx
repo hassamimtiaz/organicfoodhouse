@@ -1,5 +1,8 @@
+'use client'
+
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { formatProductPrice } from '../config/pricing'
 import { getProductUrl } from '../lib/productSlug'
 import { searchProducts } from '../services/api'
@@ -11,9 +14,9 @@ interface ProductSearchProps {
 }
 
 export default function ProductSearch({ variant = 'header' }: ProductSearchProps) {
-  const navigate = useNavigate()
-  const [params] = useSearchParams()
-  const initial = params.get('q') ?? ''
+  const router = useRouter()
+  const params = useSearchParams()
+  const initial = params?.get('q') ?? ''
   const [query, setQuery] = useState(initial)
   const [results, setResults] = useState<Product[]>([])
   const [open, setOpen] = useState(false)
@@ -54,7 +57,7 @@ export default function ProductSearch({ variant = 'header' }: ProductSearchProps
     e.preventDefault()
     if (!query.trim()) return
     setOpen(false)
-    navigate(`/search?q=${encodeURIComponent(query.trim())}`)
+    router.push(`/search?q=${encodeURIComponent(query.trim())}`)
   }
 
   return (
@@ -91,7 +94,7 @@ export default function ProductSearch({ variant = 'header' }: ProductSearchProps
               {results.map((p) => (
                 <li key={p.id}>
                   <Link
-                    to={getProductUrl(p)}
+                    href={getProductUrl(p)}
                     onClick={() => setOpen(false)}
                   >
                     <span>{p.name}</span>
@@ -102,7 +105,7 @@ export default function ProductSearch({ variant = 'header' }: ProductSearchProps
             </ul>
           )}
           <Link
-            to={`/search?q=${encodeURIComponent(query.trim())}`}
+            href={`/search?q=${encodeURIComponent(query.trim())}`}
             className="search-view-all"
             onClick={() => setOpen(false)}
           >

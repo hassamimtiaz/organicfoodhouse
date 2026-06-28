@@ -1,5 +1,7 @@
+'use client'
+
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { promoSlides } from '../config/promoSlides'
 import { whatsappLink } from '../config/site'
 import './HeroSlider.css'
@@ -19,7 +21,7 @@ function HeroSlideCopy({
       <h2>{title}</h2>
       <p>{subtitle}</p>
       <div className="hero-slide-actions">
-        <Link to={ctaLink} className="btn btn-hero-cta">
+        <Link href={ctaLink} className="btn btn-hero-cta">
           {ctaLabel}
         </Link>
         <a

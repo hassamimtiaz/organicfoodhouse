@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import type { Category } from '../types'
 import './CategoryCard.css'
 
@@ -18,7 +18,7 @@ export default function CategoryCard({
   const icon = categoryIcons[category.slug] ?? '🥗'
 
   return (
-    <Link to={`/category/${category.slug}`} className="category-card">
+    <Link href={`/category/${category.slug}`} className="category-card">
       <div className="category-card-visual">
         {category.image_url ? (
           <img src={category.image_url} alt="" loading="lazy" />

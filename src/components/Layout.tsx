@@ -1,4 +1,7 @@
-import { Link, Outlet } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { SITE, whatsappLink } from '../config/site'
 import { useCart } from '../contexts/CartContext'
 import { isSupabaseConfigured } from '../lib/supabase'
@@ -39,7 +42,7 @@ function WhatsAppIcon() {
   )
 }
 
-export default function Layout() {
+export default function Layout({ children }: { children: ReactNode }) {
   const { itemCount } = useCart()
 
   return (
@@ -48,20 +51,24 @@ export default function Layout() {
 
       <header className="header">
         <div className="container header-inner">
-          <Link to="/" className="brand" aria-label={`${SITE.name} — home`}>
+          <Link href="/" className="brand" aria-label={`${SITE.name} — home`}>
             <SiteLogo />
           </Link>
 
           <nav className="nav" aria-label="Main">
-            <Link to="/">Home</Link>
-            <Link to="/catalog">Catalog</Link>
+            <Link href="/">Home</Link>
+            <Link href="/catalog">Catalog</Link>
             <NavProducts />
-            <Link to="/about-us">About Us</Link>
-            <Link to="/our-values">Our Values</Link>
+            <Link href="/about-us">About Us</Link>
+            <Link href="/our-values">Our Values</Link>
           </nav>
 
           <div className="header-actions">
-            <Link to="/cart" className="header-cart-btn" aria-label={`Cart${itemCount > 0 ? `, ${itemCount} items` : ''}`}>
+            <Link
+              href="/cart"
+              className="header-cart-btn"
+              aria-label={`Cart${itemCount > 0 ? `, ${itemCount} items` : ''}`}
+            >
               <CartIcon />
               Cart
               {itemCount > 0 && (
@@ -93,9 +100,7 @@ export default function Layout() {
         )}
       </header>
 
-      <main className="main">
-        <Outlet />
-      </main>
+      <main className="main">{children}</main>
 
       <footer className="footer">
         <div className="container footer-grid">
@@ -128,16 +133,16 @@ export default function Layout() {
             <h4>Shop</h4>
             <ul className="footer-links">
               <li>
-                <Link to="/catalog">Catalog</Link>
+                <Link href="/catalog">Catalog</Link>
               </li>
               <li>
-                <Link to="/category/fruits">Fruits</Link>
+                <Link href="/category/fruits">Fruits</Link>
               </li>
               <li>
-                <Link to="/gifting">Gift fruit (boxes &amp; baskets)</Link>
+                <Link href="/gifting">Gift fruit (boxes &amp; baskets)</Link>
               </li>
               <li>
-                <Link to="/category/fruits/mangoes">Mangoes (in season)</Link>
+                <Link href="/category/fruits/mangoes">Mangoes (in season)</Link>
               </li>
             </ul>
           </div>
@@ -145,10 +150,10 @@ export default function Layout() {
             <h4>About</h4>
             <ul className="footer-links">
               <li>
-                <Link to="/about-us">About Us</Link>
+                <Link href="/about-us">About Us</Link>
               </li>
               <li>
-                <Link to="/our-values">Our Values</Link>
+                <Link href="/our-values">Our Values</Link>
               </li>
             </ul>
             <p className="footer-note">

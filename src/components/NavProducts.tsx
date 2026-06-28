@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import {
   fetchSubcategories,
   fetchTopLevelCategories,
@@ -124,7 +126,7 @@ export default function NavProducts() {
                       )}
 
                       <Link
-                        to={`/category/${cat.slug}`}
+                        href={`/category/${cat.slug}`}
                         className="nav-category-name"
                         onClick={closeMenu}
                         role="menuitem"
@@ -141,7 +143,7 @@ export default function NavProducts() {
                         {subs.map((sub) => (
                           <li key={sub.id}>
                             <Link
-                              to={`/category/${cat.slug}/${sub.slug}`}
+                              href={`/category/${cat.slug}/${sub.slug}`}
                               onClick={closeMenu}
                               role="menuitem"
                             >

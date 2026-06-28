@@ -1,15 +1,18 @@
+'use client'
+
 import { useState, type FormEvent } from 'react'
-import { Link, Navigate, useLocation } from 'react-router-dom'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Redirect from '../../components/Redirect'
 import { SITE } from '../../config/site'
 import { useAuth } from '../../contexts/AuthContext'
 import './Login.css'
 
 export default function AdminLogin() {
   const { signIn, isAuthenticated, isAdmin, loading, demoMode } = useAuth()
-  const location = useLocation()
-  const from =
-    (location.state as { from?: { pathname: string } })?.from?.pathname ??
-    '/admin'
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const from = searchParams?.get('from') ?? '/admin'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -17,7 +20,7 @@ export default function AdminLogin() {
   const [submitting, setSubmitting] = useState(false)
 
   if (!loading && isAuthenticated && isAdmin) {
-    return <Navigate to={from} replace />
+    return <Redirect to={from} />
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -26,6 +29,7 @@ export default function AdminLogin() {
     setSubmitting(true)
     try {
       await signIn(email, password)
+      router.replace(from)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sign in failed')
     } finally {
@@ -36,7 +40,7 @@ export default function AdminLogin() {
   return (
     <div className="admin-login-page">
       <div className="admin-login-card">
-        <Link to="/" className="admin-login-back">
+        <Link href="/" className="admin-login-back">
           ← Back to store
         </Link>
         <h1>Admin sign in</h1>

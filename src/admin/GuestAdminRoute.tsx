@@ -1,8 +1,12 @@
-import { Navigate, Outlet } from 'react-router-dom'
+'use client'
+
+import { useRouter } from 'next/navigation'
+import type { ReactNode } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 
-export default function GuestAdminRoute() {
+export default function GuestAdminRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, isAdmin, loading } = useAuth()
+  const router = useRouter()
 
   if (loading) {
     return (
@@ -13,8 +17,9 @@ export default function GuestAdminRoute() {
   }
 
   if (isAuthenticated && isAdmin) {
-    return <Navigate to="/admin" replace />
+    router.replace('/admin')
+    return null
   }
 
-  return <Outlet />
+  return <>{children}</>
 }

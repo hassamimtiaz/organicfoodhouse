@@ -1,9 +1,17 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+'use client'
+
+import { usePathname, useRouter } from 'next/navigation'
+import type { ReactNode } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 
-export default function ProtectedAdminRoute() {
+export default function ProtectedAdminRoute({
+  children,
+}: {
+  children: ReactNode
+}) {
   const { isAuthenticated, isAdmin, loading } = useAuth()
-  const location = useLocation()
+  const pathname = usePathname()
+  const router = useRouter()
 
   if (loading) {
     return (
@@ -14,7 +22,8 @@ export default function ProtectedAdminRoute() {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/admin/login" state={{ from: location }} replace />
+    router.replace(`/admin/login?from=${encodeURIComponent(pathname ?? '/admin')}`)
+    return null
   }
 
   if (!isAdmin) {
@@ -27,5 +36,5 @@ export default function ProtectedAdminRoute() {
     )
   }
 
-  return <Outlet />
+  return <>{children}</>
 }

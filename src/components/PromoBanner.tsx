@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { SITE } from '../config/site'
 import './PromoBanner.css'
 
@@ -18,10 +18,10 @@ export default function PromoBanner() {
             Delivery charges apply based on your address.
           </p>
           <div className="promo-actions">
-            <Link to="/#in-season" className="btn btn-promo">
+            <Link href="/#in-season" className="btn btn-promo">
               Shop seasonal picks →
             </Link>
-            <Link to="/category/fruits" className="btn btn-promo-outline">
+            <Link href="/category/fruits" className="btn btn-promo-outline">
               Browse categories
             </Link>
           </div>

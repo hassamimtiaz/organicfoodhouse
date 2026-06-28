@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { SITE } from '../config/site'
 import './MangoSeoContent.css'
 
@@ -61,7 +61,7 @@ export default function MangoSeoContent({ variant = 'home' }: MangoSeoContentPro
           Pre-order during the season — discounts shown on each product. Free
           delivery on qualifying orders above {SITE.freeShippingMin}. Delivery
           charges apply based on your address.{' '}
-          <Link to="/category/fruits/mangoes">Shop all mangoes online →</Link>
+          <Link href="/category/fruits/mangoes">Shop all mangoes online →</Link>
         </p>
       </div>
     </section>

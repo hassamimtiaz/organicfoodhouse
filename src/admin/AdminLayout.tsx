@@ -1,23 +1,33 @@
-import { Link, NavLink, Outlet } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import type { ReactNode } from 'react'
 import { SITE } from '../config/site'
 import { useAuth } from '../contexts/AuthContext'
 import './AdminLayout.css'
 
-export default function AdminLayout() {
+export default function AdminLayout({ children }: { children: ReactNode }) {
   const { signOut, user, demoMode } = useAuth()
+  const pathname = usePathname()
+  const isCatalogActive = pathname === '/admin'
 
   return (
     <div className="admin-app">
       <header className="admin-header">
         <div className="container admin-header-inner">
-          <Link to="/admin" className="admin-brand">
+          <Link href="/admin" className="admin-brand">
             {SITE.name} <span>Admin</span>
           </Link>
           <nav className="admin-nav">
-            <NavLink to="/admin" end>
+            <Link
+              href="/admin"
+              className={isCatalogActive ? 'active' : undefined}
+              aria-current={isCatalogActive ? 'page' : undefined}
+            >
               Catalog
-            </NavLink>
-            <Link to="/" className="admin-nav-muted">
+            </Link>
+            <Link href="/" className="admin-nav-muted">
               View store
             </Link>
             <button
@@ -43,9 +53,7 @@ export default function AdminLayout() {
           </div>
         )}
       </header>
-      <main className="admin-main">
-        <Outlet />
-      </main>
+      <main className="admin-main">{children}</main>
     </div>
   )
 }

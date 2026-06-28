@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { SITE, whatsappLink } from '../config/site'
 import {
   getAdvanceOrderLabel,
@@ -32,7 +32,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <article className={`product-card ${comingSoon ? 'product-card--coming-soon' : ''}`}>
       <Link
-        to={productUrl}
+        href={productUrl}
         className="product-card-link"
         aria-label={`View ${product.name} details`}
       />
@@ -86,7 +86,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               {comingSoon ? 'Pre-order' : 'Order'}
             </a>
             <Link
-              to={productUrl}
+              href={productUrl}
               className="btn btn-outline btn-sm"
               onClick={(e) => e.stopPropagation()}
             >

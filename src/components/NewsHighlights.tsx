@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { NEWS_HIGHLIGHTS } from '../config/newsHighlights'
 import './NewsHighlights.css'
 
@@ -20,7 +20,7 @@ export default function NewsHighlights() {
           ))}
         </div>
       </div>
-      <Link to="/category/fruits/mangoes" className="news-highlights-cta">
+      <Link href="/category/fruits/mangoes" className="news-highlights-cta">
         Shop mangoes
       </Link>
     </div>

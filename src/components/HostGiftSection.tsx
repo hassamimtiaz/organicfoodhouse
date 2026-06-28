@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { GIFTING, giftingWhatsAppLink } from '../config/gifting'
 import './HostGiftSection.css'
 
@@ -12,7 +12,7 @@ export default function HostGiftSection() {
           <p>{GIFTING.subheadline}</p>
           <p className="host-gift-tagline">{GIFTING.tagline}</p>
           <div className="host-gift-actions">
-            <Link to="/gifting" className="btn btn-primary">
+            <Link href="/gifting" className="btn btn-primary">
               Gift boxes &amp; baskets
             </Link>
             <a
@@ -23,7 +23,7 @@ export default function HostGiftSection() {
             >
               Order on WhatsApp
             </a>
-            <Link to="/catalog" className="btn btn-outline">
+            <Link href="/catalog" className="btn btn-outline">
               View catalog
             </Link>
           </div>

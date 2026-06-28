@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect } from 'react'
 import { SITE } from '../config/site'
 import { absoluteSiteUrl, DEFAULT_OG_IMAGE } from '../lib/seo'

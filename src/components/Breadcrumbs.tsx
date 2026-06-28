@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import './Breadcrumbs.css'
 
 export interface BreadcrumbItem {
@@ -18,7 +18,7 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
           <li key={item.label}>
             {i > 0 && <span className="sep" aria-hidden="true">/</span>}
             {item.to ? (
-              <Link to={item.to}>{item.label}</Link>
+              <Link href={item.to}>{item.label}</Link>
             ) : (
               <span aria-current="page">{item.label}</span>
             )}
