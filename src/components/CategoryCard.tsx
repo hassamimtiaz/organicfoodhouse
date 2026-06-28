@@ -1,5 +1,7 @@
 import Link from 'next/link'
+import { IMAGE_SIZES } from '../lib/imageSizes'
 import type { Category } from '../types'
+import SiteImage from './SiteImage'
 import './CategoryCard.css'
 
 interface CategoryCardProps {
@@ -21,7 +23,13 @@ export default function CategoryCard({
     <Link href={`/category/${category.slug}`} className="category-card">
       <div className="category-card-visual">
         {category.image_url ? (
-          <img src={category.image_url} alt="" loading="lazy" />
+          <SiteImage
+            src={category.image_url}
+            alt=""
+            fill
+            sizes={IMAGE_SIZES.categoryCard}
+            className="category-card-cover"
+          />
         ) : (
           <span className="category-icon" aria-hidden="true">
             {icon}

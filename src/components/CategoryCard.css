@@ -26,7 +26,8 @@
   justify-content: center;
 }
 
-.category-card-visual img {
+.category-card-visual img,
+.category-card-visual .category-card-cover {
   width: 100%;
   height: 100%;
   object-fit: cover;

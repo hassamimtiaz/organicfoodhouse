@@ -1,7 +1,7 @@
 import { SITE } from './site'
 
 export const GIFTING = {
-  headline: 'Bring fruit, not mithai',
+  headline: 'Mango gift baskets Lahore & across Pakistan',
   subheadline:
     'When you visit someone’s home, skip the sweets and cake. Our gift buckets and boxes are packed to carry — organic, carbide-free, and ready to impress.',
   tagline: 'A thoughtful host gift from the farms of Rahim Yar Khan & Multan',

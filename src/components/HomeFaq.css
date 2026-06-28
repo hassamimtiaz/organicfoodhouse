@@ -1,0 +1,52 @@
+.home-faq {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.home-faq-inner {
+  max-width: 52rem;
+}
+
+.home-faq-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.home-faq-item {
+  margin: 0;
+  padding: 1.25rem 1.35rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.home-faq-item dt {
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+  font-size: var(--text-lg);
+  color: var(--text);
+}
+
+.home-faq-item dd {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.home-faq-more {
+  margin: 1.5rem 0 0;
+  color: var(--muted);
+  font-size: var(--text-base);
+}
+
+.home-faq-more a {
+  color: var(--primary-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.home-faq-more a:hover {
+  text-decoration: underline;
+}

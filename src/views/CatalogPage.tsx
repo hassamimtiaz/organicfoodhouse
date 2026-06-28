@@ -9,7 +9,9 @@ import { CATALOG, catalogWhatsAppLink } from '../config/catalog'
 import { formatPackagingLabel, hasPackagings } from '../config/packaging'
 import { SITE, whatsappLink } from '../config/site'
 import { fetchTopLevelCategories, fetchVisibleProducts } from '../services/api'
+import { IMAGE_SIZES } from '../lib/imageSizes'
 import { getProductUrl } from '../lib/productSlug'
+import SiteImage from '../components/SiteImage'
 import type { Category, Product } from '../types'
 import './CatalogPage.css'
 
@@ -79,10 +81,17 @@ export default function CatalogPage() {
             </p>
           </div>
           <ul className="catalog-grid">
-            {CATALOG.presentation.map((item) => (
+            {CATALOG.presentation.map((item, index) => (
               <li key={item.id} className="catalog-card">
                 <div className="catalog-card-image">
-                  <img src={item.image} alt={item.imageAlt} loading="lazy" />
+                  <SiteImage
+                    src={item.image}
+                    alt={item.imageAlt}
+                    fill
+                    sizes={IMAGE_SIZES.catalogPresentation}
+                    priority={index === 0}
+                    className="catalog-card-cover"
+                  />
                   <span className={presentationTagClass(item.tag)}>
                     {CATALOG.tagLabels[item.tag]}
                   </span>

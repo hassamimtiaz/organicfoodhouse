@@ -1,5 +1,7 @@
 import Link from 'next/link'
+import { IMAGE_SIZES } from '../lib/imageSizes'
 import type { Category } from '../types'
+import SiteImage from './SiteImage'
 import './SubcategoryCard.css'
 
 interface SubcategoryCardProps {
@@ -26,7 +28,13 @@ export default function SubcategoryCard({
     >
       <div className="subcategory-card-visual">
         {subcategory.image_url ? (
-          <img src={subcategory.image_url} alt="" loading="lazy" />
+          <SiteImage
+            src={subcategory.image_url}
+            alt=""
+            fill
+            sizes={IMAGE_SIZES.categoryCard}
+            className="subcategory-card-cover"
+          />
         ) : (
           <span className="subcategory-icon" aria-hidden="true">
             {icon}

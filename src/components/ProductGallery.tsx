@@ -1,4 +1,8 @@
+'use client'
+
 import { useCallback, useEffect, useState } from 'react'
+import { IMAGE_SIZES } from '../lib/imageSizes'
+import SiteImage from './SiteImage'
 import './ProductGallery.css'
 
 interface ProductGalleryProps {
@@ -20,10 +24,11 @@ export default function ProductGallery({
   const count = images.length
   const hasMultiple = count > 1
   const safeIndex = count > 0 ? Math.min(activeIndex, count - 1) : 0
+  const imageKey = images.join('|')
 
   useEffect(() => {
     setActiveIndex(0)
-  }, [images.join('|')])
+  }, [imageKey])
 
   const goTo = useCallback(
     (index: number) => {
@@ -72,10 +77,16 @@ export default function ProductGallery({
       className={`product-gallery${hasMultiple ? ' product-gallery--multi' : ''}`}
     >
       <div className="product-gallery-stage">
-        <img
+        <SiteImage
           src={images[safeIndex]}
-          alt={hasMultiple ? `${alt} — image ${safeIndex + 1} of ${count}` : alt}
+          alt={
+            hasMultiple ? `${alt} — image ${safeIndex + 1} of ${count}` : alt
+          }
           className="product-gallery-main"
+          fill
+          sizes={IMAGE_SIZES.productGallery}
+          priority
+          style={{ objectFit: 'cover', objectPosition: 'center' }}
         />
 
         {hasMultiple && (
@@ -129,7 +140,13 @@ export default function ProductGallery({
               }`}
               onClick={() => setActiveIndex(index)}
             >
-              <img src={url} alt="" />
+              <SiteImage
+                src={url}
+                alt=""
+                fill
+                sizes="64px"
+                className="product-gallery-thumb-img"
+              />
             </button>
           ))}
         </div>

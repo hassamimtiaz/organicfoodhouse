@@ -377,6 +377,21 @@ export async function searchProducts(query: string): Promise<Product[]> {
   return products.filter((p) => visibleSubIds.has(p.category_id))
 }
 
+export async function fetchAllProductSlugs(): Promise<string[]> {
+  if (!isSupabaseConfigured || !supabase) {
+    return seedProducts
+      .map((p) => p.slug)
+      .filter((slug): slug is string => Boolean(slug))
+  }
+
+  const { data, error } = await supabase.from('products').select('slug')
+  if (error) throw error
+
+  return (data ?? [])
+    .map((row) => row.slug)
+    .filter((slug): slug is string => Boolean(slug))
+}
+
 export async function fetchAllCategories(
   options: FetchOptions = {},
 ): Promise<Category[]> {

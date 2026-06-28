@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { promoSlides } from '../config/promoSlides'
 import { whatsappLink } from '../config/site'
+import { IMAGE_SIZES } from '../lib/imageSizes'
+import SiteImage from './SiteImage'
 import './HeroSlider.css'
 
 const AUTOPLAY_MS = 6000
@@ -109,25 +111,31 @@ export default function HeroSlider() {
                   </div>
                 </div>
                 <div className="hero-slide-visual">
-                  <img
+                  <SiteImage
                     src={slide.image}
                     alt={slide.imageAlt}
                     className="hero-slide-photo"
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                    fetchPriority={index === 0 ? 'high' : 'auto'}
+                    fill
+                    sizes={IMAGE_SIZES.heroPortrait}
+                    priority={index === 0}
+                    style={{ objectFit: 'contain', objectPosition: 'center center' }}
                   />
                 </div>
               </div>
             ) : (
               <>
                 <div className="hero-slide-media">
-                  <img
+                  <SiteImage
                     src={slide.image}
                     alt={slide.imageAlt}
                     className="hero-slide-bg"
-                    style={{ objectPosition: slide.imagePosition ?? 'center center' }}
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                    fetchPriority={index === 0 ? 'high' : 'auto'}
+                    fill
+                    sizes={IMAGE_SIZES.heroLandscape}
+                    priority={index === 0}
+                    style={{
+                      objectFit: 'cover',
+                      objectPosition: slide.imagePosition ?? 'center center',
+                    }}
                   />
                 </div>
                 <div className="hero-slide-overlay" />

@@ -7,10 +7,12 @@ import {
   isProductOrderable,
 } from '../config/preorder'
 import { getProductPrimaryImage } from '../config/productImages'
+import { IMAGE_SIZES } from '../lib/imageSizes'
 import { getProductUrl } from '../lib/productSlug'
 import AddToCartButton from './AddToCartButton'
 import ProductPrice from './ProductPrice'
 import PreorderStatus from './PreorderStatus'
+import SiteImage from './SiteImage'
 import type { Product } from '../types'
 import './ProductCard.css'
 
@@ -38,7 +40,13 @@ export default function ProductCard({ product }: ProductCardProps) {
       />
       <div className="product-card-visual">
         {coverImage ? (
-          <img src={coverImage} alt={product.name} loading="lazy" />
+          <SiteImage
+            src={coverImage}
+            alt={product.name}
+            fill
+            sizes={IMAGE_SIZES.productCard}
+            className="product-card-cover"
+          />
         ) : (
           <span className="product-emoji" aria-hidden="true">
             {emoji}

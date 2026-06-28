@@ -3,6 +3,8 @@ import CategoryPage from '../../../../views/CategoryPage'
 import { fetchCategoryBySlug } from '../../../../services/api'
 import { buildPageMetadata } from '../../../../lib/metadata'
 
+export const revalidate = 3600
+
 type Props = {
   params: Promise<{ slug: string }>
 }

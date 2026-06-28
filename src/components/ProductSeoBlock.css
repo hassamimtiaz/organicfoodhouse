@@ -1,0 +1,25 @@
+.product-seo-block {
+  padding: 2rem 0 2.5rem;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+}
+
+.product-seo-block-inner {
+  max-width: 42rem;
+}
+
+.product-seo-block h2 {
+  margin: 0 0 1rem;
+  font-size: 1.35rem;
+  color: var(--primary-dark);
+}
+
+.product-seo-block p {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.product-seo-block p:last-child {
+  margin-bottom: 0;
+}

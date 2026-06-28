@@ -39,13 +39,45 @@ function productOfferPrice(product: Product): number {
   return getDiscountedPriceFields(product).price
 }
 
+function slugToLabel(slug: string) {
+  return slug
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
+}
+
+export function buildProductBreadcrumbItems(
+  product: Product,
+  categoryPath: { parentSlug: string; subSlug: string } | null,
+): BreadcrumbItem[] {
+  return [
+    { label: 'Shop', to: '/' },
+    ...(categoryPath
+      ? [
+          {
+            label: slugToLabel(categoryPath.parentSlug),
+            to: `/category/${categoryPath.parentSlug}`,
+          },
+          {
+            label: slugToLabel(categoryPath.subSlug),
+            to: `/category/${categoryPath.parentSlug}/${categoryPath.subSlug}`,
+          },
+        ]
+      : []),
+    { label: product.name },
+  ]
+}
+
 export function buildProductSchema(product: Product) {
   const image = getProductPrimaryImage(product)
+  const productUrl = absoluteSiteUrl(getProductUrl(product))
 
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
+    sku: product.slug ?? product.id,
+    url: productUrl,
     ...(product.description ? { description: product.description } : {}),
     image: resolveOgImage(image),
     brand: {
@@ -54,11 +86,31 @@ export function buildProductSchema(product: Product) {
     },
     offers: {
       '@type': 'Offer',
-      url: absoluteSiteUrl(getProductUrl(product)),
+      url: productUrl,
       priceCurrency: 'PKR',
       price: productOfferPrice(product),
       availability: productAvailability(product),
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: {
+        '@type': 'Organization',
+        name: SITE.name,
+      },
     },
+  }
+}
+
+export function buildFaqPageSchema(faqs: { question: string; answer: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
   }
 }
 
@@ -72,5 +124,24 @@ export function buildBreadcrumbListSchema(items: BreadcrumbItem[]) {
       name: item.label,
       ...(item.to ? { item: absoluteSiteUrl(item.to) } : {}),
     })),
+  }
+}
+
+export function buildLocalBusinessSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: SITE.name,
+    description: SITE.description,
+    telephone: SITE.phoneTel,
+    url: absoluteSiteUrl('/'),
+    image: resolveOgImage(DEFAULT_OG_IMAGE),
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Lahore',
+      addressCountry: 'PK',
+    },
+    areaServed: SITE.deliveryArea,
+    priceRange: '₨₨',
   }
 }

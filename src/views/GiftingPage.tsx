@@ -11,10 +11,10 @@ export default function GiftingPage() {
   return (
     <div className="gifting-page">
       <Seo
-        title="Gift fruit instead of mithai"
-        description={`Visiting someone's home? Bring organic fruit gift boxes and baskets from ${SITE.name} — a fresh alternative to sweets and cake. Delivery across ${SITE.deliveryArea}.`}
+        title="Mango Gift Baskets Lahore — Organic Fruit Gift Boxes"
+        description={`Mango gift baskets in Lahore and across ${SITE.deliveryArea} — organic fruit gift boxes and buckets from ${SITE.name}. A fresh alternative to mithai for home visits, Eid, and corporate gifts.`}
         path="/gifting"
-        keywords="fruit gift box Pakistan, mango gift basket Lahore, gift fruit instead of mithai, Eid fruit gift, host gift organic mangoes"
+        keywords="mango gift baskets Lahore, fruit gift box Pakistan, mango gift basket, gift fruit instead of mithai, Eid fruit gift Lahore"
       />
 
       <section className="gifting-hero">

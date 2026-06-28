@@ -9,9 +9,10 @@ import ProductGridSection from '../components/ProductGridSection'
 import ProductGallery from '../components/ProductGallery'
 import PreorderStatus from '../components/PreorderStatus'
 import ProductDetailPricing from '../components/ProductDetailPricing'
+import ProductSeoBlock from '../components/ProductSeoBlock'
 import DeliveryNotice from '../components/DeliveryNotice'
 import Seo from '../components/Seo'
-import JsonLdScript from '../components/JsonLdScript'
+import { getProductSeoExtension } from '../config/productSeo'
 import {
   allowsAdvanceOrderWhenOutOfStock,
   getAddToCartLabel,
@@ -24,7 +25,6 @@ import { getDefaultPackaging, hasPackagings } from '../config/packaging'
 import { isPackagingSelectable } from '../lib/packagingStock'
 import { getProductImageUrls, getProductPrimaryImage } from '../config/productImages'
 import { SITE, whatsappLink } from '../config/site'
-import { buildBreadcrumbListSchema, buildProductSchema } from '../lib/seo'
 import { saveDirectCheckout } from '../lib/checkoutStorage'
 import { fetchProductRecommendations } from '../services/api'
 import { getProductUrl } from '../lib/productSlug'
@@ -226,6 +226,8 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
       </div>
     ) : null
 
+  const productSeo = urlRef ? getProductSeoExtension(urlRef) : null
+
   return (
     <div className="product-page">
       <Seo
@@ -241,12 +243,6 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
         path={getProductUrl(product)}
         image={getProductPrimaryImage(product) ?? undefined}
       />
-      <JsonLdScript id="json-ld-product" data={buildProductSchema(product)} />
-      <JsonLdScript
-        id="json-ld-breadcrumbs"
-        data={buildBreadcrumbListSchema(breadcrumbItems)}
-      />
-
       <div className="container">
         <Breadcrumbs items={breadcrumbItems} />
 
@@ -327,6 +323,13 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
 
         {recommendations}
       </div>
+
+      {productSeo && (
+        <ProductSeoBlock
+          heading={productSeo.blockHeading}
+          paragraphs={productSeo.blockParagraphs}
+        />
+      )}
     </div>
   )
 }

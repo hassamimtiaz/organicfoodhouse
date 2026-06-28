@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import HomeFaq from '../components/HomeFaq'
 import HostGiftSection from '../components/HostGiftSection'
 import HeroSlider from '../components/HeroSlider'
-import JsonLd from '../components/JsonLd'
 import MangoSeoContent from '../components/MangoSeoContent'
 import Seo from '../components/Seo'
 import TrustBadges from '../components/TrustBadges'
@@ -35,32 +35,26 @@ export default function Home() {
       <Seo
         path="/"
         description={SITE.description}
-        keywords="organic fruit house, organic food online Pakistan, seasonal fruits, buy organic produce, farm fresh delivery, carbide free fruits, Rahim Yar Khan mangoes, Multan mangoes, pre order organic"
+        keywords="buy mangoes online Lahore, buy mangoes online Pakistan, organic mangoes delivery, carbide free fruits, Chaunsa Sindhri Dasheri, mango delivery nationwide"
       />
-      <JsonLd />
-
-      <h1 className="sr-only">
-        {SITE.name} — seasonal organic fruits online in Pakistan
-      </h1>
 
       <HeroSlider />
 
-      {/* <section className="home-intro">
+      <section className="home-intro">
         <div className="container home-intro-inner">
           <div>
-            <span className="home-intro-tag">Seasonal marketplace</span>
-            <h1>Fresh organic produce, when it&apos;s in season</h1>
+            <h1>Buy mangoes online in Lahore &amp; all over Pakistan</h1>
             <p>
-              {SITE.name} brings you the best of each harvest — fruits and more as
-              seasons change. Pre-order online, chat on WhatsApp, or call us.
-              Pre-order discounts available on selected seasonal items.{' '}
-              Delivery charges apply based on your address.
+              {SITE.name} delivers carbide-free organic mangoes and seasonal
+              fruit nationwide — from Lahore to Karachi, Islamabad, and beyond.
+              Pre-order Chaunsa, Sindhri, Dasheri, and Anwar Ratol online or on
+              WhatsApp; farm-fresh from Rahim Yar Khan and Multan, packed with
+              care for your doorstep.
             </p>
-            <DeliveryNotice compact />
           </div>
           <div className="home-intro-actions">
-            <Link href="/category/fruits" className="btn btn-primary">
-              Browse products
+            <Link href="/category/fruits/mangoes" className="btn btn-primary">
+              Shop mangoes
             </Link>
             <a
               href={whatsappLink()}
@@ -72,7 +66,7 @@ export default function Home() {
             </a>
           </div>
         </div>
-      </section> */}
+      </section>
 
       <TrustBadges />
 
@@ -143,6 +137,8 @@ export default function Home() {
       </section>
 
       <MangoSeoContent variant="home" />
+
+      <HomeFaq />
 
       <section className="section cta-final">
         <div className="container cta-final-inner">

@@ -29,11 +29,18 @@ export function buildPageMetadata({
   const ogImage = resolveOgImage(image)
 
   return {
+    metadataBase: new URL(SITE.url),
     title: fullTitle,
     description,
     keywords,
     robots,
-    alternates: { canonical },
+    alternates: {
+      canonical,
+      languages: {
+        'en-PK': canonical,
+        'x-default': canonical,
+      },
+    },
     icons: {
       icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
       shortcut: '/favicon.svg',
