@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="272 68 136 185" role="img" aria-label="Organic Fruit House">
+  <rect x="272" y="68" width="136" height="185" fill="#f8fafc"/>
+  <defs>
+    <clipPath id="favicon-centerLeafClip">
+      <path d="M340 73 C334 93 310 123 318 201 C318 201 340 215 362 201 C370 123 346 93 340 73 Z"/>
+    </clipPath>
+    <clipPath id="favicon-leftLeafClip">
+      <path d="M322 200 C322 200 278 175 282 93 C282 93 330 125 322 200 Z"/>
+    </clipPath>
+    <clipPath id="favicon-rightLeafClip">
+      <path d="M358 200 C358 200 402 175 398 93 C398 93 350 125 358 200 Z"/>
+    </clipPath>
+  </defs>
+  <path d="M322 200 C322 200 278 175 282 93 C282 93 330 125 322 200 Z" fill="#7BAE5A" opacity="0.6"/>
+  <line x1="301" y1="103" x2="319" y2="194" stroke="#4A8C3F" stroke-width="0.9" opacity="0.7" clip-path="url(#favicon-leftLeafClip)"/>
+  <path d="M358 200 C358 200 402 175 398 93 C398 93 350 125 358 200 Z" fill="#7BAE5A" opacity="0.6"/>
+  <line x1="379" y1="103" x2="361" y2="194" stroke="#4A8C3F" stroke-width="0.9" opacity="0.7" clip-path="url(#favicon-rightLeafClip)"/>
+  <path d="M340 73 C334 93 310 123 318 201 C318 201 340 215 362 201 C370 123 346 93 340 73 Z" fill="#2C5F2E"/>
+  <line x1="340" y1="76" x2="340" y2="212" stroke="#4A8C3F" stroke-width="1.2" clip-path="url(#favicon-centerLeafClip)"/>
+  <line x1="340" y1="115" x2="324" y2="133" stroke="#5AA040" stroke-width="0.8" clip-path="url(#favicon-centerLeafClip)"/>
+  <line x1="340" y1="138" x2="322" y2="158" stroke="#5AA040" stroke-width="0.8" clip-path="url(#favicon-centerLeafClip)"/>
+  <line x1="340" y1="160" x2="323" y2="178" stroke="#5AA040" stroke-width="0.8" clip-path="url(#favicon-centerLeafClip)"/>
+  <line x1="340" y1="115" x2="356" y2="133" stroke="#5AA040" stroke-width="0.8" clip-path="url(#favicon-centerLeafClip)"/>
+  <line x1="340" y1="138" x2="358" y2="158" stroke="#5AA040" stroke-width="0.8" clip-path="url(#favicon-centerLeafClip)"/>
+  <line x1="340" y1="160" x2="357" y2="178" stroke="#5AA040" stroke-width="0.8" clip-path="url(#favicon-centerLeafClip)"/>
+  <path d="M340 215 C338 226 338 238 340 248" fill="none" stroke="#2C5F2E" stroke-width="2" stroke-linecap="round"/>
+</svg>
