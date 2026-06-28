@@ -20,8 +20,12 @@ import {
 } from '../config/packaging'
 import {
   clampToPackagingStock,
-  isPackagingOrderable,
+  isPackagingSelectable,
 } from '../lib/packagingStock'
+import {
+  allowsAdvanceOrderWhenOutOfStock,
+  isProductOrderable,
+} from '../config/preorder'
 import {
   cartHasPreorder,
   cartHasPriceRange,
@@ -53,20 +57,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = useCallback(
     (product: Product, quantity = 1, packagingId?: string | null) => {
-      if (!product.in_stock) return
+      if (!isProductOrderable(product)) return
 
       let resolvedPackagingId = packagingId ?? null
       let packaging = null as ReturnType<typeof getPackagingById>
       if (hasPackagings(product)) {
         packaging =
           product.packagings?.find(
-            (p) => p.id === resolvedPackagingId && isPackagingOrderable(p),
+            (p) => p.id === resolvedPackagingId && isPackagingSelectable(product, p),
           ) ?? getDefaultPackaging(product)
-        if (!packaging || !isPackagingOrderable(packaging)) return
+        if (!packaging || !isPackagingSelectable(product, packaging)) return
         resolvedPackagingId = packaging.id
       } else {
         resolvedPackagingId = null
       }
+
+      const skipStockCap = allowsAdvanceOrderWhenOutOfStock(product)
 
       const lineKey = getCartLineKey({
         product,
@@ -79,7 +85,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         )
         const alreadyInCart = existing?.quantity ?? 0
         let addQty = clampPackQuantity(quantity)
-        if (packaging) {
+        if (packaging && !skipStockCap) {
           addQty = clampToPackagingStock(
             packaging,
             addQty,
@@ -119,7 +125,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         let qty = clampPackQuantity(quantity)
         if (hasPackagings(line.product) && line.packaging_id) {
           const packaging = getPackagingById(line.product, line.packaging_id)
-          if (packaging) {
+          if (packaging && !allowsAdvanceOrderWhenOutOfStock(line.product)) {
             qty = clampToPackagingStock(packaging, qty)
           }
         }

@@ -1,6 +1,7 @@
 import { useState, type MouseEvent } from 'react'
 import { useCart } from '../contexts/CartContext'
 import { hasPackagings } from '../config/packaging'
+import { getAddToCartLabel, isProductOrderable } from '../config/preorder'
 import type { Product } from '../types'
 import './AddToCartButton.css'
 
@@ -26,7 +27,7 @@ export default function AddToCartButton({
   const { addItem } = useCart()
   const [added, setAdded] = useState(false)
 
-  if (!product.in_stock) return null
+  if (!isProductOrderable(product)) return null
   if (hasPackagings(product) && !packagingId) return null
 
   function handleClick(e: MouseEvent) {
@@ -40,6 +41,7 @@ export default function AddToCartButton({
 
   const sizeClass = size === 'sm' ? 'btn-sm' : ''
   const variantClass = variant === 'primary' ? 'btn-primary' : 'btn-outline'
+  const label = getAddToCartLabel(product)
 
   return (
     <button
@@ -49,7 +51,7 @@ export default function AddToCartButton({
       disabled={disabled}
       aria-live="polite"
     >
-      {added ? 'Added ✓' : 'Add to cart'}
+      {added ? 'Added ✓' : label}
     </button>
   )
 }

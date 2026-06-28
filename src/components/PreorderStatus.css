@@ -39,6 +39,12 @@
   color: white;
 }
 
+.preorder-badge--out {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
 .preorder-status-lead {
   margin: 0;
   font-size: 0.95rem;

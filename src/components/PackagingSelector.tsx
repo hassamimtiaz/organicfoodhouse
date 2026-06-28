@@ -4,17 +4,19 @@ import {
   getPackagingUnitPrice,
   hasPackagings,
 } from '../config/packaging'
+import { getAdvanceOrderLabel, allowsAdvanceOrderWhenOutOfStock } from '../config/preorder'
 import {
   formatPackagingStockHint,
   getPackagingRemaining,
   isPackagingOrderable,
+  isPackagingSelectable,
   shouldShowLowStock,
 } from '../lib/packagingStock'
 import type { Product, ProductPackaging } from '../types'
 import './PackagingSelector.css'
 
 interface PackagingSelectorProps {
-  product: Pick<Product, 'id' | 'packagings' | 'discount_percent'>
+  product: Pick<Product, 'id' | 'packagings' | 'discount_percent' | 'in_stock' | 'sold_out_mode'>
   value: string | null
   onChange: (packagingId: string) => void
   size?: 'default' | 'large'
@@ -56,16 +58,19 @@ function PackagingOption({
   checked,
   onSelect,
 }: {
-  product: Pick<Product, 'id' | 'packagings' | 'discount_percent'>
+  product: Pick<Product, 'id' | 'packagings' | 'discount_percent' | 'in_stock' | 'sold_out_mode'>
   packaging: ProductPackaging
   checked: boolean
   onSelect: () => void
 }) {
-  const disabled = !isPackagingOrderable(packaging)
+  const selectable = isPackagingSelectable(product, packaging)
+  const physicallyOut = !isPackagingOrderable(packaging)
+  const advance = allowsAdvanceOrderWhenOutOfStock(product as Product)
+  const disabled = !selectable
   const price = getPackagingUnitPrice(product, packaging)
   const remaining = getPackagingRemaining(packaging)
   const showLowStock =
-    remaining != null && shouldShowLowStock(remaining) && !disabled
+    remaining != null && shouldShowLowStock(remaining) && physicallyOut === false
 
   return (
     <label
@@ -93,6 +98,11 @@ function PackagingOption({
         )}
         {disabled && (
           <span className="packaging-option-unavailable">Sold out</span>
+        )}
+        {!disabled && advance && physicallyOut && (
+          <span className="packaging-option-advance">
+            {getAdvanceOrderLabel(product as Product)}
+          </span>
         )}
       </span>
     </label>

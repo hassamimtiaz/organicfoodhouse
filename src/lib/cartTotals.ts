@@ -1,4 +1,4 @@
-import { isComingSoonProduct } from '../config/preorder'
+import { isPreorderOrder } from '../config/preorder'
 import {
   getOrderLineTotal,
   getOrderUnitPrice,
@@ -19,7 +19,7 @@ export function cartHasPriceRange(lines: CartLine[]): boolean {
 }
 
 export function cartHasPreorder(lines: CartLine[]): boolean {
-  return lines.some((line) => isComingSoonProduct(line.product))
+  return lines.some((line) => isPreorderOrder(line.product))
 }
 
 export function getCartItemCount(lines: CartLine[]): number {

@@ -1,6 +1,11 @@
 import { Link } from 'react-router-dom'
 import { SITE, whatsappLink } from '../config/site'
-import { isComingSoonProduct } from '../config/preorder'
+import {
+  getAdvanceOrderLabel,
+  isComingSoonProduct,
+  isPreorderOrder,
+  isProductOrderable,
+} from '../config/preorder'
 import { getProductPrimaryImage } from '../config/productImages'
 import { getProductUrl } from '../lib/productSlug'
 import AddToCartButton from './AddToCartButton'
@@ -16,7 +21,9 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const emoji = product.name.toLowerCase().includes('mango') ? '🥭' : '🍎'
   const comingSoon = isComingSoonProduct(product)
-  const whatsappMsg = comingSoon
+  const orderable = isProductOrderable(product)
+  const advanceOrder = isPreorderOrder(product) && !product.in_stock
+  const whatsappMsg = advanceOrder || comingSoon
     ? `Hi! I want to pre-order ${product.name} from ${SITE.name}.`
     : `Hi! I want to order ${product.name} from ${SITE.name}.`
   const productUrl = getProductUrl(product)
@@ -40,14 +47,19 @@ export default function ProductCard({ product }: ProductCardProps) {
         {comingSoon && (
           <>
             <span className="product-badge product-badge--soon">Coming soon</span>
-            {product.in_stock && (
+            {orderable && (
               <span className="product-badge product-badge--preorder">
                 Pre-order
               </span>
             )}
           </>
         )}
-        {!product.in_stock && (
+        {!product.in_stock && !comingSoon && orderable && (
+          <span className="product-badge product-badge--preorder">
+            {getAdvanceOrderLabel(product)}
+          </span>
+        )}
+        {!orderable && (
           <span className="product-badge out">Out of stock</span>
         )}
       </div>

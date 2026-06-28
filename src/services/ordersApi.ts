@@ -11,7 +11,7 @@ import {
   decrementPackagingStockForLines,
   validateCartPackagingStock,
 } from '../lib/packagingStock'
-import { isComingSoonProduct } from '../config/preorder'
+import { isPreorderOrder } from '../config/preorder'
 import { clampPackQuantity } from '../lib/cartStorage'
 import { normalizeProductRow } from '../lib/productNormalize'
 import { attachImagesToProduct } from '../lib/productImages'
@@ -150,7 +150,7 @@ export async function placeCartOrder(
 
   const total = prepared.reduce((sum, line) => sum + line.lineTotal, 0)
   const orderType: OrderType = prepared.some((line) =>
-    isComingSoonProduct(line.product),
+    isPreorderOrder(line.product),
   )
     ? 'preorder'
     : 'order'
@@ -192,6 +192,7 @@ export async function placeCartOrder(
       prepared.map((line) => ({
         packaging_id: line.packaging_id,
         quantity: line.quantity,
+        product: line.product,
       })),
     )
     return { ...order, items }
@@ -257,6 +258,7 @@ export async function placeCartOrder(
       prepared.map((line) => ({
         packaging_id: line.packaging_id,
         quantity: line.quantity,
+        product: line.product,
       })),
     )
   } catch (stockError) {
@@ -495,6 +497,7 @@ export async function createManualOrder(
       prepared.map((line) => ({
         packaging_id: line.packaging_id,
         quantity: line.quantity,
+        product: line.product,
       })),
     )
     return { ...order, items }
@@ -550,6 +553,7 @@ export async function createManualOrder(
       prepared.map((line) => ({
         packaging_id: line.packaging_id,
         quantity: line.quantity,
+        product: line.product,
       })),
     )
   } catch (stockError) {

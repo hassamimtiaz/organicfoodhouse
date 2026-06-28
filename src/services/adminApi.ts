@@ -151,6 +151,7 @@ function productPayload(form: ProductFormData) {
       null,
     in_stock: form.in_stock,
     coming_soon: form.coming_soon,
+    sold_out_mode: form.in_stock ? 'block' : form.sold_out_mode,
     delivery_starts_at:
       form.coming_soon && form.delivery_starts_at ? form.delivery_starts_at : null,
   }
@@ -185,6 +186,13 @@ function payloadWithoutPriceRange(
   payload: Record<string, unknown>,
 ): Record<string, unknown> {
   const { price_type: _pt, price_max: _pm, ...rest } = payload
+  return rest
+}
+
+function payloadWithoutSoldOutMode(
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const { sold_out_mode: _m, ...rest } = payload
   return rest
 }
 
@@ -390,6 +398,8 @@ async function writeProductRow(
     payloadWithoutUnitRange(withoutDiscount),
     payloadWithoutPriceRange(payloadWithoutUnitRange(withoutDiscount)),
     payloadWithoutPreorderFields(fullPayload),
+    payloadWithoutSoldOutMode(fullPayload),
+    payloadWithoutSoldOutMode(payloadWithoutPreorderFields(fullPayload)),
     payloadWithoutUnitRange(fullPayload),
     payloadWithoutUnitRange(payloadWithoutPreorderFields(fullPayload)),
     payloadWithoutPriceRange(payloadWithoutUnitRange(payloadWithoutPreorderFields(fullPayload))),

@@ -1,6 +1,7 @@
 import type { CartLine } from '../types'
 import { getDefaultPackaging, hasPackagings } from '../config/packaging'
-import { isPackagingOrderable } from '../lib/packagingStock'
+import { isProductOrderable } from '../config/preorder'
+import { isPackagingSelectable } from '../lib/packagingStock'
 
 export const CART_STORAGE_KEY = 'ofh-cart'
 
@@ -13,13 +14,13 @@ export function clampPackQuantity(quantity: number): number {
 }
 
 function normalizeCartLine(line: CartLine): CartLine | null {
-  if (!line?.product?.id || !line.product.in_stock) return null
+  if (!line?.product?.id || !isProductOrderable(line.product)) return null
   if (typeof line.quantity !== 'number') return null
 
   let packaging_id = line.packaging_id ?? null
   if (hasPackagings(line.product)) {
     const packaging = line.product.packagings?.find((p) => p.id === packaging_id)
-    if (!packaging || !isPackagingOrderable(packaging)) {
+    if (!packaging || !isPackagingSelectable(line.product, packaging)) {
       const fallback = getDefaultPackaging(line.product)
       packaging_id = fallback?.id ?? null
     }

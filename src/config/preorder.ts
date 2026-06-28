@@ -1,4 +1,4 @@
-import type { Product } from '../types'
+import type { Product, SoldOutMode } from '../types'
 
 /** Default first delivery date for Premium Chaunsa (YYYY-MM-DD) */
 export const PREMIUM_CHAUNSA_DELIVERY_START = '2026-07-05'
@@ -29,6 +29,29 @@ export function isComingSoonProduct(product: Product): boolean {
   return product.coming_soon === true
 }
 
+export function normalizeSoldOutMode(
+  value: SoldOutMode | string | null | undefined,
+): SoldOutMode {
+  if (value === 'preorder' || value === 'restock') return value
+  return 'block'
+}
+
+export function getSoldOutMode(product: Product): SoldOutMode {
+  return normalizeSoldOutMode(product.sold_out_mode)
+}
+
+/** Out of stock but customers may still place an advance order */
+export function allowsAdvanceOrderWhenOutOfStock(product: Product): boolean {
+  if (product.in_stock) return false
+  const mode = getSoldOutMode(product)
+  return mode === 'preorder' || mode === 'restock'
+}
+
+/** Customer can add to cart / checkout */
+export function isProductOrderable(product: Product): boolean {
+  return product.in_stock || allowsAdvanceOrderWhenOutOfStock(product)
+}
+
 /** Countdown still relevant (before first delivery day) */
 export function isPreorderCountdownActive(product: Product): boolean {
   if (!isComingSoonProduct(product)) return false
@@ -38,7 +61,25 @@ export function isPreorderCountdownActive(product: Product): boolean {
 }
 
 export function acceptsPreorder(product: Product): boolean {
-  return product.in_stock
+  return isProductOrderable(product)
+}
+
+/** Order should be stored as order_type = preorder */
+export function isPreorderOrder(product: Product): boolean {
+  return isComingSoonProduct(product) || allowsAdvanceOrderWhenOutOfStock(product)
+}
+
+export function getAdvanceOrderLabel(product: Product): string {
+  if (!product.in_stock && getSoldOutMode(product) === 'restock') {
+    return 'Restock order'
+  }
+  if (isPreorderOrder(product)) return 'Pre-order'
+  return 'Order'
+}
+
+export function getAddToCartLabel(product: Product): string {
+  if (isPreorderOrder(product)) return 'Pre-order'
+  return 'Add to cart'
 }
 
 export function getCountdownTarget(product: Product): Date | null {

@@ -10,12 +10,15 @@ import DeliveryNotice from '../components/DeliveryNotice'
 import Seo from '../components/Seo'
 import JsonLdScript from '../components/JsonLdScript'
 import {
-  acceptsPreorder,
+  allowsAdvanceOrderWhenOutOfStock,
+  getAddToCartLabel,
   isComingSoonProduct,
+  isPreorderOrder,
+  isProductOrderable,
 } from '../config/preorder'
 import { hasProductDiscount } from '../config/pricing'
 import { getDefaultPackaging, hasPackagings } from '../config/packaging'
-import { isPackagingOrderable } from '../lib/packagingStock'
+import { isPackagingSelectable } from '../lib/packagingStock'
 import { getProductImageUrls, getProductPrimaryImage } from '../config/productImages'
 import { SITE, whatsappLink } from '../config/site'
 import { buildBreadcrumbListSchema, buildProductSchema } from '../lib/seo'
@@ -62,7 +65,7 @@ export default function ProductPage() {
       if (
         current &&
         product.packagings?.some(
-          (p) => p.id === current && isPackagingOrderable(p),
+          (p) => p.id === current && isPackagingSelectable(product, p),
         )
       ) {
         return current
@@ -107,14 +110,19 @@ export default function ProductPage() {
   }, [urlRef])
 
   const comingSoon = product ? isComingSoonProduct(product) : false
-  const canPreorder = product ? acceptsPreorder(product) : false
-  const isPreorderFlow = comingSoon && canPreorder
+  const advanceWhenOut = product ? allowsAdvanceOrderWhenOutOfStock(product) : false
+  const isPreorderFlow = product ? isPreorderOrder(product) : false
+  const orderable = product ? isProductOrderable(product) : false
   const detailBadge = product
-    ? comingSoon
-      ? 'Coming soon · Pre-order open'
-      : hasProductDiscount(product)
-        ? `${product.discount_percent}% OFF`
-        : null
+    ? advanceWhenOut
+      ? product.sold_out_mode === 'restock'
+        ? 'Restock order open'
+        : 'Pre-order open'
+      : comingSoon
+        ? 'Coming soon · Pre-order open'
+        : hasProductDiscount(product)
+          ? `${product.discount_percent}% OFF`
+          : null
     : null
 
   const whatsappMsg = product
@@ -272,7 +280,7 @@ export default function ProductPage() {
 
             <DeliveryNotice compact />
 
-            {product.in_stock && (
+            {orderable && (
               <div className="product-order-actions">
                 <button
                   type="button"
@@ -280,7 +288,7 @@ export default function ProductPage() {
                   onClick={handleBuyNow}
                   disabled={hasPackagings(product) && !selectedPackagingId}
                 >
-                  {isPreorderFlow ? 'Pre-order now' : 'Buy now'}
+                  {isPreorderFlow ? `${getAddToCartLabel(product)} now` : 'Buy now'}
                 </button>
                 <AddToCartButton
                   product={product}
@@ -307,7 +315,7 @@ export default function ProductPage() {
               </div>
             )}
 
-            {!product.in_stock && (
+            {!orderable && (
               <p className="out-stock-label product-out-stock-block">
                 Currently unavailable — contact us for availability.
               </p>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import Seo from '../components/Seo'
-import { isComingSoonProduct } from '../config/preorder'
+import { getAdvanceOrderLabel, isComingSoonProduct, isProductOrderable, isPreorderOrder } from '../config/preorder'
 import { getPriceRangeNote } from '../config/pricing'
 import { getOrderUnitLabel } from '../config/pricing'
 import { formatPricePKR, SITE } from '../config/site'
@@ -58,7 +58,7 @@ export default function OrderPage() {
         const loaded: CartLine[] = []
         for (const snap of direct) {
           const product = await fetchProductBySlugOrId(snap.productId)
-          if (product?.in_stock) {
+          if (product && isProductOrderable(product)) {
             loaded.push({
               product,
               packaging_id: snap.packagingId ?? null,
@@ -189,6 +189,7 @@ export default function OrderPage() {
               {checkoutLines.map((line) => {
                 const lineKey = getCartLineKey(line)
                 const comingSoon = isComingSoonProduct(line.product)
+                const advanceOrder = isPreorderOrder(line.product) && !line.product.in_stock
                 return (
                   <li key={lineKey} className="order-line">
                     <div className="order-line-info">
@@ -198,8 +199,10 @@ export default function OrderPage() {
                       >
                         {line.product.name}
                       </Link>
-                      {comingSoon && (
-                        <span className="order-line-badge">Pre-order</span>
+                      {(comingSoon || advanceOrder) && (
+                        <span className="order-line-badge">
+                          {getAdvanceOrderLabel(line.product)}
+                        </span>
                       )}
                       <p className="order-line-unit">
                         {getOrderUnitLabel(line.product, line.packaging_id)}{' '}

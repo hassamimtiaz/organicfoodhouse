@@ -1,7 +1,8 @@
 import { getPackagingById, hasPackagings } from '../config/packaging'
 import { isSupabaseConfigured, supabase } from './supabase'
 import { seedProducts } from '../data/seed'
-import type { CartLine, ProductPackaging } from '../types'
+import type { CartLine, Product, ProductPackaging } from '../types'
+import { allowsAdvanceOrderWhenOutOfStock } from '../config/preorder'
 
 /** Show "X remaining" when tracked stock is below this level */
 export const LOW_STOCK_THRESHOLD = 10
@@ -25,6 +26,14 @@ export function isPackagingOrderable(
   const remaining = getPackagingRemaining(packaging)
   if (remaining != null) return remaining > 0
   return packaging.in_stock !== false
+}
+
+export function isPackagingSelectable(
+  product: Pick<Product, 'in_stock' | 'sold_out_mode'>,
+  packaging: Pick<ProductPackaging, 'in_stock' | 'stock_quantity'>,
+): boolean {
+  if (allowsAdvanceOrderWhenOutOfStock(product as Product)) return true
+  return isPackagingOrderable(packaging)
 }
 
 export function shouldShowLowStock(remaining: number): boolean {
@@ -58,6 +67,7 @@ export function clampToPackagingStock(
 export type StockLine = {
   packaging_id: string | null | undefined
   quantity: number
+  product?: Product
   productName?: string
 }
 
@@ -135,16 +145,19 @@ export function validateStockForLines(
 }
 
 export async function validateCartPackagingStock(lines: CartLine[]): Promise<void> {
+  const linesNeedingStock = lines.filter(
+    (line) => !allowsAdvanceOrderWhenOutOfStock(line.product),
+  )
   const packagingIds = [
     ...new Set(
-      lines
+      linesNeedingStock
         .map((line) => line.packaging_id)
         .filter((id): id is string => Boolean(id)),
     ),
   ]
   const stockById = await fetchPackagingStockRows(packagingIds)
   validateStockForLines(
-    lines.map((line) => ({
+    linesNeedingStock.map((line) => ({
       packaging_id: line.packaging_id,
       quantity: line.quantity,
       productName: line.product.name,
@@ -159,6 +172,7 @@ export async function decrementPackagingStockForLines(
   const totals = new Map<string, number>()
   for (const line of lines) {
     if (!line.packaging_id) continue
+    if (line.product && allowsAdvanceOrderWhenOutOfStock(line.product)) continue
     totals.set(
       line.packaging_id,
       (totals.get(line.packaging_id) ?? 0) + Math.round(line.quantity),

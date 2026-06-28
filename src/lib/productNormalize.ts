@@ -1,7 +1,7 @@
 import { normalizeProductImages } from '../config/productImages'
 import { normalizePackagingRow, sortPackagings } from '../config/packaging'
 import { normalizePriceType } from '../config/pricing'
-import { PREMIUM_CHAUNSA_DELIVERY_START } from '../config/preorder'
+import { normalizeSoldOutMode, PREMIUM_CHAUNSA_DELIVERY_START } from '../config/preorder'
 import { slugFromName } from './slugify'
 import type {
   PriceType,
@@ -56,6 +56,7 @@ export function normalizeProductRow(row: Product): Product {
         : null,
     coming_soon,
     delivery_starts_at,
+    sold_out_mode: normalizeSoldOutMode(row.sold_out_mode),
   }
 }
 

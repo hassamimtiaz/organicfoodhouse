@@ -49,6 +49,8 @@ export interface ProductPackagingFormData {
   stock_quantity: number | null
 }
 
+export type SoldOutMode = 'block' | 'preorder' | 'restock'
+
 export interface Product {
   id: string
   category_id: string
@@ -65,6 +67,7 @@ export interface Product {
   image_url: string | null
   in_stock: boolean
   coming_soon: boolean
+  sold_out_mode: SoldOutMode
   delivery_starts_at: string | null
   created_at?: string
   packagings?: ProductPackaging[]
@@ -89,6 +92,7 @@ export interface ProductFormData {
   image_url: string
   in_stock: boolean
   coming_soon: boolean
+  sold_out_mode: SoldOutMode
   delivery_starts_at: string
   packagings: ProductPackagingFormData[]
   images: ProductImageFormData[]

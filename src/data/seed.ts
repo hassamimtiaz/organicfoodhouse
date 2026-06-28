@@ -45,6 +45,7 @@ export const seedProducts: Product[] = [
     image_url: MANGO_PRODUCT_IMAGES.dasheri,
     in_stock: true,
     coming_soon: false,
+    sold_out_mode: 'block',
     delivery_starts_at: null,
   },
   {
@@ -64,6 +65,7 @@ export const seedProducts: Product[] = [
     image_url: MANGO_PRODUCT_IMAGES.sindhri,
     in_stock: true,
     coming_soon: false,
+    sold_out_mode: 'block',
     delivery_starts_at: null,
   },
   {
@@ -83,6 +85,7 @@ export const seedProducts: Product[] = [
     image_url: MANGO_PRODUCT_IMAGES.chaunsa,
     in_stock: true,
     coming_soon: true,
+    sold_out_mode: 'block',
     delivery_starts_at: '2026-07-05',
   },
   {
@@ -100,8 +103,9 @@ export const seedProducts: Product[] = [
     unit_max: null,
     discount_percent: null,
     image_url: MANGO_PRODUCT_IMAGES.anwarRatol,
-    in_stock: true,
+    in_stock: false,
     coming_soon: false,
+    sold_out_mode: 'preorder',
     delivery_starts_at: null,
   },
 ]

@@ -1,6 +1,6 @@
 import { getDefaultPackaging, getPackagingUnitPrice, hasPackagings } from '../config/packaging'
 import { getDiscountedPriceFields } from '../config/pricing'
-import { isComingSoonProduct } from '../config/preorder'
+import { allowsAdvanceOrderWhenOutOfStock, isComingSoonProduct } from '../config/preorder'
 import { getProductPrimaryImage } from '../config/productImages'
 import { SITE } from '../config/site'
 import { getProductUrl } from './productSlug'
@@ -22,6 +22,9 @@ export function resolveOgImage(image?: string | null): string {
 
 function productAvailability(product: Product): string {
   if (isComingSoonProduct(product) && product.in_stock) {
+    return 'https://schema.org/PreOrder'
+  }
+  if (allowsAdvanceOrderWhenOutOfStock(product)) {
     return 'https://schema.org/PreOrder'
   }
   if (!product.in_stock) return 'https://schema.org/OutOfStock'

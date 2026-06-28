@@ -47,6 +47,7 @@ const emptyProduct: ProductFormData = {
   image_url: '',
   in_stock: true,
   coming_soon: false,
+  sold_out_mode: 'block' as const,
   delivery_starts_at: '',
   packagings: [],
   images: [],
@@ -758,11 +759,34 @@ export default function AdminProducts({
                 type="checkbox"
                 checked={form.in_stock}
                 onChange={(e) =>
-                  setForm({ ...form, in_stock: e.target.checked })
+                  setForm({
+                    ...form,
+                    in_stock: e.target.checked,
+                    sold_out_mode: e.target.checked ? 'block' : form.sold_out_mode,
+                  })
                 }
               />
               In stock
             </label>
+
+            {!form.in_stock && (
+              <label>
+                When out of stock
+                <select
+                  value={form.sold_out_mode}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      sold_out_mode: e.target.value as ProductFormData['sold_out_mode'],
+                    })
+                  }
+                >
+                  <option value="block">Block orders — show unavailable</option>
+                  <option value="preorder">Allow pre-order — advance orders open</option>
+                  <option value="restock">Allow restock order — notify when ready</option>
+                </select>
+              </label>
+            )}
 
             <fieldset className="price-type-fieldset">
               <legend>Pre-order / coming soon</legend>
@@ -853,6 +877,15 @@ export default function AdminProducts({
                             showWasPrice: hasProductDiscount(p),
                           })}`}
                       {p.coming_soon ? ' · Coming soon' : ''}
+                      {!p.in_stock && p.sold_out_mode === 'preorder'
+                        ? ' · Pre-order when out of stock'
+                        : ''}
+                      {!p.in_stock && p.sold_out_mode === 'restock'
+                        ? ' · Restock orders open'
+                        : ''}
+                      {!p.in_stock && p.sold_out_mode === 'block'
+                        ? ' · Out of stock (blocked)'
+                        : ''}
                     </span>
                   </div>
                   <div className="admin-card-actions">
@@ -881,6 +914,7 @@ export default function AdminProducts({
                           images: imagesFromProduct(p),
                           in_stock: p.in_stock,
                           coming_soon: p.coming_soon,
+                          sold_out_mode: p.sold_out_mode ?? 'block',
                           delivery_starts_at: p.delivery_starts_at ?? '',
                           packagings: packagingsFromProduct(p),
                         })

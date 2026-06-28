@@ -1,4 +1,5 @@
 import { applyDiscountPercent, hasProductDiscount } from './pricing'
+import { allowsAdvanceOrderWhenOutOfStock } from './preorder'
 import type { Product, ProductPackaging } from '../types'
 
 type PackagingAwareProduct = Pick<Product, 'packagings'> &
@@ -35,10 +36,14 @@ export function getPackagingById(
 }
 
 export function getDefaultPackaging(
-  product: Pick<Product, 'packagings'>,
+  product: Pick<Product, 'packagings' | 'in_stock' | 'sold_out_mode'>,
 ): ProductPackaging | null {
+  if (!product.packagings?.length) return null
+  if (allowsAdvanceOrderWhenOutOfStock(product as Product)) {
+    return sortPackagings(product.packagings)[0] ?? null
+  }
   const inStock = getInStockPackagings(product)
-  if (inStock.length === 0) return product.packagings?.[0] ?? null
+  if (inStock.length === 0) return product.packagings[0] ?? null
   return inStock[0]
 }
 

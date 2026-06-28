@@ -1,4 +1,5 @@
 import { getPriceRangeNote, isPriceRange } from '../config/pricing'
+import { isProductOrderable } from '../config/preorder'
 import { hasPackagings } from '../config/packaging'
 import PackagingSelector from './PackagingSelector'
 import type { Product } from '../types'
@@ -16,6 +17,7 @@ interface ProductDetailPricingProps {
     | 'unit_min'
     | 'unit_max'
     | 'in_stock'
+    | 'sold_out_mode'
     | 'packagings'
     | 'id'
   >
@@ -47,7 +49,7 @@ export default function ProductDetailPricing({
       {priceRange && (
         <p className="price-range-note">{getPriceRangeNote()}</p>
       )}
-      {!product.in_stock && (
+      {!isProductOrderable(product as Product) && (
         <p className="pricing-unavailable">Currently unavailable for order</p>
       )}
     </div>

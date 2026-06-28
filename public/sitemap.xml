@@ -11,6 +11,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.organicfruithouse.com/catalog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.organicfruithouse.com/category/fruits</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
