@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { ABOUT_US } from '../config/about'
-import { SITE, whatsappLink } from '../config/site'
+import { whatsappLink } from '../config/site'
 import './CompanyPages.css'
 
 export default function AboutUs() {
