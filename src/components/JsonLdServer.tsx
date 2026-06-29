@@ -1,4 +1,4 @@
-/** Server-rendered JSON-LD — included in initial HTML for crawlers. */
+/** JSON-LD for crawlers — render inside `<head>` when possible. */
 export default function JsonLdServer({
   id,
   data,

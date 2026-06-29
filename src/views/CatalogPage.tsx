@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Breadcrumbs from '../components/Breadcrumbs'
 import ProductCard from '../components/ProductCard'
-import Seo from '../components/Seo'
 import { CATALOG, catalogWhatsAppLink } from '../config/catalog'
 import { formatPackagingLabel, hasPackagings } from '../config/packaging'
 import { SITE, whatsappLink } from '../config/site'
@@ -42,13 +41,6 @@ export default function CatalogPage() {
 
   return (
     <div className="catalog-page">
-      <Seo
-        title="Catalog — boxes, baskets & seasonal fruit"
-        description={`Browse ${SITE.name} catalog — premium mango gift boxes, gift baskets, protected delivery packing, and organic varieties from Rahim Yar Khan & Multan.`}
-        path="/catalog"
-        keywords="organic fruit catalog Pakistan, mango gift box catalog, fruit basket Lahore, mango packaging Organic Fruit House"
-      />
-
       <section className="catalog-hero">
         <div className="container catalog-hero-inner">
           <Breadcrumbs

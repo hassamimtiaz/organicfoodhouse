@@ -14,11 +14,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en-PK">
-      <body>
+      <head>
         <JsonLdServer
           id="json-ld-local-business"
           data={buildLocalBusinessSchema()}
         />
+      </head>
+      <body>
         <Providers>{children}</Providers>
       </body>
     </html>

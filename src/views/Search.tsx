@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ProductCard from '../components/ProductCard'
-import Seo from '../components/Seo'
-import { SITE } from '../config/site'
 import { searchProducts } from '../services/api'
 import type { Product } from '../types'
 import './Search.css'
@@ -33,16 +31,6 @@ export default function Search() {
 
   return (
     <div className="search-page">
-      <Seo
-        title={q ? `Search: ${q}` : 'Search products'}
-        path={`/search${q ? `?q=${encodeURIComponent(q)}` : ''}`}
-        robots="noindex, follow"
-        description={
-          q
-            ? `Search results for "${q}" at ${SITE.name} — seasonal organic produce.`
-            : `Search seasonal organic fruits and produce at ${SITE.name}.`
-        }
-      />
       <div className="container">
         <header className="search-page-header">
           <h1>Search products</h1>

@@ -59,11 +59,13 @@ export default async function ProductRoutePage({ params }: Props) {
 
   return (
     <>
-      <JsonLdServer id="json-ld-product" data={buildProductSchema(product)} />
-      <JsonLdServer
-        id="json-ld-breadcrumbs"
-        data={buildBreadcrumbListSchema(breadcrumbItems)}
-      />
+      <head>
+        <JsonLdServer id="json-ld-product" data={buildProductSchema(product)} />
+        <JsonLdServer
+          id="json-ld-breadcrumbs"
+          data={buildBreadcrumbListSchema(breadcrumbItems)}
+        />
+      </head>
       <ProductPage slug={slug} />
     </>
   )

@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import Breadcrumbs from '../components/Breadcrumbs'
-import Seo from '../components/Seo'
 import { OUR_VALUES } from '../config/values'
 import { SITE } from '../config/site'
 import './CompanyPages.css'
@@ -12,13 +11,6 @@ export default function OurValues() {
 
   return (
     <div className="company-page">
-      <Seo
-        title="Our Values"
-        description={`The values behind ${SITE.name} — quality, transparency, organic growing, and fresh mangoes from Rahim Yar Khan and Multan.`}
-        path="/our-values"
-        keywords="organic food values, carbide free commitment, Rahim Yar Khan Multan mangoes, farm fresh quality Pakistan, seasonal organic principles"
-      />
-
       <section className="company-hero company-hero--values">
         <div className="container company-hero-inner">
           <Breadcrumbs

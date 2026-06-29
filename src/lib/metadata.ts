@@ -2,14 +2,10 @@ import type { Metadata } from 'next'
 import { SITE } from '../config/site'
 import { absoluteSiteUrl, resolveOgImage } from './seo'
 
-const DEFAULT_KEYWORDS =
-  'organic fruit house, organic food online Pakistan, seasonal fruits, buy organic produce, farm fresh delivery, carbide free fruits, organic mangoes, Rahim Yar Khan mangoes, Multan mangoes, pre order organic'
-
 export type PageMetadataInput = {
   title?: string
   description?: string
   path?: string
-  keywords?: string
   image?: string
   robots?: string
 }
@@ -18,7 +14,6 @@ export function buildPageMetadata({
   title,
   description = SITE.description,
   path = '',
-  keywords = DEFAULT_KEYWORDS,
   image,
   robots = 'index, follow',
 }: PageMetadataInput = {}): Metadata {
@@ -32,7 +27,6 @@ export function buildPageMetadata({
     metadataBase: new URL(SITE.url),
     title: fullTitle,
     description,
-    keywords,
     robots,
     alternates: {
       canonical,

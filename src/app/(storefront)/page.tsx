@@ -9,14 +9,14 @@ export const metadata: Metadata = buildPageMetadata({
   path: '/',
   description:
     'Buy mangoes online in Lahore and all over Pakistan — carbide-free organic Chaunsa, Sindhri, Dasheri & Anwar Ratol from Organic Fruit House. Farm-fresh delivery nationwide.',
-  keywords:
-    'buy mangoes online Lahore, buy mangoes online Pakistan, organic fruit house, seasonal fruits, carbide free mangoes, Rahim Yar Khan mangoes, Multan mangoes, mango delivery Lahore',
 })
 
 export default function HomePage() {
   return (
     <>
-      <JsonLdServer id="json-ld-faq" data={buildFaqPageSchema(HOME_FAQ)} />
+      <head>
+        <JsonLdServer id="json-ld-faq" data={buildFaqPageSchema(HOME_FAQ)} />
+      </head>
       <Home />
     </>
   )

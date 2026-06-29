@@ -2,7 +2,7 @@ export const SITE = {
   name: 'Organic Fruit House',
   tagline: 'Seasonal organic produce, delivered fresh',
   description:
-    'Shop seasonal organic fruits and farm-fresh produce online in Pakistan. Carbide-free, naturally ripened — pre-order in-season items. Delivery charges apply based on your address.',
+    'Buy mangoes online in Lahore and all over Pakistan — carbide-free organic Chaunsa, Sindhri, Dasheri & Anwar Ratol from Organic Fruit House. Farm-fresh delivery nationwide.',
   url:
     process.env.NEXT_PUBLIC_SITE_URL ??
     process.env.VITE_SITE_URL ??

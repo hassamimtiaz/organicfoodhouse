@@ -1,4 +1,36 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.organicfoodhouse.pk" }],
+      "destination": "https://www.organicfruithouse.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "organicfoodhouse.pk" }],
+      "destination": "https://www.organicfruithouse.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.organicfruithouse.pk" }],
+      "destination": "https://www.organicfruithouse.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "organicfruithouse.pk" }],
+      "destination": "https://www.organicfruithouse.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "organicfruithouse.com" }],
+      "destination": "https://www.organicfruithouse.com/:path*",
+      "permanent": true
+    }
+  ]
 }

@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Redirect from '../components/Redirect'
-import Seo from '../components/Seo'
 import { getAdvanceOrderLabel, isComingSoonProduct, isProductOrderable, isPreorderOrder } from '../config/preorder'
 import { getPriceRangeNote } from '../config/pricing'
 import { getOrderUnitLabel } from '../config/pricing'
@@ -173,13 +172,6 @@ export default function OrderPage() {
 
   return (
     <div className="order-page">
-      <Seo
-        title={hasPreorder ? 'Pre-order checkout' : 'Checkout'}
-        description={`Complete your order on ${SITE.name}.`}
-        path="/order"
-        robots="noindex, follow"
-      />
-
       <div className="container">
         <header className="order-page-header">
           <h1>{title}</h1>

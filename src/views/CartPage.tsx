@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import Seo from '../components/Seo'
 import { MIN_PACKS_PER_ITEM } from '../lib/cartStorage'
 import { getCartLineMaxQuantity } from '../lib/packagingStock'
 import { getCartLineKey } from '../lib/cartLineKey'
@@ -61,13 +60,6 @@ export default function CartPage() {
 
   return (
     <div className="cart-page">
-      <Seo
-        title="Your cart"
-        description={`Review items in your cart and checkout on ${SITE.name}.`}
-        path="/cart"
-        robots="noindex, follow"
-      />
-
       <div className="container">
         <header className="cart-page-header">
           <h1>Your cart</h1>

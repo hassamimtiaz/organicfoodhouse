@@ -1,4 +1,7 @@
+import type { MetadataRoute } from 'next'
 import { publicEnv } from '../lib/env'
+
+export const revalidate = 3600
 
 const STATIC_PATHS = [
   '/',
@@ -71,7 +74,7 @@ async function fetchDynamicPaths(): Promise<string[] | null> {
   return [...paths]
 }
 
-export default async function sitemap() {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = (
     publicEnv('SITE_URL') ?? 'https://www.organicfruithouse.com'
   ).replace(/\/$/, '')

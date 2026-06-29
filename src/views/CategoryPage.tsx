@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Breadcrumbs from '../components/Breadcrumbs'
 import JsonLdScript from '../components/JsonLdScript'
 import MangoSeoContent from '../components/MangoSeoContent'
-import Seo from '../components/Seo'
 import { SITE } from '../config/site'
 import { buildBreadcrumbListSchema } from '../lib/seo'
 import ProductCard from '../components/ProductCard'
@@ -105,22 +104,8 @@ export default function CategoryPage({
     ...(subcategory ? [{ label: subcategory.name }] : []),
   ]
 
-  const seoTitle = subcategory
-    ? `Buy ${subcategory.name} Online`
-    : category
-      ? `${category.name} — Organic`
-      : 'Shop'
-  const seoPath = subcategory
-    ? `/category/${slug}/${subcategorySlug}`
-    : `/category/${slug}`
-
   return (
     <div className="category-page">
-      <Seo
-        title={seoTitle}
-        description={`Shop ${subcategory?.name ?? category?.name ?? 'seasonal organic'} at ${SITE.name}. Pre-order seasonal items — discounts shown on each product. Delivered across ${SITE.deliveryArea}.`}
-        path={seoPath}
-      />
       <JsonLdScript
         id="json-ld-breadcrumbs"
         data={buildBreadcrumbListSchema(breadcrumbItems)}

@@ -12,6 +12,7 @@ import type {
 
 export function normalizeProductRow(row: Product): Product {
   const price_type: PriceType = normalizePriceType(row.price_type, row.price_max)
+  const hasExplicitComingSoon = typeof row.coming_soon === 'boolean'
   let coming_soon = row.coming_soon === true
   let delivery_starts_at = row.delivery_starts_at ?? null
 
@@ -19,11 +20,12 @@ export function normalizeProductRow(row: Product): Product {
   const isPremiumChaunsa =
     name.includes('premium') && name.includes('chaunsa')
 
-  if (isPremiumChaunsa) {
+  // Keep legacy default only when old rows do not carry an explicit coming_soon value.
+  if (isPremiumChaunsa && !hasExplicitComingSoon) {
     coming_soon = true
     delivery_starts_at =
       row.delivery_starts_at ?? PREMIUM_CHAUNSA_DELIVERY_START
-  } else if (row.coming_soon !== true) {
+  } else if (!coming_soon) {
     coming_soon = false
     if (!row.delivery_starts_at) delivery_starts_at = null
   }

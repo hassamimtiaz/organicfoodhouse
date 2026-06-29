@@ -11,7 +11,6 @@ import PreorderStatus from '../components/PreorderStatus'
 import ProductDetailPricing from '../components/ProductDetailPricing'
 import ProductSeoBlock from '../components/ProductSeoBlock'
 import DeliveryNotice from '../components/DeliveryNotice'
-import Seo from '../components/Seo'
 import { getProductSeoExtension } from '../config/productSeo'
 import {
   allowsAdvanceOrderWhenOutOfStock,
@@ -230,19 +229,6 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
 
   return (
     <div className="product-page">
-      <Seo
-        title={`Buy ${product.name} Online`}
-        description={
-          product.description ??
-          `Order fresh organic ${product.name} from ${SITE.name}.${
-            hasProductDiscount(product)
-              ? ` Pre-order with ${product.discount_percent}% off`
-              : ' Pre-order available'
-          } — delivered across ${SITE.deliveryArea}.`
-        }
-        path={getProductUrl(product)}
-        image={getProductPrimaryImage(product) ?? undefined}
-      />
       <div className="container">
         <Breadcrumbs items={breadcrumbItems} />
 

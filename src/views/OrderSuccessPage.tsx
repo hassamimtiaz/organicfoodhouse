@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Redirect from '../components/Redirect'
 import ProductGridSection from '../components/ProductGridSection'
-import Seo from '../components/Seo'
 import { SITE, whatsappLink } from '../config/site'
 import {
   clearOrderSuccessPayload,
@@ -76,13 +75,6 @@ export default function OrderSuccessPage() {
 
   return (
     <div className="order-success-page">
-      <Seo
-        title="Order placed"
-        description={`Thank you for your order at ${SITE.name}.`}
-        path="/order/success"
-        robots="noindex, follow"
-      />
-
       <div className="container">
         <div className="order-success">
           <span className="success-icon" aria-hidden="true">

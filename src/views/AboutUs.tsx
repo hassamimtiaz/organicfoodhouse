@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import Breadcrumbs from '../components/Breadcrumbs'
-import Seo from '../components/Seo'
 import { ABOUT_US } from '../config/about'
 import { SITE, whatsappLink } from '../config/site'
 import './CompanyPages.css'
@@ -12,13 +11,6 @@ export default function AboutUs() {
 
   return (
     <div className="company-page">
-      <Seo
-        title="About Us"
-        description={`Learn about ${SITE.name} — mango lovers bringing farm-fresh organic produce from Rahim Yar Khan and Multan to homes across Pakistan.`}
-        path="/about-us"
-        keywords="about organic fruit house, Rahim Yar Khan mangoes, Multan mangoes, farm fresh organic Pakistan, mango lovers Lahore"
-      />
-
       <section className="company-hero">
         <div className="container company-hero-inner">
           <Breadcrumbs

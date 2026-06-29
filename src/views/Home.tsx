@@ -6,7 +6,6 @@ import HomeFaq from '../components/HomeFaq'
 import HostGiftSection from '../components/HostGiftSection'
 import HeroSlider from '../components/HeroSlider'
 import MangoSeoContent from '../components/MangoSeoContent'
-import Seo from '../components/Seo'
 import TrustBadges from '../components/TrustBadges'
 import ProductCard from '../components/ProductCard'
 import { SITE, whatsappLink } from '../config/site'
@@ -32,12 +31,6 @@ export default function Home() {
 
   return (
     <>
-      <Seo
-        path="/"
-        description={SITE.description}
-        keywords="buy mangoes online Lahore, buy mangoes online Pakistan, organic mangoes delivery, carbide free fruits, Chaunsa Sindhri Dasheri, mango delivery nationwide"
-      />
-
       <HeroSlider />
 
       <section className="home-intro">

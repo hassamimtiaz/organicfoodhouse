@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import Breadcrumbs from '../components/Breadcrumbs'
-import Seo from '../components/Seo'
 import { GIFTING, giftingWhatsAppLink } from '../config/gifting'
 import { SITE } from '../config/site'
 import './GiftingPage.css'
@@ -10,13 +9,6 @@ import './GiftingPage.css'
 export default function GiftingPage() {
   return (
     <div className="gifting-page">
-      <Seo
-        title="Mango Gift Baskets Lahore — Organic Fruit Gift Boxes"
-        description={`Mango gift baskets in Lahore and across ${SITE.deliveryArea} — organic fruit gift boxes and buckets from ${SITE.name}. A fresh alternative to mithai for home visits, Eid, and corporate gifts.`}
-        path="/gifting"
-        keywords="mango gift baskets Lahore, fruit gift box Pakistan, mango gift basket, gift fruit instead of mithai, Eid fruit gift Lahore"
-      />
-
       <section className="gifting-hero">
         <div className="container gifting-hero-inner">
           <Breadcrumbs

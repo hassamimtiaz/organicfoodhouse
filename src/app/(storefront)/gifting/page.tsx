@@ -7,8 +7,6 @@ export const metadata: Metadata = buildPageMetadata({
   path: '/gifting',
   description:
     'Mango gift baskets Lahore and across Pakistan — organic fruit gift boxes and buckets instead of mithai. Carbide-free, beautifully packed from Organic Fruit House.',
-  keywords:
-    'mango gift baskets Lahore, fruit gift box Pakistan, mango gift basket, gift fruit instead of mithai, Eid fruit gift Lahore',
 })
 
 export default function GiftingRoutePage() {
