@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Redirect from '../components/Redirect'
 import ProductGridSection from '../components/ProductGridSection'
-import { SITE, whatsappLink } from '../config/site'
+import { whatsappLink } from '../config/site'
 import {
   clearOrderSuccessPayload,
   formatOrderProductList,
