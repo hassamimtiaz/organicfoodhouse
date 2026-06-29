@@ -1,4 +1,4 @@
-/** JSON-LD for crawlers — render inside `<head>` when possible. */
+/** JSON-LD for crawlers — safe in page body per Next.js guidance. */
 export default function JsonLdServer({
   id,
   data,

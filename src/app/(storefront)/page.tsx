@@ -14,9 +14,7 @@ export const metadata: Metadata = buildPageMetadata({
 export default function HomePage() {
   return (
     <>
-      <head>
-        <JsonLdServer id="json-ld-faq" data={buildFaqPageSchema(HOME_FAQ)} />
-      </head>
+      <JsonLdServer id="json-ld-faq" data={buildFaqPageSchema(HOME_FAQ)} />
       <Home />
     </>
   )

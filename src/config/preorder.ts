@@ -3,13 +3,23 @@ import type { Product, SoldOutMode } from '../types'
 /** Default first delivery date for Premium Chaunsa (YYYY-MM-DD) */
 export const PREMIUM_CHAUNSA_DELIVERY_START = '2026-07-05'
 
+function normalizeDeliveryDateInput(value: string): string | null {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  const dateOnly = trimmed.includes('T') ? trimmed.slice(0, 10) : trimmed
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateOnly) ? dateOnly : null
+}
+
 export function parseDeliveryStartDate(isoDate: string): Date {
-  const [y, m, d] = isoDate.split('-').map(Number)
+  const normalized = normalizeDeliveryDateInput(isoDate)
+  if (!normalized) return new Date(Number.NaN)
+  const [y, m, d] = normalized.split('-').map(Number)
   return new Date(y, m - 1, d, 0, 0, 0, 0)
 }
 
 export function formatDeliveryStartLabel(isoDate: string): string {
   const date = parseDeliveryStartDate(isoDate)
+  if (Number.isNaN(date.getTime())) return 'scheduled date'
   return date.toLocaleDateString('en-PK', {
     weekday: 'long',
     day: 'numeric',
@@ -20,7 +30,8 @@ export function formatDeliveryStartLabel(isoDate: string): string {
 
 export function getDeliveryStartDate(product: Product): Date | null {
   if (product.delivery_starts_at) {
-    return parseDeliveryStartDate(product.delivery_starts_at)
+    const parsed = parseDeliveryStartDate(product.delivery_starts_at)
+    return Number.isNaN(parsed.getTime()) ? null : parsed
   }
   return null
 }

@@ -20,16 +20,32 @@ export default function DeliveryCountdown({
   deliveryDateLabel,
   compact = false,
 }: DeliveryCountdownProps) {
+  const [mounted, setMounted] = useState(false)
   const [parts, setParts] = useState<CountdownParts>(() =>
     getCountdownParts(target),
   )
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
     const tick = () => setParts(getCountdownParts(target))
     tick()
     const id = window.setInterval(tick, 1000)
     return () => window.clearInterval(id)
-  }, [target])
+  }, [mounted, target])
+
+  if (!mounted) {
+    return (
+      <div
+        className={`delivery-countdown ${compact ? 'is-compact' : ''}`}
+        aria-hidden="true"
+      />
+    )
+  }
 
   if (parts.expired) {
     return (
