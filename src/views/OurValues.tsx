@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { OUR_VALUES } from '../config/values'
-import { SITE } from '../config/site'
 import './CompanyPages.css'
 
 export default function OurValues() {

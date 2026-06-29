@@ -22,7 +22,7 @@ import {
 import { hasProductDiscount } from '../config/pricing'
 import { getDefaultPackaging, hasPackagings } from '../config/packaging'
 import { isPackagingSelectable } from '../lib/packagingStock'
-import { getProductImageUrls, getProductPrimaryImage } from '../config/productImages'
+import { getProductImageUrls } from '../config/productImages'
 import { SITE, whatsappLink } from '../config/site'
 import { saveDirectCheckout } from '../lib/checkoutStorage'
 import { fetchProductRecommendations } from '../services/api'

@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { GIFTING, giftingWhatsAppLink } from '../config/gifting'
-import { SITE } from '../config/site'
 import './GiftingPage.css'
 
 export default function GiftingPage() {
