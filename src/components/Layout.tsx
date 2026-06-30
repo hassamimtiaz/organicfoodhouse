@@ -155,7 +155,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               aria-label={`Cart${itemCount > 0 ? `, ${itemCount} items` : ''}`}
             >
               <CartIcon />
-              Cart
+              <span className="header-cart-label">Cart</span>
               {itemCount > 0 && (
                 <span className="header-cart-count" aria-hidden="true">
                   {itemCount}
