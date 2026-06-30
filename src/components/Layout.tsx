@@ -26,10 +26,10 @@ function CartIcon() {
   )
 }
 
-function WhatsAppIcon() {
+function WhatsAppIcon({ className = 'header-whatsapp-icon' }: { className?: string }) {
   return (
     <svg
-      className="header-whatsapp-icon"
+      className={className}
       viewBox="0 0 24 24"
       aria-hidden="true"
       focusable="false"
@@ -165,7 +165,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
             <a
               href={whatsappLink()}
-              className="header-whatsapp-btn header-whatsapp-btn--icon"
+              className="header-whatsapp-btn"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Order on WhatsApp"
@@ -196,6 +196,16 @@ export default function Layout({ children }: { children: ReactNode }) {
       </header>
 
       <main className="main">{children}</main>
+
+      <a
+        href={whatsappLink()}
+        className="whatsapp-fab"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Order on WhatsApp"
+      >
+        <WhatsAppIcon className="whatsapp-fab-icon" />
+      </a>
 
       <footer className="footer">
         <div className="container footer-grid">

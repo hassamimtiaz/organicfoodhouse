@@ -145,6 +145,26 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
   const advanceWhenOut = product ? allowsAdvanceOrderWhenOutOfStock(product) : false
   const isPreorderFlow = product ? isPreorderOrder(product) : false
   const orderable = product ? isProductOrderable(product) : false
+
+  useEffect(() => {
+    if (!orderable) {
+      document.body.classList.remove('has-mobile-buy-bar')
+      return
+    }
+
+    const mq = window.matchMedia('(max-width: 768px)')
+    const sync = () => {
+      document.body.classList.toggle('has-mobile-buy-bar', mq.matches)
+    }
+
+    sync()
+    mq.addEventListener('change', sync)
+    return () => {
+      mq.removeEventListener('change', sync)
+      document.body.classList.remove('has-mobile-buy-bar')
+    }
+  }, [orderable])
+
   const detailBadge = product
     ? advanceWhenOut
       ? product.sold_out_mode === 'restock'
