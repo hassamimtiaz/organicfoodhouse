@@ -13,7 +13,8 @@
   overflow: hidden;
 }
 
-.product-gallery-main {
+.product-gallery-main,
+.product-gallery-stage .site-image--fill {
   position: absolute;
   inset: 0;
   display: block;
@@ -119,12 +120,18 @@
 }
 
 .product-gallery-thumb img,
-.product-gallery-thumb .product-gallery-thumb-img {
+.product-gallery-thumb .product-gallery-thumb-img,
+.product-gallery-thumb .site-image--fill {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
   display: block;
+}
+
+.product-gallery-thumb .site-image--fill {
+  position: absolute;
+  inset: 0;
 }
 
 .product-gallery-thumb.is-active {

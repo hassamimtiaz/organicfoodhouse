@@ -1,33 +1,25 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ProductCard from '../components/ProductCard'
+import ProductGridSkeleton from '../components/skeletons/ProductGridSkeleton'
+import { queryKeys } from '../lib/queryCache'
+import { useCachedQuery } from '../lib/useCachedQuery'
 import { searchProducts } from '../services/api'
-import type { Product } from '../types'
 import './Search.css'
 
 export default function Search() {
   const params = useSearchParams()
   const q = params?.get('q') ?? ''
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(false)
+  const trimmed = q.trim()
 
-  useEffect(() => {
-    async function run() {
-      if (!q.trim()) {
-        setProducts([])
-        return
-      }
-      setLoading(true)
-      try {
-        setProducts(await searchProducts(q))
-      } finally {
-        setLoading(false)
-      }
-    }
-    void run()
-  }, [q])
+  const { data: products, isLoading } = useCachedQuery(
+    trimmed ? queryKeys.search(trimmed) : null,
+    () => searchProducts(trimmed),
+    { enabled: Boolean(trimmed) },
+  )
+
+  const results = products ?? []
 
   return (
     <div className="search-page">
@@ -40,28 +32,30 @@ export default function Search() {
           </p>
         </header>
 
-        {loading && <p className="status-msg">Searching…</p>}
+        {trimmed && isLoading && !products && (
+          <ProductGridSkeleton count={6} />
+        )}
 
-        {!loading && q.trim() && (
+        {trimmed && !isLoading && (
           <p className="search-results-count">
-            {products.length} result{products.length !== 1 ? 's' : ''} for
+            {results.length} result{results.length !== 1 ? 's' : ''} for
             &ldquo;{q}&rdquo;
           </p>
         )}
 
-        {!loading && q.trim() && products.length > 0 && (
+        {trimmed && products && results.length > 0 && (
           <div className="product-grid">
-            {products.map((p) => (
+            {results.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
         )}
 
-        {!loading && q.trim() && products.length === 0 && (
+        {trimmed && products && results.length === 0 && !isLoading && (
           <p className="status-msg">No products match your search.</p>
         )}
 
-        {!q.trim() && (
+        {!trimmed && (
           <p className="status-msg">
             Type a product name to search our seasonal catalog.
           </p>

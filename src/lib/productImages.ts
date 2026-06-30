@@ -44,6 +44,25 @@ export async function attachImagesToProduct(product: Product): Promise<Product> 
   return withImages
 }
 
+export async function loadProductGalleryImages(
+  productId: string,
+): Promise<ProductImage[]> {
+  if (!isSupabaseConfigured || !supabase) return []
+
+  const { data, error } = await supabase
+    .from('product_images')
+    .select('*')
+    .eq('product_id', productId)
+    .order('sort_order')
+
+  if (error) {
+    if ((error as { code?: string }).code === '42P01') return []
+    throw error
+  }
+
+  return normalizeProductImages(data ?? [])
+}
+
 export async function enrichProducts(products: Product[]): Promise<Product[]> {
   const withPackagings = await loadPackagingsForProducts(products)
   return loadImagesForProducts(withPackagings)

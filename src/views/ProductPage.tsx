@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import AddToCartButton from '../components/AddToCartButton'
@@ -10,6 +10,7 @@ import ProductGallery from '../components/ProductGallery'
 import PreorderStatus from '../components/PreorderStatus'
 import ProductDetailPricing from '../components/ProductDetailPricing'
 import DeliveryNotice from '../components/DeliveryNotice'
+import ProductPageSkeleton from '../components/skeletons/ProductPageSkeleton'
 import {
   allowsAdvanceOrderWhenOutOfStock,
   getAddToCartLabel,
@@ -24,6 +25,9 @@ import { isPackagingSelectable } from '../lib/packagingStock'
 import { getProductImageUrls } from '../config/productImages'
 import { SITE, whatsappLink } from '../config/site'
 import { saveDirectCheckout } from '../lib/checkoutStorage'
+import { loadProductGalleryImages } from '../lib/productImages'
+import { queryKeys } from '../lib/queryCache'
+import { useCachedQuery } from '../lib/useCachedQuery'
 import { fetchProductRecommendations } from '../services/api'
 import { getProductUrl } from '../lib/productSlug'
 import {
@@ -72,20 +76,74 @@ function getMobileBarSummary(
   }
 }
 
+type ProductPageData = {
+  product: Product
+  categoryPath: { parentSlug: string; subSlug: string } | null
+  relatedProducts: Product[]
+  alsoLikeProducts: Product[]
+}
+
+async function loadProductPageData(ref: string): Promise<ProductPageData> {
+  const p = await fetchProductBySlugOrId(ref, { includeGallery: false })
+  if (!p) {
+    throw new Error('Product not found')
+  }
+
+  const [categoryPath, recommendations] = await Promise.all([
+    getProductCategoryPath(p),
+    fetchProductRecommendations(p),
+  ])
+
+  return {
+    product: p,
+    categoryPath,
+    relatedProducts: recommendations.related,
+    alsoLikeProducts: recommendations.alsoLike,
+  }
+}
+
 export default function ProductPage({ slug: urlRef }: { slug: string }) {
   const router = useRouter()
-  const [product, setProduct] = useState<Product | null>(null)
-  const [categoryPath, setCategoryPath] = useState<{
-    parentSlug: string
-    subSlug: string
-  } | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
-  const [alsoLikeProducts, setAlsoLikeProducts] = useState<Product[]>([])
   const [selectedPackagingId, setSelectedPackagingId] = useState<string | null>(
     null,
   )
+
+  const {
+    data: pageData,
+    isLoading,
+    error: queryError,
+  } = useCachedQuery(
+    urlRef ? queryKeys.product(urlRef) : null,
+    () => loadProductPageData(urlRef),
+    { enabled: Boolean(urlRef) },
+  )
+
+  const product = pageData?.product ?? null
+  const categoryPath = pageData?.categoryPath ?? null
+  const relatedProducts = pageData?.relatedProducts ?? []
+  const alsoLikeProducts = pageData?.alsoLikeProducts ?? []
+  const error = queryError?.message ?? null
+
+  const { data: galleryImages } = useCachedQuery(
+    product ? queryKeys.productGallery(product.id) : null,
+    () => loadProductGalleryImages(product!.id),
+    { enabled: Boolean(product) },
+  )
+
+  const galleryUrls = useMemo(() => {
+    if (!product) return []
+    if (galleryImages && galleryImages.length > 0) {
+      return galleryImages
+        .map((img) => img.image_url)
+        .filter((url): url is string => Boolean(url?.trim()))
+    }
+    return getProductImageUrls(product)
+  }, [galleryImages, product])
+
+  useEffect(() => {
+    if (!product || urlRef === product.slug) return
+    window.history.replaceState(null, '', getProductUrl(product))
+  }, [product, urlRef])
 
   useEffect(() => {
     if (!product || !hasPackagings(product)) {
@@ -105,41 +163,6 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
       return fallback?.id ?? null
     })
   }, [product])
-
-  useEffect(() => {
-    if (!urlRef) return
-
-    const ref = urlRef
-
-    async function load() {
-      setLoading(true)
-      setError(null)
-      setRelatedProducts([])
-      setAlsoLikeProducts([])
-      try {
-        const p = await fetchProductBySlugOrId(ref)
-        if (!p) {
-          setError('Product not found')
-          return
-        }
-        setProduct(p)
-        if (urlRef !== p.slug) {
-          window.history.replaceState(null, '', getProductUrl(p))
-        }
-        const path = await getProductCategoryPath(p)
-        setCategoryPath(path)
-
-        const { related, alsoLike } = await fetchProductRecommendations(p)
-        setRelatedProducts(related)
-        setAlsoLikeProducts(alsoLike)
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Failed to load product')
-      } finally {
-        setLoading(false)
-      }
-    }
-    void load()
-  }, [urlRef])
 
   const comingSoon = product ? isComingSoonProduct(product) : false
   const advanceWhenOut = product ? allowsAdvanceOrderWhenOutOfStock(product) : false
@@ -196,14 +219,8 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
     router.push('/order')
   }
 
-  if (loading) {
-    return (
-      <div className="product-page">
-        <div className="container">
-          <p className="status-msg">Loading product…</p>
-        </div>
-      </div>
-    )
+  if (isLoading && !pageData) {
+    return <ProductPageSkeleton />
   }
 
   if (error || !product) {
@@ -285,7 +302,7 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
 
         <div className="product-detail-grid">
           <ProductGallery
-            images={getProductImageUrls(product)}
+            images={galleryUrls}
             alt={product.name}
             fallbackEmoji={
               product.name.toLowerCase().includes('mango') ? '🥭' : '🍎'

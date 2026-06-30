@@ -1,0 +1,43 @@
+@import './skeletons/Skeleton.css';
+
+.site-image {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.site-image--fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.site-image__placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.site-image__img--loading {
+  opacity: 0;
+}
+
+.site-image__img--loaded {
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
+.site-image--loaded .site-image__placeholder {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-image__img--loaded,
+  .site-image--loaded .site-image__placeholder {
+    transition: none;
+  }
+}

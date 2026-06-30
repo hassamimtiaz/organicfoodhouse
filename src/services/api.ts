@@ -1,5 +1,5 @@
 import { seedCategories, seedProducts } from '../data/seed'
-import { enrichProducts } from '../lib/productImages'
+import { loadPackagingsForProducts } from '../lib/productPackagings'
 import { normalizeProductRow } from '../lib/productNormalize'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import type { Category, Product } from '../types'
@@ -70,7 +70,7 @@ function normalizeProducts(rows: Product[]): Product[] {
 }
 
 async function withPackagings(products: Product[]): Promise<Product[]> {
-  return enrichProducts(products)
+  return loadPackagingsForProducts(products)
 }
 
 export async function fetchTopLevelCategories(

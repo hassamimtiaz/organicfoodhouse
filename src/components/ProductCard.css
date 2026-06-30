@@ -38,10 +38,16 @@
 }
 
 .product-card-visual img,
-.product-card-visual .product-card-cover {
+.product-card-visual .product-card-cover,
+.product-card-visual .site-image--fill {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.product-card-visual .site-image--fill {
+  position: absolute;
+  inset: 0;
 }
 
 .product-emoji {

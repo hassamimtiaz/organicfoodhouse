@@ -1,17 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Breadcrumbs from '../components/Breadcrumbs'
 import ProductCard from '../components/ProductCard'
+import ProductGridSkeleton from '../components/skeletons/ProductGridSkeleton'
 import { CATALOG, catalogWhatsAppLink } from '../config/catalog'
 import { formatPackagingLabel, hasPackagings } from '../config/packaging'
 import { SITE, whatsappLink } from '../config/site'
 import { fetchTopLevelCategories, fetchVisibleProducts } from '../services/api'
 import { IMAGE_SIZES } from '../lib/imageSizes'
+import { queryKeys } from '../lib/queryCache'
+import { useCachedQuery } from '../lib/useCachedQuery'
 import { getProductUrl } from '../lib/productSlug'
 import SiteImage from '../components/SiteImage'
-import type { Category, Product } from '../types'
 import './CatalogPage.css'
 
 function presentationTagClass(tag: keyof typeof CATALOG.tagLabels) {
@@ -19,25 +20,17 @@ function presentationTagClass(tag: keyof typeof CATALOG.tagLabels) {
 }
 
 export default function CatalogPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const [items, cats] = await Promise.all([
-          fetchVisibleProducts(),
-          fetchTopLevelCategories(),
-        ])
-        setProducts(items)
-        setCategories(cats)
-      } finally {
-        setLoading(false)
-      }
-    }
-    void load()
-  }, [])
+  const { data: products, isLoading: productsLoading } = useCachedQuery(
+    queryKeys.visibleProducts,
+    fetchVisibleProducts,
+  )
+  const { data: categories } = useCachedQuery(
+    queryKeys.topCategories,
+    fetchTopLevelCategories,
+  )
+  const loading = productsLoading && !products
+  const items = products ?? []
+  const categoryList = categories ?? []
 
   return (
     <div className="catalog-page">
@@ -119,9 +112,9 @@ export default function CatalogPage() {
             </p>
           </div>
 
-          {categories.length > 0 && (
+          {categoryList.length > 0 && (
             <div className="catalog-category-links">
-              {categories.map((cat) => (
+              {categoryList.map((cat) => (
                 <Link
                   key={cat.id}
                   href={`/category/${cat.slug}`}
@@ -134,19 +127,19 @@ export default function CatalogPage() {
           )}
 
           {loading ? (
-            <p className="status-msg">Loading catalog…</p>
-          ) : products.length === 0 ? (
+            <ProductGridSkeleton count={8} />
+          ) : items.length === 0 ? (
             <p className="status-msg">New seasonal items coming soon.</p>
           ) : (
             <>
               <div className="product-grid">
-                {products.map((product) => (
+                {items.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
 
               <ul className="catalog-product-list">
-                {products.map((product) => (
+                {items.map((product) => (
                   <li key={product.id} className="catalog-product-row">
                     <div>
                       <Link href={getProductUrl(product)} className="catalog-product-name">

@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import HomeFaq from '../components/HomeFaq'
 import HostGiftSection from '../components/HostGiftSection'
@@ -8,26 +7,19 @@ import HeroSlider from '../components/HeroSlider'
 import MangoSeoContent from '../components/MangoSeoContent'
 import TrustBadges from '../components/TrustBadges'
 import ProductCard from '../components/ProductCard'
+import ProductGridSkeleton from '../components/skeletons/ProductGridSkeleton'
 import { SITE, whatsappLink } from '../config/site'
+import { queryKeys } from '../lib/queryCache'
+import { useCachedQuery } from '../lib/useCachedQuery'
 import { fetchVisibleProducts } from '../services/api'
-import type { Product } from '../types'
 import './Home.css'
 
 export default function Home() {
-  const [featured, setFeatured] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const all = await fetchVisibleProducts()
-        setFeatured(all.slice(0, 8))
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [])
+  const { data: products, isLoading } = useCachedQuery(
+    queryKeys.visibleProducts,
+    fetchVisibleProducts,
+  )
+  const featured = products?.slice(0, 8) ?? []
 
   return (
     <div className="home-page">
@@ -39,8 +31,8 @@ export default function Home() {
             <h2>Order now</h2>
             <p>Fresh organic fruit — tap to add to cart or order on WhatsApp</p>
           </div>
-          {loading ? (
-            <p className="status-msg">Loading products…</p>
+          {isLoading && !products ? (
+            <ProductGridSkeleton count={8} compact />
           ) : featured.length === 0 ? (
             <p className="status-msg">New seasonal products coming soon.</p>
           ) : (

@@ -34,7 +34,9 @@ import type {
 
 export async function fetchProductBySlugOrId(
   ref: string,
+  options: { includeGallery?: boolean } = {},
 ): Promise<Product | null> {
+  const { includeGallery = false } = options
   if (!isSupabaseConfigured || !supabase) {
     return (
       seedProducts.find((p) => p.slug === ref) ??
@@ -55,7 +57,9 @@ export async function fetchProductBySlugOrId(
   if (bySlug) {
     const product = normalizeProductRow(bySlug as Product)
     const withPackagings = await attachPackagingsToProduct(product)
-    return attachImagesToProduct(withPackagings)
+    return includeGallery
+      ? attachImagesToProduct(withPackagings)
+      : withPackagings
   }
 
   const { data: byId, error: idError } = await supabase
@@ -68,7 +72,7 @@ export async function fetchProductBySlugOrId(
   if (!byId) return null
   const product = normalizeProductRow(byId as Product)
   const withPackagings = await attachPackagingsToProduct(product)
-  return attachImagesToProduct(withPackagings)
+  return includeGallery ? attachImagesToProduct(withPackagings) : withPackagings
 }
 
 /** @deprecated Use fetchProductBySlugOrId */

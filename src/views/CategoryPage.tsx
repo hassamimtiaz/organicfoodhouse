@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Breadcrumbs from '../components/Breadcrumbs'
 import JsonLdScript from '../components/JsonLdScript'
@@ -8,6 +7,9 @@ import MangoSeoContent from '../components/MangoSeoContent'
 import { buildBreadcrumbListSchema } from '../lib/seo'
 import ProductCard from '../components/ProductCard'
 import SubcategoryCard from '../components/SubcategoryCard'
+import CategoryPageSkeleton from '../components/skeletons/CategoryPageSkeleton'
+import { queryKeys } from '../lib/queryCache'
+import { useCachedQuery } from '../lib/useCachedQuery'
 import {
   fetchCategoryBySlug,
   fetchProductsBySubcategory,
@@ -17,6 +19,62 @@ import {
 import type { Category, Product } from '../types'
 import './CategoryPage.css'
 
+type CategoryViewData = {
+  category: Category
+  subcategories: Category[]
+  productCounts: Record<string, number>
+}
+
+type SubcategoryViewData = {
+  category: Category
+  subcategory: Category
+  products: Product[]
+}
+
+async function loadCategoryPageData(
+  slug: string,
+  subcategorySlug?: string,
+): Promise<CategoryViewData | SubcategoryViewData> {
+  if (subcategorySlug) {
+    const result = await fetchSubcategoryBySlug(slug, subcategorySlug)
+    if (!result) {
+      throw new Error('Subcategory not found')
+    }
+    const items = await fetchProductsBySubcategory(result.subcategory.id)
+    return {
+      category: result.parent,
+      subcategory: result.subcategory,
+      products: items,
+    }
+  }
+
+  const cat = await fetchCategoryBySlug(slug)
+  if (!cat) {
+    throw new Error('Category not found')
+  }
+
+  const subs = await fetchSubcategories(cat.id)
+  const counts: Record<string, number> = {}
+  await Promise.all(
+    subs.map(async (sub) => {
+      const items = await fetchProductsBySubcategory(sub.id)
+      counts[sub.id] = items.length
+    }),
+  )
+
+  return {
+    category: cat,
+    subcategories: subs,
+    productCounts: counts,
+  }
+}
+
+function isSubcategoryData(
+  data: CategoryViewData | SubcategoryViewData,
+): data is SubcategoryViewData {
+  return 'subcategory' in data
+}
+
 export default function CategoryPage({
   slug,
   subcategorySlug,
@@ -24,71 +82,24 @@ export default function CategoryPage({
   slug: string
   subcategorySlug?: string
 }) {
+  const cacheKey = subcategorySlug
+    ? queryKeys.subcategory(slug, subcategorySlug)
+    : queryKeys.category(slug)
 
-  const [category, setCategory] = useState<Category | null>(null)
-  const [subcategories, setSubcategories] = useState<Category[]>([])
-  const [subcategory, setSubcategory] = useState<Category | null>(null)
-  const [products, setProducts] = useState<Product[]>([])
-  const [productCounts, setProductCounts] = useState<Record<string, number>>({})
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data, isLoading, error } = useCachedQuery(
+    slug ? cacheKey : null,
+    () => loadCategoryPageData(slug, subcategorySlug),
+    { enabled: Boolean(slug) },
+  )
 
   const isSubcategoryView = Boolean(subcategorySlug)
-
-  useEffect(() => {
-    if (!slug) return
-    const categorySlug = slug
-
-    async function load() {
-      setLoading(true)
-      setError(null)
-
-      try {
-        if (subcategorySlug) {
-          const result = await fetchSubcategoryBySlug(
-            categorySlug,
-            subcategorySlug,
-          )
-          if (!result) {
-            setError('Subcategory not found')
-            return
-          }
-          setCategory(result.parent)
-          setSubcategory(result.subcategory)
-          const items = await fetchProductsBySubcategory(result.subcategory.id)
-          setProducts(items)
-          setSubcategories([])
-        } else {
-          const cat = await fetchCategoryBySlug(categorySlug)
-          if (!cat) {
-            setError('Category not found')
-            return
-          }
-          setCategory(cat)
-          setSubcategory(null)
-          setProducts([])
-
-          const subs = await fetchSubcategories(cat.id)
-          setSubcategories(subs)
-
-          const counts: Record<string, number> = {}
-          await Promise.all(
-            subs.map(async (sub) => {
-              const items = await fetchProductsBySubcategory(sub.id)
-              counts[sub.id] = items.length
-            }),
-          )
-          setProductCounts(counts)
-        }
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Failed to load')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    void load()
-  }, [slug, subcategorySlug])
+  const category = data?.category ?? null
+  const subcategory = data && isSubcategoryData(data) ? data.subcategory : null
+  const subcategories =
+    data && !isSubcategoryData(data) ? data.subcategories : []
+  const productCounts =
+    data && !isSubcategoryData(data) ? data.productCounts : {}
+  const products = data && isSubcategoryData(data) ? data.products : []
 
   const breadcrumbItems = [
     { label: 'Shop', to: '/' },
@@ -112,18 +123,20 @@ export default function CategoryPage({
       <div className="container">
         <Breadcrumbs items={breadcrumbItems} />
 
-        {loading && <p className="status-msg">Loading…</p>}
+        {isLoading && !data && (
+          <CategoryPageSkeleton subcategory={isSubcategoryView} />
+        )}
 
-        {error && (
+        {error && !data && (
           <div className="empty-state">
-            <p className="status-msg error">{error}</p>
+            <p className="status-msg error">{error.message}</p>
             <Link href="/" className="btn btn-primary">
               Go home
             </Link>
           </div>
         )}
 
-        {!loading && !error && category && !isSubcategoryView && (
+        {data && category && !isSubcategoryView && (
           <>
             <header className="category-header">
               {category.image_url ? (
@@ -131,6 +144,7 @@ export default function CategoryPage({
                   src={category.image_url}
                   alt={category.name}
                   className="category-page-image"
+                  loading="lazy"
                 />
               ) : (
                 <span className="category-page-icon" aria-hidden="true">
@@ -166,7 +180,7 @@ export default function CategoryPage({
           </>
         )}
 
-        {!loading && !error && category && subcategory && (
+        {data && category && subcategory && (
           <>
             <header className="category-header">
               {subcategory.image_url ? (
@@ -174,6 +188,7 @@ export default function CategoryPage({
                   src={subcategory.image_url}
                   alt={subcategory.name}
                   className="category-page-image"
+                  loading="lazy"
                 />
               ) : (
                 <span className="category-page-icon" aria-hidden="true">
@@ -208,7 +223,7 @@ export default function CategoryPage({
         )}
       </div>
 
-      {subcategorySlug === 'mangoes' && !loading && !error && (
+      {subcategorySlug === 'mangoes' && data && !error && (
         <MangoSeoContent variant="category" />
       )}
     </div>
