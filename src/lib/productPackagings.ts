@@ -2,7 +2,7 @@ import { isSupabaseConfigured, supabase } from './supabase'
 import { normalizeProductPackagings } from './productNormalize'
 import type { Product, ProductPackaging } from '../types'
 
-type ProductRowWithPackagings = Product & {
+export type ProductRowWithPackagings = Product & {
   product_packagings?: ProductPackaging[] | null
 }
 

@@ -1,4 +1,5 @@
 import { seedCategories, seedProducts } from '../data/seed'
+import { getQueryCache, queryKeys } from '../lib/queryCache'
 import { loadPackagingsForProducts } from '../lib/productPackagings'
 import { normalizeProductRow } from '../lib/productNormalize'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
@@ -311,8 +312,11 @@ export async function fetchProductRecommendations(
         isCategoryVisible(c),
     )
 
-    for (const sibling of siblingSubs) {
-      const items = await fetchProductsBySubcategory(sibling.id)
+    const siblingProductGroups = await Promise.all(
+      siblingSubs.map((sibling) => fetchProductsBySubcategory(sibling.id)),
+    )
+
+    for (const items of siblingProductGroups) {
       for (const item of items) {
         if (!excluded.has(item.id)) {
           alsoLike.push(item)
@@ -325,7 +329,9 @@ export async function fetchProductRecommendations(
   }
 
   if (alsoLike.length < ALSO_LIKE_LIMIT) {
-    const visible = await fetchVisibleProducts()
+    const visible =
+      getQueryCache<Product[]>(queryKeys.visibleProducts) ??
+      (await fetchVisibleProducts())
     for (const item of visible) {
       if (item.category_id === product.category_id || excluded.has(item.id)) {
         continue

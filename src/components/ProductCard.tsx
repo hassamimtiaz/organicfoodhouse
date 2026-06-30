@@ -9,6 +9,7 @@ import {
 import { getDefaultPackaging, hasPackagings } from '../config/packaging'
 import { getProductPrimaryImage } from '../config/productImages'
 import { IMAGE_SIZES } from '../lib/imageSizes'
+import { prefetchProductPage } from '../lib/productPageLoad'
 import { getProductUrl } from '../lib/productSlug'
 import AddToCartButton from './AddToCartButton'
 import ProductPrice from './ProductPrice'
@@ -35,15 +36,20 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
   const defaultPackagingId = hasPackagings(product)
     ? getDefaultPackaging(product)?.id ?? null
     : null
+  const productSlug = product.slug ?? product.id
 
   return (
     <article
       className={`product-card${comingSoon ? ' product-card--coming-soon' : ''}${compact ? ' product-card--compact' : ''}`}
+      onMouseEnter={() => prefetchProductPage(productSlug)}
+      onFocusCapture={() => prefetchProductPage(productSlug)}
+      onTouchStart={() => prefetchProductPage(productSlug)}
     >
       <Link
         href={productUrl}
         className="product-card-link"
         aria-label={`View ${product.name} details`}
+        prefetch
       />
       <div className="product-card-visual">
         {coverImage ? (

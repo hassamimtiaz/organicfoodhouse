@@ -11,6 +11,7 @@ import PreorderStatus from '../components/PreorderStatus'
 import ProductDetailPricing from '../components/ProductDetailPricing'
 import DeliveryNotice from '../components/DeliveryNotice'
 import ProductPageSkeleton from '../components/skeletons/ProductPageSkeleton'
+import ProductGridSkeleton from '../components/skeletons/ProductGridSkeleton'
 import {
   allowsAdvanceOrderWhenOutOfStock,
   getAddToCartLabel,
@@ -26,14 +27,11 @@ import { getProductImageUrls } from '../config/productImages'
 import { SITE, whatsappLink } from '../config/site'
 import { saveDirectCheckout } from '../lib/checkoutStorage'
 import { loadProductGalleryImages } from '../lib/productImages'
+import { loadProductCore } from '../lib/productPageLoad'
 import { queryKeys } from '../lib/queryCache'
 import { useCachedQuery } from '../lib/useCachedQuery'
 import { fetchProductRecommendations } from '../services/api'
 import { getProductUrl } from '../lib/productSlug'
-import {
-  fetchProductBySlugOrId,
-  getProductCategoryPath,
-} from '../services/ordersApi'
 import type { Product } from '../types'
 import './ProductPage.css'
 
@@ -76,32 +74,6 @@ function getMobileBarSummary(
   }
 }
 
-type ProductPageData = {
-  product: Product
-  categoryPath: { parentSlug: string; subSlug: string } | null
-  relatedProducts: Product[]
-  alsoLikeProducts: Product[]
-}
-
-async function loadProductPageData(ref: string): Promise<ProductPageData> {
-  const p = await fetchProductBySlugOrId(ref, { includeGallery: false })
-  if (!p) {
-    throw new Error('Product not found')
-  }
-
-  const [categoryPath, recommendations] = await Promise.all([
-    getProductCategoryPath(p),
-    fetchProductRecommendations(p),
-  ])
-
-  return {
-    product: p,
-    categoryPath,
-    relatedProducts: recommendations.related,
-    alsoLikeProducts: recommendations.alsoLike,
-  }
-}
-
 export default function ProductPage({ slug: urlRef }: { slug: string }) {
   const router = useRouter()
   const [selectedPackagingId, setSelectedPackagingId] = useState<string | null>(
@@ -109,20 +81,28 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
   )
 
   const {
-    data: pageData,
+    data: coreData,
     isLoading,
     error: queryError,
   } = useCachedQuery(
     urlRef ? queryKeys.product(urlRef) : null,
-    () => loadProductPageData(urlRef),
+    () => loadProductCore(urlRef),
     { enabled: Boolean(urlRef) },
   )
 
-  const product = pageData?.product ?? null
-  const categoryPath = pageData?.categoryPath ?? null
-  const relatedProducts = pageData?.relatedProducts ?? []
-  const alsoLikeProducts = pageData?.alsoLikeProducts ?? []
+  const product = coreData?.product ?? null
+  const categoryPath = coreData?.categoryPath ?? null
   const error = queryError?.message ?? null
+
+  const { data: recommendations, isLoading: recommendationsLoading } =
+    useCachedQuery(
+      product ? queryKeys.productRecommendations(product.id) : null,
+      () => fetchProductRecommendations(product!),
+      { enabled: Boolean(product) },
+    )
+
+  const relatedProducts = recommendations?.related ?? []
+  const alsoLikeProducts = recommendations?.alsoLike ?? []
 
   const { data: galleryImages } = useCachedQuery(
     product ? queryKeys.productGallery(product.id) : null,
@@ -219,7 +199,7 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
     router.push('/order')
   }
 
-  if (isLoading && !pageData) {
+  if (isLoading && !coreData) {
     return <ProductPageSkeleton />
   }
 
@@ -257,8 +237,12 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
     ? slugToLabel(categoryPath.subSlug)
     : null
 
-  const recommendations =
-    relatedProducts.length > 0 || alsoLikeProducts.length > 0 ? (
+  const recommendationsSection =
+    recommendationsLoading && !recommendations ? (
+      <div className="product-recommendations">
+        <ProductGridSkeleton count={4} />
+      </div>
+    ) : relatedProducts.length > 0 || alsoLikeProducts.length > 0 ? (
       <div className="product-recommendations">
         <ProductGridSection
           title="Related products"
@@ -375,7 +359,7 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
           </div>
         </div>
 
-        {recommendations}
+        {recommendationsSection}
       </div>
 
       {orderable && (

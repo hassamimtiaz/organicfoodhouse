@@ -1,21 +1,14 @@
 import type { Metadata } from 'next'
-import JsonLdServer from '../../../../components/JsonLdServer'
+import { Suspense } from 'react'
+import ProductJsonLd from '../../../../components/ProductJsonLd'
 import ProductPage from '../../../../views/ProductPage'
 import { getProductPrimaryImage } from '../../../../config/productImages'
 import { getProductSeoExtension } from '../../../../config/productSeo'
 import { SITE } from '../../../../config/site'
-import {
-  buildBreadcrumbListSchema,
-  buildProductBreadcrumbItems,
-  buildProductSchema,
-} from '../../../../lib/seo'
-import { getProductUrl } from '../../../../lib/productSlug'
 import { buildPageMetadata } from '../../../../lib/metadata'
+import { getProductUrl } from '../../../../lib/productSlug'
 import { fetchAllProductSlugs } from '../../../../services/api'
-import {
-  fetchProductBySlugOrId,
-  getProductCategoryPath,
-} from '../../../../services/ordersApi'
+import { fetchProductBySlugOrId } from '../../../../services/ordersApi'
 
 export const revalidate = 3600
 
@@ -30,7 +23,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const product = await fetchProductBySlugOrId(slug)
+  const product = await fetchProductBySlugOrId(slug, { includeGallery: false })
 
   if (!product) {
     return buildPageMetadata({ title: 'Product not found', path: `/product/${slug}` })
@@ -48,22 +41,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductRoutePage({ params }: Props) {
   const { slug } = await params
-  const product = await fetchProductBySlugOrId(slug)
-
-  if (!product) {
-    return <ProductPage slug={slug} />
-  }
-
-  const categoryPath = await getProductCategoryPath(product)
-  const breadcrumbItems = buildProductBreadcrumbItems(product, categoryPath)
 
   return (
     <>
-      <JsonLdServer id="json-ld-product" data={buildProductSchema(product)} />
-      <JsonLdServer
-        id="json-ld-breadcrumbs"
-        data={buildBreadcrumbListSchema(breadcrumbItems)}
-      />
+      <Suspense fallback={null}>
+        <ProductJsonLd slug={slug} />
+      </Suspense>
       <ProductPage slug={slug} />
     </>
   )

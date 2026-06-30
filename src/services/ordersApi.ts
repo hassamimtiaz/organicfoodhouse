@@ -14,8 +14,12 @@ import {
 import { isPreorderOrder } from '../config/preorder'
 import { clampPackQuantity } from '../lib/cartStorage'
 import { normalizeProductRow } from '../lib/productNormalize'
+import {
+  extractPackagingsFromRow,
+  stripPackagingJoin,
+  type ProductRowWithPackagings,
+} from '../lib/productPackagings'
 import { attachImagesToProduct } from '../lib/productImages'
-import { attachPackagingsToProduct } from '../lib/productPackagings'
 import {
   isMissingColumnError,
   supabaseErrorMessage,
@@ -32,6 +36,46 @@ import type {
   CartLine,
 } from '../types'
 
+const PRODUCT_WITH_PACKAGINGS = '*, product_packagings(*)'
+
+function normalizeProductWithPackagingsRow(
+  row: ProductRowWithPackagings,
+): Product {
+  const product = normalizeProductRow(stripPackagingJoin(row))
+  return {
+    ...product,
+    packagings: extractPackagingsFromRow(row),
+  }
+}
+
+async function fetchProductRow(
+  field: 'slug' | 'id',
+  value: string,
+): Promise<Product | null> {
+  if (!isSupabaseConfigured || !supabase) {
+    return (
+      seedProducts.find((p) => p[field] === value) ??
+      null
+    )
+  }
+
+  const { data, error } = await supabase
+    .from('products')
+    .select(PRODUCT_WITH_PACKAGINGS)
+    .eq(field, value)
+    .maybeSingle()
+
+  if (error) {
+    if (field === 'slug' && isMissingColumnError(error, ['slug'])) {
+      return null
+    }
+    throw error
+  }
+
+  if (!data) return null
+  return normalizeProductWithPackagingsRow(data as ProductRowWithPackagings)
+}
+
 export async function fetchProductBySlugOrId(
   ref: string,
   options: { includeGallery?: boolean } = {},
@@ -45,34 +89,14 @@ export async function fetchProductBySlugOrId(
     )
   }
 
-  const { data: bySlug, error: slugError } = await supabase
-    .from('products')
-    .select('*')
-    .eq('slug', ref)
-    .maybeSingle()
-
-  if (slugError && !isMissingColumnError(slugError, ['slug'])) {
-    throw slugError
-  }
+  const bySlug = await fetchProductRow('slug', ref)
   if (bySlug) {
-    const product = normalizeProductRow(bySlug as Product)
-    const withPackagings = await attachPackagingsToProduct(product)
-    return includeGallery
-      ? attachImagesToProduct(withPackagings)
-      : withPackagings
+    return includeGallery ? attachImagesToProduct(bySlug) : bySlug
   }
 
-  const { data: byId, error: idError } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', ref)
-    .maybeSingle()
-
-  if (idError) throw idError
+  const byId = await fetchProductRow('id', ref)
   if (!byId) return null
-  const product = normalizeProductRow(byId as Product)
-  const withPackagings = await attachPackagingsToProduct(product)
-  return includeGallery ? attachImagesToProduct(withPackagings) : withPackagings
+  return includeGallery ? attachImagesToProduct(byId) : byId
 }
 
 /** @deprecated Use fetchProductBySlugOrId */

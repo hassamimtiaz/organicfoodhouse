@@ -55,5 +55,7 @@ export const queryKeys = {
     `subcategory:${parentSlug}/${subSlug}`,
   product: (ref: string) => `product:${ref}`,
   productGallery: (productId: string) => `product-gallery:${productId}`,
+  productRecommendations: (productId: string) =>
+    `product-recommendations:${productId}`,
   search: (query: string) => `search:${query.trim().toLowerCase()}`,
 } as const

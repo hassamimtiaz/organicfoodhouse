@@ -7,6 +7,7 @@ import { useCart } from '../contexts/CartContext'
 import { isSupabaseConfigured } from '../lib/supabase'
 import NavProducts from './NavProducts'
 import NewsHighlights from './NewsHighlights'
+import RouteProgress from './RouteProgress'
 import SiteLogo from './SiteLogo'
 import './Layout.css'
 
@@ -57,6 +58,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div className="app">
+      <RouteProgress />
       <NewsHighlights />
 
       <header className="header">
