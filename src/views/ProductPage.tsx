@@ -9,9 +9,7 @@ import ProductGridSection from '../components/ProductGridSection'
 import ProductGallery from '../components/ProductGallery'
 import PreorderStatus from '../components/PreorderStatus'
 import ProductDetailPricing from '../components/ProductDetailPricing'
-import ProductSeoBlock from '../components/ProductSeoBlock'
 import DeliveryNotice from '../components/DeliveryNotice'
-import { getProductSeoExtension } from '../config/productSeo'
 import {
   allowsAdvanceOrderWhenOutOfStock,
   getAddToCartLabel,
@@ -20,7 +18,8 @@ import {
   isProductOrderable,
 } from '../config/preorder'
 import { hasProductDiscount } from '../config/pricing'
-import { getDefaultPackaging, hasPackagings } from '../config/packaging'
+import { getDefaultPackaging, getPackagingById, getPackagingPriceRange, getPackagingUnitPrice, hasPackagings } from '../config/packaging'
+import { formatPricePKR } from '../config/site'
 import { isPackagingSelectable } from '../lib/packagingStock'
 import { getProductImageUrls } from '../config/productImages'
 import { SITE, whatsappLink } from '../config/site'
@@ -39,6 +38,38 @@ function slugToLabel(slug: string) {
     .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ')
+}
+
+function getMobileBarSummary(
+  product: Product,
+  selectedPackagingId: string | null,
+): { price: string; label: string | null } {
+  if (hasPackagings(product)) {
+    if (selectedPackagingId) {
+      const packaging = getPackagingById(product, selectedPackagingId)
+      if (packaging) {
+        return {
+          price: formatPricePKR(getPackagingUnitPrice(product, packaging)),
+          label: packaging.label.trim(),
+        }
+      }
+    }
+    const range = getPackagingPriceRange(product)
+    if (range) {
+      return {
+        price:
+          range.min === range.max
+            ? formatPricePKR(range.min)
+            : `From ${formatPricePKR(range.min)}`,
+        label: 'Select a box size',
+      }
+    }
+  }
+
+  return {
+    price: formatPricePKR(Number(product.price)),
+    label: null,
+  }
 }
 
 export default function ProductPage({ slug: urlRef }: { slug: string }) {
@@ -225,7 +256,7 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
       </div>
     ) : null
 
-  const productSeo = urlRef ? getProductSeoExtension(urlRef) : null
+  const mobileBarSummary = getMobileBarSummary(product, selectedPackagingId)
 
   return (
     <div className="product-page">
@@ -310,11 +341,36 @@ export default function ProductPage({ slug: urlRef }: { slug: string }) {
         {recommendations}
       </div>
 
-      {productSeo && (
-        <ProductSeoBlock
-          heading={productSeo.blockHeading}
-          paragraphs={productSeo.blockParagraphs}
-        />
+      {orderable && (
+        <div className="product-mobile-bar" aria-label="Quick order">
+          <div className="product-mobile-bar-summary">
+            <span className="product-mobile-bar-amount">
+              {mobileBarSummary.price}
+            </span>
+            {mobileBarSummary.label && (
+              <span className="product-mobile-bar-label">
+                {mobileBarSummary.label}
+              </span>
+            )}
+          </div>
+          <div className="product-mobile-bar-actions">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleBuyNow}
+              disabled={hasPackagings(product) && !selectedPackagingId}
+            >
+              {isPreorderFlow ? `${getAddToCartLabel(product)} now` : 'Buy now'}
+            </button>
+            <AddToCartButton
+              product={product}
+              packagingId={selectedPackagingId}
+              variant="outline"
+              size="sm"
+              disabled={hasPackagings(product) && !selectedPackagingId}
+            />
+          </div>
+        </div>
       )}
     </div>
   )

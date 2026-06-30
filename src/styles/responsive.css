@@ -1,17 +1,21 @@
 /* Global mobile improvements for storefront */
 
 @media (max-width: 768px) {
+  :root {
+    --page-gutter: 1.5rem;
+  }
+
   html {
     font-size: 15px;
   }
 
-  .container {
-    width: min(1180px, 100% - 1.25rem);
-  }
-
   .product-grid {
     grid-template-columns: 1fr;
-    gap: 1.25rem;
+    gap: 1rem;
+  }
+
+  .product-grid--shop {
+    gap: 1rem;
   }
 
   .category-grid {
@@ -26,6 +30,10 @@
     padding: 2.5rem 0;
   }
 
+  .main {
+    overflow-x: clip;
+  }
+
   .contact-actions .btn-whatsapp {
     width: 100%;
     justify-content: center;
@@ -38,22 +46,6 @@
     gap: 0.75rem;
   }
 
-  .brand {
-    font-size: 1.1rem;
-    justify-content: center;
-    width: 100%;
-  }
-
-  .nav {
-    gap: 0.35rem;
-    width: 100%;
-  }
-
-  .header-cart-btn,
-  .header-whatsapp-btn {
-    min-height: 44px;
-  }
-
   .search-submit {
     order: 2;
     flex: 1;
@@ -63,12 +55,6 @@
   .search-dropdown {
     max-height: 60vh;
     overflow-y: auto;
-  }
-
-  .footer-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 2rem 0 1.5rem;
   }
 
   .hero-slider-arrow {
@@ -98,14 +84,6 @@
     min-height: 260px;
   }
 
-  .product-quick-actions {
-    flex-direction: column;
-  }
-
-  .product-quick-actions .btn {
-    width: 100%;
-  }
-
   .order-form .form-row {
     grid-template-columns: 1fr;
   }
@@ -120,6 +98,10 @@
 }
 
 @media (max-width: 380px) {
+  :root {
+    --page-gutter: 1.125rem;
+  }
+
   .home-intro-actions .btn {
     flex: 1 1 100%;
     width: 100%;

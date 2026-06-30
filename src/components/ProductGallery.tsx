@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { IMAGE_SIZES } from '../lib/imageSizes'
+import { useSwipe } from '../lib/useSwipe'
 import SiteImage from './SiteImage'
 import './ProductGallery.css'
 
@@ -41,6 +42,8 @@ export default function ProductGallery({
   const goPrev = useCallback(() => goTo(safeIndex - 1), [goTo, safeIndex])
   const goNext = useCallback(() => goTo(safeIndex + 1), [goTo, safeIndex])
 
+  const swipe = useSwipe(goNext, goPrev)
+
   useEffect(() => {
     if (!hasMultiple) return
 
@@ -76,7 +79,7 @@ export default function ProductGallery({
     <div
       className={`product-gallery${hasMultiple ? ' product-gallery--multi' : ''}`}
     >
-      <div className="product-gallery-stage">
+      <div className="product-gallery-stage" {...(hasMultiple ? swipe : {})}>
         <SiteImage
           src={images[safeIndex]}
           alt={

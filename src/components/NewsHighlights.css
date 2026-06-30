@@ -90,7 +90,7 @@
 
   .news-highlights-viewport {
     mask-image: none;
-    padding: 0 1rem;
+    padding: 0 var(--page-gutter);
   }
 }
 

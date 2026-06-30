@@ -30,7 +30,7 @@ function NavChevron({ expanded }: { expanded?: boolean }) {
   )
 }
 
-export default function NavProducts() {
+export default function NavProducts({ onNavigate }: { onNavigate?: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [categories, setCategories] = useState<Category[]>([])
@@ -78,6 +78,7 @@ export default function NavProducts() {
 
   function closeMenu() {
     setMenuOpen(false)
+    onNavigate?.()
   }
 
   return (

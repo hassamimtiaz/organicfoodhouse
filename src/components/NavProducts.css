@@ -193,7 +193,9 @@
 
   .nav-products-trigger {
     width: 100%;
-    justify-content: center;
+    justify-content: space-between;
+    border-radius: var(--radius);
+    min-height: 44px;
   }
 
   .nav-products-dropdown {

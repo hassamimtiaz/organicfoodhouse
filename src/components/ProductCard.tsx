@@ -6,6 +6,7 @@ import {
   isPreorderOrder,
   isProductOrderable,
 } from '../config/preorder'
+import { getDefaultPackaging, hasPackagings } from '../config/packaging'
 import { getProductPrimaryImage } from '../config/productImages'
 import { IMAGE_SIZES } from '../lib/imageSizes'
 import { getProductUrl } from '../lib/productSlug'
@@ -18,9 +19,10 @@ import './ProductCard.css'
 
 interface ProductCardProps {
   product: Product
+  compact?: boolean
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, compact = false }: ProductCardProps) {
   const emoji = product.name.toLowerCase().includes('mango') ? '🥭' : '🍎'
   const comingSoon = isComingSoonProduct(product)
   const orderable = isProductOrderable(product)
@@ -30,9 +32,14 @@ export default function ProductCard({ product }: ProductCardProps) {
     : `Hi! I want to order ${product.name} from ${SITE.name}.`
   const productUrl = getProductUrl(product)
   const coverImage = getProductPrimaryImage(product)
+  const defaultPackagingId = hasPackagings(product)
+    ? getDefaultPackaging(product)?.id ?? null
+    : null
 
   return (
-    <article className={`product-card ${comingSoon ? 'product-card--coming-soon' : ''}`}>
+    <article
+      className={`product-card${comingSoon ? ' product-card--coming-soon' : ''}${compact ? ' product-card--compact' : ''}`}
+    >
       <Link
         href={productUrl}
         className="product-card-link"
@@ -76,30 +83,37 @@ export default function ProductCard({ product }: ProductCardProps) {
         <h3>
           <span className="product-card-title">{product.name}</span>
         </h3>
-        {product.description && (
+        {product.description && !compact && (
           <p className="product-desc">{product.description}</p>
         )}
-        <PreorderStatus product={product} variant="card" />
+        {!compact && <PreorderStatus product={product} variant="card" />}
         <div className="product-footer">
           <ProductPrice product={product} />
           <div className="product-actions">
-            <AddToCartButton product={product} size="sm" variant="primary" />
+            <AddToCartButton
+              product={product}
+              packagingId={defaultPackagingId}
+              size="sm"
+              variant="primary"
+            />
             <a
               href={whatsappLink(whatsappMsg)}
-              className="btn btn-outline btn-sm"
+              className="btn btn-outline btn-sm product-action-whatsapp"
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
             >
-              {comingSoon ? 'Pre-order' : 'Order'}
+              {comingSoon ? 'Pre-order' : 'WhatsApp'}
             </a>
-            <Link
-              href={productUrl}
-              className="btn btn-outline btn-sm"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {comingSoon ? 'Pre-order details' : 'View details'}
-            </Link>
+            {!compact && (
+              <Link
+                href={productUrl}
+                className="btn btn-outline btn-sm product-action-details"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {comingSoon ? 'Pre-order details' : 'View details'}
+              </Link>
+            )}
           </div>
         </div>
       </div>

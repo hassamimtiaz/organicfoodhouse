@@ -200,8 +200,17 @@
     align-items: stretch;
   }
 
+  .home-intro {
+    padding: 1.75rem 0;
+  }
+
   .home-intro h1 {
     max-width: none;
+    font-size: 1.45rem;
+  }
+
+  .home-intro-inner > div > p {
+    display: none;
   }
 
   .home-intro-actions {
@@ -210,7 +219,27 @@
 
   .home-intro-actions .btn {
     flex: 1;
-    min-width: 140px;
+    min-width: 0;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .home-products-quick {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+  }
+
+  .home-products-quick .section-header {
+    margin-bottom: 1.25rem;
+    text-align: left;
+  }
+
+  .home-products-quick .section-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .home-products-cta {
+    margin-top: 1.25rem;
   }
 
   .home-why-inner {

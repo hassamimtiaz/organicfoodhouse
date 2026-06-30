@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { promoSlides } from '../config/promoSlides'
 import { whatsappLink } from '../config/site'
 import { IMAGE_SIZES } from '../lib/imageSizes'
+import { useSwipe } from '../lib/useSwipe'
 import SiteImage from './SiteImage'
 import './HeroSlider.css'
 
@@ -57,6 +58,11 @@ export default function HeroSlider() {
     startRef.current = performance.now()
   }, [])
 
+  const swipe = useSwipe(
+    () => goTo(active + 1),
+    () => goTo(active - 1),
+  )
+
   useEffect(() => {
     if (paused) return
 
@@ -87,6 +93,12 @@ export default function HeroSlider() {
         startRef.current = performance.now()
         setProgress(0)
       }}
+      onTouchStart={() => setPaused(true)}
+      onTouchEnd={() => {
+        setPaused(false)
+        startRef.current = performance.now()
+        setProgress(0)
+      }}
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node)) {
@@ -96,7 +108,7 @@ export default function HeroSlider() {
         }
       }}
     >
-      <div className="hero-slider-track">
+      <div className="hero-slider-track" {...swipe}>
         {promoSlides.map((slide, index) => (
           <article
             key={slide.id}
@@ -176,10 +188,14 @@ export default function HeroSlider() {
             onClick={() => goTo(index)}
             aria-label={`Go to slide ${index + 1}: ${slide.badge}`}
           >
-            <span
-              className="hero-dot-progress"
-              style={{ transform: `scaleX(${index === active ? progress : 0})` }}
-            />
+            <span className="hero-dot-track" aria-hidden="true">
+              <span
+                className="hero-dot-progress"
+                style={{
+                  width: index === active ? `${progress * 100}%` : '0%',
+                }}
+              />
+            </span>
           </button>
         ))}
       </div>

@@ -12,6 +12,8 @@ const PK_HOSTS = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Avoid Next.js 15 devtools manifest errors during HMR (segment-explorer-node).
+  devIndicators: false,
   eslint: {
     ignoreDuringBuilds: true,
   },

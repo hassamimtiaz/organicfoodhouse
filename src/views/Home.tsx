@@ -30,8 +30,33 @@ export default function Home() {
   }, [])
 
   return (
-    <>
+    <div className="home-page">
       <HeroSlider />
+
+      <section className="section section-alt home-products-quick" id="in-season">
+        <div className="container">
+          <div className="section-header">
+            <h2>Order now</h2>
+            <p>Fresh organic fruit — tap to add to cart or order on WhatsApp</p>
+          </div>
+          {loading ? (
+            <p className="status-msg">Loading products…</p>
+          ) : featured.length === 0 ? (
+            <p className="status-msg">New seasonal products coming soon.</p>
+          ) : (
+            <div className="product-grid product-grid--shop">
+              {featured.map((product) => (
+                <ProductCard key={product.id} product={product} compact />
+              ))}
+            </div>
+          )}
+          <div className="section-cta home-products-cta">
+            <Link href="/catalog" className="btn btn-outline">
+              View full catalog →
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <section className="home-intro">
         <div className="container home-intro-inner">
@@ -64,33 +89,6 @@ export default function Home() {
       <TrustBadges />
 
       <HostGiftSection />
-
-      {/* Seasonal marketplace */}
-
-      <section className="section section-alt" id="in-season">
-        <div className="container">
-          <div className="section-header">
-            <h2>In season now</h2>
-            <p>Hand-picked organic items available to order today</p>
-          </div>
-          {loading ? (
-            <p className="status-msg">Loading products…</p>
-          ) : featured.length === 0 ? (
-            <p className="status-msg">New seasonal products coming soon.</p>
-          ) : (
-            <div className="product-grid">
-              {featured.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
-          {/* <div className="section-cta">
-            <Link href="/category/fruits" className="btn btn-outline">
-              View all products →
-            </Link>
-          </div> */}
-        </div>
-      </section>
 
       <section className="section home-why">
         <div className="container home-why-inner">
@@ -150,6 +148,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }

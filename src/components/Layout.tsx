@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { SITE, whatsappLink } from '../config/site'
 import { useCart } from '../contexts/CartContext'
 import { isSupabaseConfigured } from '../lib/supabase'
@@ -44,6 +44,16 @@ function WhatsAppIcon() {
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { itemCount } = useCart()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    document.body.classList.toggle('mobile-nav-open', menuOpen)
+    return () => document.body.classList.remove('mobile-nav-open')
+  }, [menuOpen])
+
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [children])
 
   return (
     <div className="app">
@@ -51,16 +61,91 @@ export default function Layout({ children }: { children: ReactNode }) {
 
       <header className="header">
         <div className="container header-inner">
+          <button
+            type="button"
+            className="header-menu-btn"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span className="header-menu-icon" aria-hidden="true" />
+          </button>
+
           <Link href="/" className="brand" aria-label={`${SITE.name} — home`}>
             <SiteLogo />
           </Link>
 
-          <nav className="nav" aria-label="Main">
-            <Link href="/">Home</Link>
-            <Link href="/catalog">Catalog</Link>
-            <NavProducts />
-            <Link href="/about-us">About Us</Link>
-            <Link href="/our-values">Our Values</Link>
+          <nav
+            className={`nav${menuOpen ? ' nav--open' : ''}`}
+            aria-label="Main"
+          >
+            <div className="nav-drawer-header">
+              <Link
+                href="/"
+                className="nav-drawer-brand"
+                onClick={() => setMenuOpen(false)}
+              >
+                <SiteLogo />
+              </Link>
+              <button
+                type="button"
+                className="nav-drawer-close"
+                aria-label="Close menu"
+                onClick={() => setMenuOpen(false)}
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+
+            <div className="nav-drawer-body">
+              <Link href="/" onClick={() => setMenuOpen(false)}>
+                Home
+              </Link>
+              <Link href="/catalog" onClick={() => setMenuOpen(false)}>
+                Catalog
+              </Link>
+              <NavProducts onNavigate={() => setMenuOpen(false)} />
+              <Link href="/about-us" onClick={() => setMenuOpen(false)}>
+                About Us
+              </Link>
+              <Link href="/our-values" onClick={() => setMenuOpen(false)}>
+                Our Values
+              </Link>
+            </div>
+
+            <div className="nav-drawer-footer">
+              <Link
+                href="/cart"
+                className="nav-drawer-action nav-drawer-action--cart"
+                onClick={() => setMenuOpen(false)}
+              >
+                <CartIcon />
+                Cart
+                {itemCount > 0 && (
+                  <span className="header-cart-count" aria-hidden="true">
+                    {itemCount}
+                  </span>
+                )}
+              </Link>
+              <a
+                href={whatsappLink()}
+                className="nav-drawer-action nav-drawer-action--whatsapp"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMenuOpen(false)}
+              >
+                <WhatsAppIcon />
+                Order on WhatsApp
+              </a>
+              <a
+                href={`tel:${SITE.phoneTel}`}
+                className="nav-drawer-phone"
+                onClick={() => setMenuOpen(false)}
+              >
+                {SITE.phone}
+              </a>
+              <p className="nav-drawer-tagline">{SITE.tagline}</p>
+            </div>
           </nav>
 
           <div className="header-actions">
@@ -80,15 +165,25 @@ export default function Layout({ children }: { children: ReactNode }) {
 
             <a
               href={whatsappLink()}
-              className="header-whatsapp-btn"
+              className="header-whatsapp-btn header-whatsapp-btn--icon"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Order on WhatsApp"
             >
               <WhatsAppIcon />
-              WhatsApp
+              <span className="header-whatsapp-label">WhatsApp</span>
             </a>
           </div>
         </div>
+
+        {menuOpen && (
+          <button
+            type="button"
+            className="header-nav-backdrop"
+            aria-label="Close menu"
+            onClick={() => setMenuOpen(false)}
+          />
+        )}
 
         {!isSupabaseConfigured && (
           <div className="banner-demo">

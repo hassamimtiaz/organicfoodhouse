@@ -135,3 +135,26 @@
   outline: 2px solid var(--primary, #166534);
   outline-offset: 2px;
 }
+
+@media (max-width: 768px) {
+  .product-gallery-stage {
+    aspect-ratio: 1 / 1;
+    touch-action: pan-y;
+  }
+
+  .product-gallery-nav {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .product-gallery-thumb {
+    width: 3.75rem;
+    height: 3.75rem;
+  }
+
+  .product-gallery-badge {
+    font-size: 0.68rem;
+    max-width: calc(100% - 2rem);
+    line-height: 1.3;
+  }
+}
