@@ -11,7 +11,7 @@ create table if not exists public.orders (
   city text not null,
   notes text,
   status text not null default 'pending'
-    check (status in ('pending', 'confirmed', 'completed', 'cancelled')),
+    check (status in ('pending', 'confirmed', 'ready_for_dispatch', 'completed', 'cancelled')),
   total numeric(12, 2) not null check (total >= 0),
   created_at timestamptz not null default now()
 );

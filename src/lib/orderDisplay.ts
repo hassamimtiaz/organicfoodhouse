@@ -27,6 +27,18 @@ export function formatPerBoxPhrase(): string {
   return 'per Box'
 }
 
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  ready_for_dispatch: 'Ready for dispatch',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+}
+
+export function formatOrderStatus(status: string): string {
+  return ORDER_STATUS_LABELS[status] ?? status
+}
+
 export function formatOrderLineSummary(item: OrderItem): string {
   const boxes = formatOrderBoxCountLabel(item.quantity)
   const size = formatOrderPackSize(item.unit)

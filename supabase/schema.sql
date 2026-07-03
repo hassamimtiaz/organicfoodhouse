@@ -293,7 +293,7 @@ create table if not exists public.orders (
   city text not null,
   notes text,
   status text not null default 'pending'
-    check (status in ('pending', 'confirmed', 'completed', 'cancelled')),
+    check (status in ('pending', 'confirmed', 'ready_for_dispatch', 'completed', 'cancelled')),
   order_type text not null default 'order'
     check (order_type in ('preorder', 'order')),
   order_source text not null default 'website'

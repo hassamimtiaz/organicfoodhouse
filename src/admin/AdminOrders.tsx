@@ -8,6 +8,7 @@ import { downloadOrderInvoiceHtml } from '../lib/invoice'
 import {
   formatOrderPackCount,
   formatOrderPackSize,
+  formatOrderStatus,
 } from '../lib/orderDisplay'
 import {
   getOrderAmountReceived,
@@ -22,6 +23,7 @@ import './AdminOrders.css'
 const STATUS_OPTIONS: OrderStatus[] = [
   'pending',
   'confirmed',
+  'ready_for_dispatch',
   'completed',
   'cancelled',
 ]
@@ -32,6 +34,7 @@ const STATUS_FILTER_OPTIONS: { id: StatusFilter; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'pending', label: 'Pending' },
   { id: 'confirmed', label: 'Confirmed' },
+  { id: 'ready_for_dispatch', label: 'Ready for dispatch' },
   { id: 'completed', label: 'Completed' },
   { id: 'cancelled', label: 'Cancelled' },
 ]
@@ -96,7 +99,7 @@ function OrderList({
                   </span>
                 )}
                 <span className={`status-pill status-${order.status}`}>
-                  {order.status}
+                  {formatOrderStatus(order.status)}
                 </span>
               </div>
               <div className="order-card-meta">
@@ -140,7 +143,7 @@ function OrderList({
                     >
                       {STATUS_OPTIONS.map((s) => (
                         <option key={s} value={s}>
-                          {s}
+                          {formatOrderStatus(s)}
                         </option>
                       ))}
                     </select>

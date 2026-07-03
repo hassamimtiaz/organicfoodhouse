@@ -36,6 +36,25 @@ export interface AccountingFilters {
   period: AccountingPeriod
   customFrom?: string
   customTo?: string
+  /** When set, only orders containing this product and line-level totals for it. */
+  productId?: string | null
+}
+
+function orderHasProduct(order: Order, productId: string): boolean {
+  return (order.items ?? []).some((item) => item.product_id === productId)
+}
+
+function getProductLineItems(order: Order, productId: string | null | undefined) {
+  if (!productId) return order.items ?? []
+  return (order.items ?? []).filter((item) => item.product_id === productId)
+}
+
+function productLineTotal(items: Order['items']): number {
+  return (items ?? []).reduce((sum, item) => sum + Number(item.line_total), 0)
+}
+
+function productBoxCount(items: Order['items']): number {
+  return (items ?? []).reduce((sum, item) => sum + Number(item.quantity), 0)
 }
 
 function startOfDay(date: Date): Date {
@@ -92,22 +111,36 @@ export function filterOrdersForAccounting(
     if (order.status !== 'completed') return false
     const created = new Date(order.created_at)
     if (created < from || created > to) return false
+    if (filters.productId && !orderHasProduct(order, filters.productId)) {
+      return false
+    }
     return true
   })
 }
 
-export function summarizeAccounting(orders: Order[]): AccountingSummary {
+export function summarizeAccounting(
+  orders: Order[],
+  options?: { productId?: string | null },
+): AccountingSummary {
+  const productId = options?.productId ?? null
   let amountReceived = 0
   let balancePending = 0
 
   const summary = orders.reduce<AccountingSummary>(
     (acc, order) => {
-      const boxes = getOrderBoxCount(order)
-      const product = getOrderProductTotal(order)
-      const delivery = getOrderDeliveryCharge(order)
-      const discount = getOrderDiscount(order)
-      const grand = getOrderGrandTotal(order)
-      const received = getOrderAmountReceived(order)
+      const items = getProductLineItems(order, productId)
+      if (productId && items.length === 0) return acc
+
+      const boxes = productBoxCount(items)
+      const product = productId
+        ? productLineTotal(items)
+        : getOrderProductTotal(order)
+      const delivery = productId ? 0 : getOrderDeliveryCharge(order)
+      const discount = productId ? 0 : getOrderDiscount(order)
+      const grand = productId
+        ? product
+        : getOrderGrandTotal(order)
+      const received = productId ? null : getOrderAmountReceived(order)
 
       acc.orderCount += 1
       acc.boxesSold += boxes
@@ -120,7 +153,7 @@ export function summarizeAccounting(orders: Order[]): AccountingSummary {
         amountReceived += received
         const balance = getOrderBalanceDue(order)
         if (balance != null) balancePending += balance
-      } else {
+      } else if (!productId) {
         balancePending += grand
       }
 

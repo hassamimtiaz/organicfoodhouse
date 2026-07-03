@@ -82,6 +82,36 @@
   background: var(--bg);
 }
 
+.admin-accounting-product-filter {
+  margin-bottom: 1rem;
+}
+
+.admin-accounting-product-filter label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  max-width: 22rem;
+}
+
+.admin-accounting-product-filter select {
+  font: inherit;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.admin-accounting-product-filter-note {
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 42rem;
+}
+
 .admin-accounting-toggle {
   display: inline-flex;
   align-items: center;

@@ -54,6 +54,7 @@ export default function AdminAccounting() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [filters, setFilters] = useState<AccountingFilters>({
     period: 'month',
+    productId: null,
   })
 
   async function loadOrders() {
@@ -87,13 +88,24 @@ export default function AdminAccounting() {
   )
 
   const summary = useMemo(
-    () => summarizeAccounting(filteredOrders),
-    [filteredOrders],
+    () =>
+      summarizeAccounting(filteredOrders, {
+        productId: filters.productId,
+      }),
+    [filteredOrders, filters.productId],
   )
 
   const productVolume = useMemo(
-    () => summarizeProductVolume(filteredOrders, products),
-    [filteredOrders, products],
+    () =>
+      summarizeProductVolume(filteredOrders, products, {
+        productId: filters.productId,
+      }),
+    [filteredOrders, products, filters.productId],
+  )
+
+  const productOptions = useMemo(
+    () => [...products].sort((a, b) => a.name.localeCompare(b.name)),
+    [products],
   )
 
   const totalWeightSold = useMemo(
@@ -126,8 +138,9 @@ export default function AdminAccounting() {
           <h2>Sales & accounting</h2>
           <p>
             Completed orders only — mark orders as <strong>completed</strong> in
-            the Orders tab when done. Pending, confirmed, and cancelled orders
-            are excluded from totals.
+            the Orders tab when delivered. Use <strong>Ready for dispatch</strong>
+            when packed. Pending, confirmed, ready for dispatch, and cancelled
+            orders are excluded from totals.
           </p>
         </div>
         <div className="admin-accounting-header-actions">
@@ -195,6 +208,39 @@ export default function AdminAccounting() {
           </label>
         </div>
       )}
+
+      <div className="admin-accounting-product-filter">
+        <label htmlFor="accounting-product-filter">
+          Filter by variety
+          <select
+            id="accounting-product-filter"
+            value={filters.productId ?? ''}
+            onChange={(e) =>
+              setFilters((prev) => ({
+                ...prev,
+                productId: e.target.value || null,
+              }))
+            }
+          >
+            <option value="">All varieties</option>
+            {productOptions.map((product) => (
+              <option key={product.id} value={product.id}>
+                {product.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {filters.productId && (
+          <p className="admin-accounting-product-filter-note">
+            Showing completed orders that include{' '}
+            <strong>
+              {productOptions.find((p) => p.id === filters.productId)?.name ??
+                'selected product'}
+            </strong>
+            . Totals count only that product&apos;s boxes and line amounts.
+          </p>
+        )}
+      </div>
 
       {error && (
         <p className="admin-accounting-error" role="alert">

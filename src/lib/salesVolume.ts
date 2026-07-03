@@ -70,7 +70,9 @@ function getLineWeightKg(
 export function summarizeProductVolume(
   orders: Order[],
   products: Product[] = [],
+  options?: { productId?: string | null },
 ): ProductVolumeSummary[] {
+  const productId = options?.productId ?? null
   const productById = new Map(products.map((p) => [p.id, p]))
   const byProduct = new Map<
     string,
@@ -95,6 +97,7 @@ export function summarizeProductVolume(
 
   for (const order of orders) {
     for (const item of order.items ?? []) {
+      if (productId && item.product_id !== productId) continue
       const productKey = item.product_id ?? `name:${item.product_name}`
       const product = item.product_id
         ? productById.get(item.product_id)

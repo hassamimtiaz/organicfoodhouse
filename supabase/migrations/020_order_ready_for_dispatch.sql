@@ -1,0 +1,16 @@
+-- Add ready_for_dispatch order status (packed, awaiting courier)
+
+alter table public.orders
+  drop constraint if exists orders_status_check;
+
+alter table public.orders
+  add constraint orders_status_check
+  check (
+    status in (
+      'pending',
+      'confirmed',
+      'ready_for_dispatch',
+      'completed',
+      'cancelled'
+    )
+  );

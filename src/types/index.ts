@@ -107,7 +107,12 @@ export interface CategoryFormData {
   is_visible: boolean
 }
 
-export type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled'
+export type OrderStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'ready_for_dispatch'
+  | 'completed'
+  | 'cancelled'
 export type OrderType = 'preorder' | 'order'
 export type OrderSource = 'website' | 'whatsapp'
 
