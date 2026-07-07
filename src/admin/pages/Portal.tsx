@@ -12,9 +12,10 @@ import AdminAccounting from '../AdminAccounting'
 import AdminMajorCategories from '../components/AdminMajorCategories'
 import AdminSubcategories from '../components/AdminSubcategories'
 import AdminProducts from '../components/AdminProducts'
+import AdminPromoCodes from '../components/AdminPromoCodes'
 import './Portal.css'
 
-type Tab = 'major' | 'subcategories' | 'products' | 'orders' | 'accounting'
+type Tab = 'major' | 'subcategories' | 'products' | 'promos' | 'orders' | 'accounting'
 
 export default function AdminPortal() {
   const [tab, setTab] = useState<Tab>('products')
@@ -60,6 +61,7 @@ export default function AdminPortal() {
     { id: 'major', label: 'Major categories' },
     { id: 'subcategories', label: 'Subcategories' },
     { id: 'products', label: 'Products' },
+    { id: 'promos', label: 'Promo codes' },
     { id: 'orders', label: 'Orders' },
     { id: 'accounting', label: 'Accounting' },
   ]
@@ -99,6 +101,8 @@ export default function AdminPortal() {
         </div>
 
         {tab === 'orders' && <AdminOrders products={products} />}
+
+        {tab === 'promos' && <AdminPromoCodes onMessage={setMsg} />}
 
         {tab === 'accounting' && <AdminAccounting />}
 

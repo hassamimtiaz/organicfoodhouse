@@ -26,6 +26,7 @@ export function normalizeOrderRow(row: Order): Order {
       row.discount != null && row.discount !== undefined
         ? Number(row.discount)
         : null,
+    promo_code: row.promo_code ?? null,
   }
 }
 

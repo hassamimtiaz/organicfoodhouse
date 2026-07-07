@@ -115,6 +115,7 @@ export type OrderStatus =
   | 'cancelled'
 export type OrderType = 'preorder' | 'order'
 export type OrderSource = 'website' | 'whatsapp'
+export type PromoDiscountType = 'percent' | 'amount'
 
 export interface OrderItem {
   id: string
@@ -145,6 +146,8 @@ export interface Order {
   delivery_charge: number | null
   /** Discount given (PKR), reduces grand total for balance due */
   discount: number | null
+  /** Promo code applied at checkout, if any */
+  promo_code: string | null
   total: number
   created_at: string
   items?: OrderItem[]
@@ -182,6 +185,37 @@ export interface PlaceOrderFormData {
 }
 
 export type CheckoutFormData = Omit<PlaceOrderFormData, 'quantity'>
+
+export interface PromoCode {
+  id: string
+  code: string
+  discount_type: PromoDiscountType
+  discount_value: number
+  is_active: boolean
+  min_order_amount: number | null
+  max_uses: number | null
+  used_count: number
+  expires_at: string | null
+  description: string | null
+  created_at: string
+}
+
+export interface PromoCodeFormData {
+  code: string
+  discount_type: PromoDiscountType
+  discount_value: number
+  is_active: boolean
+  min_order_amount: number | null
+  max_uses: number | null
+  expires_at: string
+  description: string
+}
+
+export interface AppliedPromo {
+  id: string
+  code: string
+  discountAmount: number
+}
 
 export interface CartLine {
   product: Product

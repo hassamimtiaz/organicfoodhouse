@@ -332,7 +332,7 @@ export function buildOrderInvoiceHtml(
         }
         ${
           discount > 0
-            ? `<div class="totals-row"><dt>Discount</dt><dd>−${escapeHtml(formatPricePKR(discount))}</dd></div>`
+            ? `<div class="totals-row"><dt>${order.promo_code ? `Promo (${escapeHtml(order.promo_code)})` : 'Discount'}</dt><dd>−${escapeHtml(formatPricePKR(discount))}</dd></div>`
             : ''
         }
         <div class="totals-row grand">

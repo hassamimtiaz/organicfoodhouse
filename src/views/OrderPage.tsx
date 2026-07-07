@@ -26,12 +26,13 @@ import {
 import { getProductUrl } from '../lib/productSlug'
 import { saveOrderSuccessPayload } from '../lib/orderSuccessStorage'
 import { supabaseErrorMessage } from '../lib/supabaseErrors'
+import { validatePromoCode } from '../services/promoApi'
 import {
   fetchProductBySlugOrId,
   getProductCategoryPath,
   placeCartOrder,
 } from '../services/ordersApi'
-import type { CartLine, CheckoutFormData } from '../types'
+import type { AppliedPromo, CartLine, CheckoutFormData } from '../types'
 import './OrderPage.css'
 
 const emptyCheckoutForm: CheckoutFormData = {
@@ -52,6 +53,10 @@ export default function OrderPage() {
   const [form, setForm] = useState<CheckoutFormData>(emptyCheckoutForm)
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [promoInput, setPromoInput] = useState('')
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null)
+  const [promoError, setPromoError] = useState<string | null>(null)
+  const [applyingPromo, setApplyingPromo] = useState(false)
 
   useEffect(() => {
     async function loadCheckout() {
@@ -91,8 +96,26 @@ export default function OrderPage() {
   }, [])
 
   const subtotal = useMemo(() => getCartSubtotal(checkoutLines), [checkoutLines])
+  const promoDiscount = appliedPromo?.discountAmount ?? 0
+  const orderTotal = Math.max(0, subtotal - promoDiscount)
   const hasPreorder = useMemo(() => cartHasPreorder(checkoutLines), [checkoutLines])
   const hasPriceRange = useMemo(() => cartHasPriceRange(checkoutLines), [checkoutLines])
+
+  useEffect(() => {
+    if (!appliedPromo) return
+    void (async () => {
+      try {
+        const refreshed = await validatePromoCode(appliedPromo.code, subtotal)
+        setAppliedPromo(refreshed)
+        setPromoError(null)
+      } catch {
+        setAppliedPromo(null)
+        setPromoError('Promo code was removed because it no longer applies to your order.')
+      }
+    })()
+    // Re-validate when cart subtotal changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subtotal])
 
   function handleQuantityChange(lineKey: string, quantity: number) {
     setCheckoutLines((prev) => {
@@ -116,6 +139,29 @@ export default function OrderPage() {
     }
   }
 
+  async function handleApplyPromo() {
+    setApplyingPromo(true)
+    setPromoError(null)
+    try {
+      const promo = await validatePromoCode(promoInput, subtotal)
+      setAppliedPromo(promo)
+      setPromoInput(promo.code)
+    } catch (err) {
+      setAppliedPromo(null)
+      setPromoError(
+        err instanceof Error ? err.message : 'Could not apply promo code.',
+      )
+    } finally {
+      setApplyingPromo(false)
+    }
+  }
+
+  function handleRemovePromo() {
+    setAppliedPromo(null)
+    setPromoInput('')
+    setPromoError(null)
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (checkoutLines.length === 0) return
@@ -124,7 +170,9 @@ export default function OrderPage() {
     setFormError(null)
 
     try {
-      await placeCartOrder(checkoutLines, form)
+      await placeCartOrder(checkoutLines, form, {
+        promoCode: appliedPromo?.code,
+      })
 
       const categoryPath =
         checkoutLines.length > 0
@@ -232,9 +280,68 @@ export default function OrderPage() {
               })}
             </ul>
 
+            <div className="order-promo">
+              <label className="order-promo-label" htmlFor="promo-code">
+                Promo code
+              </label>
+              <div className="order-promo-row">
+                <input
+                  id="promo-code"
+                  type="text"
+                  value={promoInput}
+                  onChange={(e) => {
+                    setPromoInput(e.target.value.toUpperCase())
+                    if (promoError) setPromoError(null)
+                  }}
+                  placeholder="Enter code"
+                  autoComplete="off"
+                  disabled={Boolean(appliedPromo)}
+                />
+                {appliedPromo ? (
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={handleRemovePromo}
+                  >
+                    Remove
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={() => void handleApplyPromo()}
+                    disabled={applyingPromo || !promoInput.trim()}
+                  >
+                    {applyingPromo ? 'Applying…' : 'Apply'}
+                  </button>
+                )}
+              </div>
+              {appliedPromo && (
+                <p className="order-promo-applied" role="status">
+                  <strong>{appliedPromo.code}</strong> applied — save{' '}
+                  {formatPricePKR(appliedPromo.discountAmount)}
+                </p>
+              )}
+              {promoError && (
+                <p className="order-promo-error" role="alert">
+                  {promoError}
+                </p>
+              )}
+            </div>
+
             <div className="order-summary-total">
-              <span>{hasPriceRange ? 'Estimated total (from)' : 'Total'}</span>
+              <span>Subtotal</span>
               <strong>{formatPricePKR(subtotal)}</strong>
+            </div>
+            {appliedPromo && (
+              <div className="order-summary-discount">
+                <span>Promo ({appliedPromo.code})</span>
+                <strong>−{formatPricePKR(promoDiscount)}</strong>
+              </div>
+            )}
+            <div className="order-summary-total order-summary-total--due">
+              <span>{hasPriceRange ? 'Estimated total (from)' : 'Total due'}</span>
+              <strong>{formatPricePKR(orderTotal)}</strong>
             </div>
             {hasPriceRange && (
               <p className="order-summary-note">{getPriceRangeNote()}</p>
@@ -348,11 +455,11 @@ export default function OrderPage() {
                   ? 'Placing order…'
                   : hasPreorder
                     ? hasPriceRange
-                      ? `Confirm pre-order — from ${formatPricePKR(subtotal)}`
-                      : `Confirm pre-order — ${formatPricePKR(subtotal)}`
+                      ? `Confirm pre-order — from ${formatPricePKR(orderTotal)}`
+                      : `Confirm pre-order — ${formatPricePKR(orderTotal)}`
                     : hasPriceRange
-                      ? `Place order — from ${formatPricePKR(subtotal)}`
-                      : `Place order — ${formatPricePKR(subtotal)}`}
+                      ? `Place order — from ${formatPricePKR(orderTotal)}`
+                      : `Place order — ${formatPricePKR(orderTotal)}`}
               </button>
             </form>
           </section>

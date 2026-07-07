@@ -24,6 +24,7 @@ import {
   isMissingColumnError,
   supabaseErrorMessage,
 } from '../lib/supabaseErrors'
+import { incrementPromoUsage, validatePromoCode } from './promoApi'
 import type {
   CheckoutFormData,
   ManualOrderFormData,
@@ -140,6 +141,7 @@ function buildOrderInsert(
   form: CheckoutFormData,
   total: number,
   orderType: OrderType,
+  promo?: { code: string; discount: number },
 ) {
   return {
     customer_name: form.customer_name,
@@ -152,12 +154,15 @@ function buildOrderInsert(
     total,
     order_type: orderType,
     advance_payment: null,
+    discount: promo?.discount ?? null,
+    promo_code: promo?.code ?? null,
   }
 }
 
 export async function placeCartOrder(
   lines: CartLine[],
   form: CheckoutFormData,
+  options?: { promoCode?: string },
 ): Promise<Order> {
   if (lines.length === 0) {
     throw new Error('Your cart is empty.')
@@ -183,6 +188,17 @@ export async function placeCartOrder(
     ? 'preorder'
     : 'order'
 
+  let appliedPromo: { id: string; code: string; discount: number } | null = null
+  const promoInput = options?.promoCode?.trim()
+  if (promoInput) {
+    const promo = await validatePromoCode(promoInput, total)
+    appliedPromo = {
+      id: promo.id,
+      code: promo.code,
+      discount: promo.discountAmount,
+    }
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     const orderId = `local-order-${crypto.randomUUID()}`
     const order: Order = {
@@ -200,7 +216,8 @@ export async function placeCartOrder(
       amount_received: null,
       admin_notes: null,
       delivery_charge: null,
-      discount: null,
+      discount: appliedPromo?.discount ?? null,
+      promo_code: appliedPromo?.code ?? null,
       total,
       created_at: new Date().toISOString(),
     }
@@ -223,10 +240,20 @@ export async function placeCartOrder(
         product: line.product,
       })),
     )
+    if (appliedPromo) {
+      await incrementPromoUsage(appliedPromo.id)
+    }
     return { ...order, items }
   }
 
-  const fullPayload = buildOrderInsert(form, total, orderType)
+  const fullPayload = buildOrderInsert(
+    form,
+    total,
+    orderType,
+    appliedPromo
+      ? { code: appliedPromo.code, discount: appliedPromo.discount }
+      : undefined,
+  )
   const legacyPayload = {
     customer_name: form.customer_name,
     phone: form.phone,
@@ -255,7 +282,12 @@ export async function placeCartOrder(
     }
 
     lastError = error
-    if (!isMissingColumnError(error, ['order_type', 'advance_payment'])) {
+    if (!isMissingColumnError(error, [
+      'order_type',
+      'advance_payment',
+      'discount',
+      'promo_code',
+    ])) {
       throw new Error(supabaseErrorMessage(error))
     }
   }
@@ -293,6 +325,10 @@ export async function placeCartOrder(
     await supabase.from('orders').delete().eq('id', orderId)
     await supabase.from('order_items').delete().eq('order_id', orderId)
     throw stockError
+  }
+
+  if (appliedPromo) {
+    await incrementPromoUsage(appliedPromo.id)
   }
 
   const order = normalizeOrderRow({
@@ -506,6 +542,7 @@ export async function createManualOrder(
       admin_notes: form.admin_notes.trim() || null,
       delivery_charge: deliveryCharge,
       discount,
+      promo_code: null,
       total,
       created_at: new Date().toISOString(),
     }
@@ -549,6 +586,7 @@ export async function createManualOrder(
     admin_notes: form.admin_notes.trim() || null,
     delivery_charge: deliveryCharge,
     discount,
+    promo_code: null,
   }
 
   const { error: orderError } = await supabase

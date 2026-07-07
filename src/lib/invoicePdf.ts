@@ -246,7 +246,7 @@ export function downloadOrderInvoicePdf(
       totalsLabelRight,
       totalsRight,
       totalsY,
-      'Discount',
+      order.promo_code ? `Promo (${order.promo_code})` : 'Discount',
       `-${formatPricePdf(discount)}`,
     )
     totalsY += 7
