@@ -20,43 +20,52 @@
 
 .product-price-line {
   display: grid;
-  grid-template-columns: minmax(4.5rem, 5.5rem) 1fr;
-  gap: 0.5rem 1rem;
-  align-items: baseline;
+  grid-template-columns: minmax(3.75rem, 4.5rem) 1fr;
+  gap: 0.35rem 0.75rem;
+  align-items: start;
 }
 
 .product-price-line-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted);
+  padding-top: 0.2rem;
 }
 
 .product-price-line-value {
-  display: inline-flex;
+  display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: flex-start;
   gap: 0.35rem 0.5rem;
+  min-width: 0;
   font-weight: 700;
   color: var(--primary-dark);
   line-height: 1.35;
-}
-
-.product-price-line--price .product-price-line-value {
-  flex-wrap: nowrap;
-  white-space: nowrap;
-}
-
-.product-price-line--price .discount-badge,
-.product-price-line--price .price-range-badge {
-  flex-shrink: 0;
 }
 
 .product-price-line-value--unit {
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--text);
+}
+
+.price-amount-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.price-amount-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.45rem;
+  min-width: 0;
 }
 
 .product-price-display--large .product-price-line-value {
@@ -72,12 +81,12 @@
   padding-top: 0.35rem;
 }
 
-.product-price-display--large .product-price-line-value .price-prefix {
+.product-price-display--large .price-amount-row .price-prefix {
   font-size: 0.65em;
 }
 
 .product-price-display .price-prefix {
-  font-size: 0.85em;
+  font-size: 0.8em;
   font-weight: 600;
   color: var(--muted);
 }
@@ -95,7 +104,7 @@
 }
 
 .product-price-display.has-discount .price-original {
-  font-size: 0.85em;
+  font-size: 0.82em;
   font-weight: 500;
   color: var(--muted);
   text-decoration: line-through;
@@ -110,7 +119,9 @@
 }
 
 .discount-badge {
-  font-size: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -119,10 +130,11 @@
   background: #dcfce7;
   color: #166534;
   border: 1px solid #86efac;
+  white-space: nowrap;
 }
 
 .product-price-display--large .discount-badge {
-  font-size: 0.55rem;
+  font-size: 0.7rem;
 }
 
 .product-card .product-price-display--labeled {
@@ -130,11 +142,15 @@
 }
 
 .product-card .product-price-line-value {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
 }
 
 .product-card .product-price-line-value--unit {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+}
+
+.product-card .product-price-display .discount-badge {
+  font-size: 0.62rem;
 }
 
 .product-card .product-price-display .price-range-badge {

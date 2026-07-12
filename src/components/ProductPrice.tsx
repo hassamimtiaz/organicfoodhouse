@@ -1,6 +1,7 @@
 import { formatUnitLabel, getUnitRowLabel } from '../config/units'
 import { formatPricePKR } from '../config/site'
 import {
+  getPackagingOriginalPriceRange,
   getPackagingPriceRange,
   hasPackagings,
 } from '../config/packaging'
@@ -34,22 +35,52 @@ interface ProductPriceProps {
   className?: string
 }
 
-function formatAmount(
+function formatRangeText(min: number, max: number): string {
+  return min === max
+    ? formatPricePKR(min)
+    : `${formatPricePKR(min)} – ${formatPricePKR(max)}`
+}
+
+function formatSaleAmount(
   product: Pick<
     Product,
     'price' | 'price_max' | 'price_type' | 'packagings' | 'discount_percent'
   >,
+  compact: boolean,
 ) {
   if (hasPackagings(product)) {
     const range = getPackagingPriceRange(product)
-    if (range) {
-      return range.min === range.max
-        ? formatPricePKR(range.min)
-        : `${formatPricePKR(range.min)} – ${formatPricePKR(range.max)}`
+    if (!range) return formatPricePKR(0)
+    // Cards: show starting sale price only — full range overflows.
+    if (compact && range.min !== range.max) {
+      return formatPricePKR(range.min)
     }
+    return formatRangeText(range.min, range.max)
   }
   if (isPriceRange(product)) {
-    return `${formatPricePKR(Number(product.price))} – ${formatPricePKR(Number(product.price_max))}`
+    const sale = getDiscountedPriceFields(product)
+    if (compact) return formatPricePKR(sale.price)
+    return formatRangeText(sale.price, Number(sale.price_max))
+  }
+  return formatPricePKR(getDiscountedPriceFields(product).price)
+}
+
+function formatOriginalAmount(
+  product: Pick<
+    Product,
+    'price' | 'price_max' | 'price_type' | 'packagings' | 'discount_percent'
+  >,
+  compact: boolean,
+) {
+  if (hasPackagings(product)) {
+    const range = getPackagingOriginalPriceRange(product)
+    if (!range) return null
+    if (compact) return formatPricePKR(range.min)
+    return formatRangeText(range.min, range.max)
+  }
+  if (isPriceRange(product)) {
+    if (compact) return formatPricePKR(Number(product.price))
+    return formatRangeText(Number(product.price), Number(product.price_max))
   }
   return formatPricePKR(Number(product.price))
 }
@@ -57,40 +88,49 @@ function formatAmount(
 function PriceAmount({
   product,
   discounted,
+  compact,
 }: {
   product: ProductPriceProps['product']
   discounted: boolean
+  compact: boolean
 }) {
   const prefix = productPricePrefix(product)
-  const range = isPriceRange(product)
-  const salePrices = getDiscountedPriceFields(product)
-  const saleAmountText = range
-    ? `${formatPricePKR(salePrices.price)} – ${formatPricePKR(salePrices.price_max!)}`
-    : formatPricePKR(salePrices.price)
-  const originalAmountText = discounted ? formatAmount(product) : null
+  const range = isPriceRange(product) && !hasPackagings(product)
+  const saleAmountText = formatSaleAmount(product, compact)
+  const originalAmountText = discounted
+    ? formatOriginalAmount(product, compact)
+    : null
+  const showFromPrefix =
+    Boolean(prefix) ||
+    (compact &&
+      hasPackagings(product) &&
+      (() => {
+        const sale = getPackagingPriceRange(product)
+        return sale != null && sale.min !== sale.max
+      })())
 
   return (
-    <>
-      {prefix && <span className="price-prefix">{prefix}</span>}
-      {discounted && originalAmountText && (
-        <span className="price-original" aria-label="Original price">
-          {originalAmountText}
-        </span>
-      )}
-      <span className="price-amount">
-        {discounted ? saleAmountText : formatAmount(product)}
-      </span>
+    <span className={`price-amount-stack${discounted ? ' has-discount' : ''}`}>
       {discounted && (
         <span className="discount-badge" aria-label="Discount">
           {product.discount_percent}% off
         </span>
       )}
+      <span className="price-amount-row">
+        {showFromPrefix && <span className="price-prefix">From</span>}
+        <span className="price-amount">{saleAmountText}</span>
+        {discounted && originalAmountText && (
+          <span className="price-original" aria-label="Original price">
+            {originalAmountText}
+          </span>
+        )}
+      </span>
       {range && (
         <span className="price-range-badge" aria-label="Price range">
           Price range
         </span>
       )}
-    </>
+    </span>
   )
 }
 
@@ -104,6 +144,7 @@ export default function ProductPrice({
   const discounted = hasProductDiscount(product)
   const range = isPriceRange(product) && !hasPackagings(product)
   const packaged = hasPackagings(product)
+  const compact = size !== 'large'
   const unitLabel =
     showUnit && !packaged
       ? formatUnitLabel(product, { titleCaseMeasure: true })
@@ -124,32 +165,27 @@ export default function ProductPrice({
 
   if (layout === 'inline') {
     const unitSuffix = unitLabel ? ` / ${unitLabel}` : ''
-    const salePrices = getDiscountedPriceFields(product)
-    const saleAmountText = packaged
-      ? formatAmount(product)
-      : range
-        ? `${formatPricePKR(salePrices.price)} – ${formatPricePKR(salePrices.price_max!)}`
-        : formatPricePKR(salePrices.price)
-    const originalAmountText = discounted ? formatAmount(product) : null
+    const saleAmountText = formatSaleAmount(product, true)
+    const originalAmountText = discounted
+      ? formatOriginalAmount(product, true)
+      : null
     const prefix = productPricePrefix(product)
 
     return (
       <span className={rootClass}>
-        {prefix && <span className="price-prefix">{prefix}</span>}
-        {discounted && originalAmountText && (
-          <span className="price-original" aria-label="Original price">
-            {originalAmountText}
-            {unitSuffix}
-          </span>
-        )}
-        <span className="price-amount">
-          {discounted
-            ? `${saleAmountText}${unitSuffix}`
-            : `${formatAmount(product)}${unitSuffix}`}
-        </span>
         {discounted && (
           <span className="discount-badge" aria-label="Discount">
             {product.discount_percent}% off
+          </span>
+        )}
+        {prefix && <span className="price-prefix">{prefix}</span>}
+        <span className="price-amount">
+          {saleAmountText}
+          {unitSuffix}
+        </span>
+        {discounted && originalAmountText && (
+          <span className="price-original" aria-label="Original price">
+            {originalAmountText}
           </span>
         )}
         {range && (
@@ -166,7 +202,11 @@ export default function ProductPrice({
       <div className="product-price-line product-price-line--price">
         <span className="product-price-line-label">Price</span>
         <span className="product-price-line-value">
-          <PriceAmount product={product} discounted={discounted} />
+          <PriceAmount
+            product={product}
+            discounted={discounted}
+            compact={compact}
+          />
         </span>
       </div>
       {showUnit && packaged && (

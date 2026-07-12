@@ -60,22 +60,44 @@ export function formatPackagingLabel(packaging: ProductPackaging): string {
   return label ? `${size} · ${label}` : size
 }
 
+/** Catalog / list price before product-level discount. */
+export function getPackagingListPrice(packaging: ProductPackaging): number {
+  return Number(packaging.price)
+}
+
 export function getPackagingUnitPrice(
   product: PackagingAwareProduct,
   packaging: ProductPackaging,
 ): number {
-  const base = Number(packaging.price)
+  const base = getPackagingListPrice(packaging)
   if (!hasProductDiscount(product)) return base
   return applyDiscountPercent(base, product.discount_percent!)
 }
 
-export function getPackagingPriceRange(
+function packagingPriceRangeFrom(
   product: PackagingAwareProduct,
+  priceFor: (packaging: ProductPackaging) => number,
 ): { min: number; max: number } | null {
   const options = getInStockPackagings(product)
   if (options.length === 0) return null
-  const prices = options.map((p) => getPackagingUnitPrice(product, p))
+  const prices = options.map(priceFor)
   return { min: Math.min(...prices), max: Math.max(...prices) }
+}
+
+/** Sale prices (discount applied when set). */
+export function getPackagingPriceRange(
+  product: PackagingAwareProduct,
+): { min: number; max: number } | null {
+  return packagingPriceRangeFrom(product, (p) =>
+    getPackagingUnitPrice(product, p),
+  )
+}
+
+/** Pre-discount box prices for strikethrough display. */
+export function getPackagingOriginalPriceRange(
+  product: PackagingAwareProduct,
+): { min: number; max: number } | null {
+  return packagingPriceRangeFrom(product, getPackagingListPrice)
 }
 
 export function packagingPricePrefix(

@@ -7,6 +7,7 @@ import {
   isProductOrderable,
 } from '../config/preorder'
 import { getDefaultPackaging, hasPackagings } from '../config/packaging'
+import { hasProductDiscount } from '../config/pricing'
 import { getProductPrimaryImage } from '../config/productImages'
 import { IMAGE_SIZES } from '../lib/imageSizes'
 import { prefetchProductPage } from '../lib/productPageLoad'
@@ -37,6 +38,7 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
     ? getDefaultPackaging(product)?.id ?? null
     : null
   const productSlug = product.slug ?? product.id
+  const discounted = hasProductDiscount(product)
 
   return (
     <article
@@ -82,6 +84,11 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
         )}
         {!orderable && (
           <span className="product-badge out">Out of stock</span>
+        )}
+        {discounted && orderable && (
+          <span className="product-badge product-badge--sale">
+            {product.discount_percent}% off
+          </span>
         )}
       </div>
 

@@ -1,10 +1,12 @@
 import { formatPricePKR } from '../config/site'
 import {
   formatPackagingLabel,
+  getPackagingListPrice,
   getPackagingUnitPrice,
   hasPackagings,
 } from '../config/packaging'
 import { getAdvanceOrderLabel, allowsAdvanceOrderWhenOutOfStock } from '../config/preorder'
+import { hasProductDiscount } from '../config/pricing'
 import {
   formatPackagingStockHint,
   getPackagingRemaining,
@@ -31,12 +33,23 @@ export default function PackagingSelector({
   const options = product.packagings ?? []
   if (!hasPackagings(product) || options.length === 0) return null
 
+  const discounted = hasProductDiscount(product)
+
   return (
     <fieldset
-      className={`packaging-selector packaging-selector--${size}`}
+      className={`packaging-selector packaging-selector--${size}${
+        discounted ? ' has-discount' : ''
+      }`}
       aria-label="Choose your box"
     >
-      <legend>Box options</legend>
+      <legend>
+        Box options
+        {discounted && (
+          <span className="packaging-discount-badge">
+            {product.discount_percent}% off all boxes
+          </span>
+        )}
+      </legend>
       <div className="packaging-options">
         {options.map((packaging) => (
           <PackagingOption
@@ -67,7 +80,9 @@ function PackagingOption({
   const physicallyOut = !isPackagingOrderable(packaging)
   const advance = allowsAdvanceOrderWhenOutOfStock(product as Product)
   const disabled = !selectable
-  const price = getPackagingUnitPrice(product, packaging)
+  const discounted = hasProductDiscount(product)
+  const salePrice = getPackagingUnitPrice(product, packaging)
+  const listPrice = getPackagingListPrice(packaging)
   const remaining = getPackagingRemaining(packaging)
   const showLowStock =
     remaining != null && shouldShowLowStock(remaining) && physicallyOut === false
@@ -90,20 +105,27 @@ function PackagingOption({
         <span className="packaging-option-label">
           {formatPackagingLabel(packaging)}
         </span>
-        <span className="packaging-option-price">{formatPricePKR(price)}</span>
-        {showLowStock && (
-          <span className="packaging-option-low-stock">
-            {formatPackagingStockHint(remaining)}
-          </span>
-        )}
-        {disabled && (
-          <span className="packaging-option-unavailable">Sold out</span>
-        )}
-        {!disabled && advance && physicallyOut && (
-          <span className="packaging-option-advance">
-            {getAdvanceOrderLabel(product as Product)}
-          </span>
-        )}
+        <span className="packaging-option-pricing">
+          {discounted && (
+            <span className="packaging-option-price-original" aria-label="Original price">
+              {formatPricePKR(listPrice)}
+            </span>
+          )}
+          <span className="packaging-option-price">{formatPricePKR(salePrice)}</span>
+          {showLowStock && (
+            <span className="packaging-option-low-stock">
+              {formatPackagingStockHint(remaining)}
+            </span>
+          )}
+          {disabled && (
+            <span className="packaging-option-unavailable">Sold out</span>
+          )}
+          {!disabled && advance && physicallyOut && (
+            <span className="packaging-option-advance">
+              {getAdvanceOrderLabel(product as Product)}
+            </span>
+          )}
+        </span>
       </span>
     </label>
   )

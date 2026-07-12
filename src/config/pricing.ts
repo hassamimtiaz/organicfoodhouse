@@ -2,6 +2,7 @@ import { formatUnitLabel } from '../config/units'
 import {
   formatPackagingLabel,
   getPackagingById,
+  getPackagingOriginalPriceRange,
   getPackagingPriceRange,
   getPackagingUnitPrice,
   hasPackagings,
@@ -90,14 +91,32 @@ export function formatProductPrice(
   },
 ): string {
   if (hasPackagings(product)) {
-    const range = getPackagingPriceRange(product)
-    if (range) {
+    const applyDiscount = options?.applyDiscount !== false
+    const saleRange = getPackagingPriceRange(product)
+    if (saleRange) {
       const prefix = packagingPricePrefix(product)
       const saleText =
-        range.min === range.max
-          ? formatPricePKR(range.min)
-          : `${formatPricePKR(range.min)} – ${formatPricePKR(range.max)}`
-      return prefix ? `${prefix} ${saleText}` : saleText
+        saleRange.min === saleRange.max
+          ? formatPricePKR(saleRange.min)
+          : `${formatPricePKR(saleRange.min)} – ${formatPricePKR(saleRange.max)}`
+      const withPrefix = prefix ? `${prefix} ${saleText}` : saleText
+
+      if (
+        options?.showWasPrice &&
+        applyDiscount &&
+        hasProductDiscount(product)
+      ) {
+        const originalRange = getPackagingOriginalPriceRange(product)
+        if (originalRange) {
+          const originalText =
+            originalRange.min === originalRange.max
+              ? formatPricePKR(originalRange.min)
+              : `${formatPricePKR(originalRange.min)} – ${formatPricePKR(originalRange.max)}`
+          return `${withPrefix} (was ${originalText})`
+        }
+      }
+
+      return withPrefix
     }
   }
 

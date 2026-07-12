@@ -34,7 +34,9 @@ export default function ProductDetailPricing({
   const packaged = hasPackagings(product)
 
   return (
-    <div className="product-detail-pricing">
+    <div
+      className={`product-detail-pricing${packaged ? ' product-detail-pricing--packaged' : ''}`}
+    >
       {!packaged && (
         <ProductPrice product={product} size="large" layout="labeled" />
       )}

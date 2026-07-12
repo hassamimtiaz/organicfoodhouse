@@ -95,6 +95,12 @@
   color: #b91c1c;
 }
 
+.product-badge.product-badge--sale {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
 .product-actions {
   position: relative;
   z-index: 2;
