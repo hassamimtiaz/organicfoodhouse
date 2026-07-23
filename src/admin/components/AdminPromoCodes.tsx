@@ -6,6 +6,10 @@ import {
   setPromoCodeActive,
   updatePromoCode,
 } from '../../services/promoApi'
+import {
+  isPromoCodesEnabled,
+  setPromoCodesEnabled,
+} from '../../services/siteSettingsApi'
 import { formatPricePKR } from '../../config/site'
 import { formatPromoDiscountLabel } from '../../lib/promoCode'
 import type { PromoCode, PromoCodeFormData } from '../../types'
@@ -40,11 +44,18 @@ export default function AdminPromoCodes({ onMessage }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [checkoutEnabled, setCheckoutEnabled] = useState(true)
+  const [savingCheckoutToggle, setSavingCheckoutToggle] = useState(false)
 
   async function loadPromos() {
     setLoading(true)
     try {
-      setPromos(await fetchAllPromoCodes())
+      const [rows, enabled] = await Promise.all([
+        fetchAllPromoCodes(),
+        isPromoCodesEnabled(),
+      ])
+      setPromos(rows)
+      setCheckoutEnabled(enabled)
     } catch (err) {
       onMessage({
         type: 'error',
@@ -136,8 +147,52 @@ export default function AdminPromoCodes({ onMessage }: Props) {
     })
   }
 
+  async function handleCheckoutToggle(next: boolean) {
+    setSavingCheckoutToggle(true)
+    try {
+      await setPromoCodesEnabled(next)
+      setCheckoutEnabled(next)
+      onMessage({
+        type: 'success',
+        text: next
+          ? 'Promo code field is now shown at checkout.'
+          : 'Promo code field is hidden at checkout.',
+      })
+    } catch (err) {
+      onMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Could not update setting',
+      })
+    } finally {
+      setSavingCheckoutToggle(false)
+    }
+  }
+
   return (
     <div className="portal-grid">
+      <section className="portal-panel portal-panel--full">
+        <h2>Checkout promo field</h2>
+        <p className="panel-hint">
+          Turn this off when you are not running any promo. Customers will not see
+          the promo code box on the order page.
+        </p>
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={checkoutEnabled}
+            disabled={loading || savingCheckoutToggle}
+            onChange={(e) => void handleCheckoutToggle(e.target.checked)}
+          />
+          Show promo code option at checkout
+        </label>
+        {!checkoutEnabled && (
+          <p className="field-hint" style={{ marginTop: '0.75rem' }}>
+            Promo codes are currently hidden from customers. You can still manage
+            codes below for later.
+          </p>
+        )}
+      </section>
+
       <section className="portal-panel">
         <h2>{editingId ? 'Edit promo code' : 'Add promo code'}</h2>
         <form onSubmit={handleSubmit} className="admin-form">

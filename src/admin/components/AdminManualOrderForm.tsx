@@ -3,9 +3,17 @@ import { getOrderLineTotal, getOrderUnitLabel, getOrderUnitPrice } from '../../c
 import { formatPackagingLabel, hasPackagings } from '../../config/packaging'
 import { formatPricePKR } from '../../config/site'
 import { clampPackQuantity, MIN_PACKS_PER_ITEM } from '../../lib/cartStorage'
+import {
+  deriveLegacyChargesFromLines,
+  getExtraChargesTotal,
+  sanitizeExtraChargesInput,
+} from '../../lib/orderExtraCharges'
 import { parseAdvancePayment } from '../../lib/orderNormalize'
 import { createManualOrder } from '../../services/ordersApi'
 import type { ManualOrderFormData, Product } from '../../types'
+import AdminInvoiceLinesEditor, {
+  type InvoiceLineDraft,
+} from './AdminInvoiceLinesEditor'
 import './AdminManualOrderForm.css'
 
 const emptyForm = (): ManualOrderFormData => ({
@@ -20,6 +28,7 @@ const emptyForm = (): ManualOrderFormData => ({
   amount_received: null,
   delivery_charge: null,
   discount: null,
+  extra_charges: [],
   lines: [{ product_id: '', packaging_id: null, quantity: 1 }],
 })
 
@@ -36,8 +45,7 @@ export default function AdminManualOrderForm({
 }: Props) {
   const [form, setForm] = useState<ManualOrderFormData>(emptyForm)
   const [amountInput, setAmountInput] = useState('')
-  const [deliveryInput, setDeliveryInput] = useState('')
-  const [discountInput, setDiscountInput] = useState('')
+  const [invoiceLines, setInvoiceLines] = useState<InvoiceLineDraft[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -65,6 +73,10 @@ export default function AdminManualOrderForm({
     (sum, line) => sum + (line?.lineTotal ?? 0),
     0,
   )
+  const invoiceAdjustments = getExtraChargesTotal(
+    sanitizeExtraChargesInput(invoiceLines),
+  )
+  const amountDue = Math.max(0, estimatedTotal + invoiceAdjustments)
 
   function updateLine(
     index: number,
@@ -104,23 +116,26 @@ export default function AdminManualOrderForm({
 
     const amountReceived =
       amountInput.trim() === '' ? null : parseAdvancePayment(amountInput)
-    const deliveryCharge =
-      deliveryInput.trim() === '' ? null : parseAdvancePayment(deliveryInput)
-    const discount =
-      discountInput.trim() === '' ? null : parseAdvancePayment(discountInput)
 
     if (amountInput.trim() !== '' && amountReceived == null) {
       setError('Enter a valid amount received in PKR.')
       return
     }
-    if (deliveryInput.trim() !== '' && deliveryCharge == null) {
-      setError('Enter a valid delivery charge in PKR.')
-      return
+
+    for (const line of invoiceLines) {
+      if (line.label.trim() && line.amount.trim() === '') {
+        setError(`Enter an amount for “${line.label.trim()}”.`)
+        return
+      }
+      if (line.amount.trim() !== '' && !line.label.trim()) {
+        setError('Each invoice line needs a label.')
+        return
+      }
     }
-    if (discountInput.trim() !== '' && discount == null) {
-      setError('Enter a valid discount in PKR.')
-      return
-    }
+
+    const derived = deriveLegacyChargesFromLines(
+      sanitizeExtraChargesInput(invoiceLines),
+    )
 
     setSubmitting(true)
     try {
@@ -129,8 +144,9 @@ export default function AdminManualOrderForm({
           ...form,
           lines: validLines,
           amount_received: amountReceived,
-          delivery_charge: deliveryCharge,
-          discount,
+          delivery_charge: derived.delivery_charge,
+          discount: derived.discount,
+          extra_charges: derived.extra_charges,
         },
         products,
       )
@@ -335,36 +351,20 @@ export default function AdminManualOrderForm({
               + Add another product
             </button>
             <p className="admin-manual-order-estimated">
-              Estimated total: <strong>{formatPricePKR(estimatedTotal)}</strong>
+              Product total: <strong>{formatPricePKR(estimatedTotal)}</strong>
             </p>
           </fieldset>
         </div>
 
         <fieldset className="admin-manual-order-fieldset admin-manual-order-accounting">
-          <legend>Accounting (optional)</legend>
-          <div className="form-row">
-            <label>
-              Delivery charge (PKR)
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={deliveryInput}
-                onChange={(e) => setDeliveryInput(e.target.value)}
-                placeholder="e.g. 500"
-              />
-            </label>
-            <label>
-              Discount (PKR)
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={discountInput}
-                onChange={(e) => setDiscountInput(e.target.value)}
-                placeholder="e.g. friend discount"
-              />
-            </label>
+          <legend>Invoice & payment</legend>
+          <AdminInvoiceLinesEditor
+            lines={invoiceLines}
+            onChange={setInvoiceLines}
+            productTotal={estimatedTotal}
+            disabled={submitting}
+          />
+          <div className="form-row" style={{ marginTop: '0.85rem' }}>
             <label>
               Amount received (PKR)
               <input
@@ -385,9 +385,12 @@ export default function AdminManualOrderForm({
               onChange={(e) =>
                 setForm({ ...form, admin_notes: e.target.value })
               }
-              placeholder="e.g. Friend discount — charged ₨500 less than catalog price"
+              placeholder="e.g. Friend discount agreed on WhatsApp"
             />
           </label>
+          <p className="admin-manual-order-estimated">
+            Amount due: <strong>{formatPricePKR(amountDue)}</strong>
+          </p>
         </fieldset>
 
         {error && (

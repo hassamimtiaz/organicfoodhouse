@@ -4,10 +4,11 @@ import { SITE } from '../config/site'
 import {
   formatOrderPackCount,
   formatOrderPackSize,
+  formatOrderStatus,
   getInvoiceSequence,
 } from './orderDisplay'
 import type { InvoiceContext } from './invoice'
-import { getOrderAmountReceived, getOrderBalanceDue, getOrderDeliveryCharge, getOrderDiscount, getOrderGrandTotal, getOrderProductTotal } from './orderPayment'
+import { getOrderAmountReceived, getOrderBalanceDue, getOrderGrandTotal, getOrderInvoiceAdjustmentLines, getOrderProductTotal } from './orderPayment'
 import type { Order } from '../types'
 
 const GREEN: [number, number, number] = [20, 83, 45]
@@ -55,21 +56,24 @@ function drawMetaRow(
 
 function drawTotalsRow(
   doc: jsPDF,
-  labelRight: number,
+  labelX: number,
   valueRight: number,
   y: number,
   label: string,
   value: string,
-  large = false,
+  options?: { large?: boolean; muted?: boolean; discount?: boolean },
 ) {
-  doc.setFont('helvetica', 'normal')
+  const large = options?.large ?? false
+  doc.setFont('helvetica', options?.large ? 'bold' : 'normal')
   doc.setFontSize(large ? 11 : 9)
-  if (large) doc.setTextColor(...TEXT)
+  if (options?.discount) doc.setTextColor(21, 128, 61)
+  else if (large) doc.setTextColor(...TEXT)
   else doc.setTextColor(...MUTED)
-  doc.text(label, labelRight, y, { align: 'right' })
+  doc.text(label, labelX, y, { align: 'left' })
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(large ? 11 : 10)
-  doc.setTextColor(...TEXT)
+  if (options?.discount) doc.setTextColor(21, 128, 61)
+  else doc.setTextColor(...TEXT)
   doc.text(value, valueRight, y, { align: 'right' })
 }
 
@@ -84,8 +88,7 @@ export function downloadOrderInvoicePdf(
   const invoiceDate = formatInvoiceDate(order.created_at)
   const isPreorder = order.order_type === 'preorder'
   const productTotal = getOrderProductTotal(order)
-  const deliveryCharge = getOrderDeliveryCharge(order)
-  const discount = getOrderDiscount(order)
+  const adjustmentLines = getOrderInvoiceAdjustmentLines(order)
   const grandTotal = getOrderGrandTotal(order)
   const received = getOrderAmountReceived(order)
   const balance = getOrderBalanceDue(order)
@@ -119,13 +122,14 @@ export function downloadOrderInvoicePdf(
   metaY += 5.5
   drawMetaRow(doc, metaLabelEnd, metaValueX, metaY, 'Date', invoiceDate)
   metaY += 5.5
-  drawMetaRow(doc, metaLabelEnd, metaValueX, metaY, 'Status', order.status)
-  metaY += 6
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(8)
-  if (isPreorder) doc.setTextColor(30, 64, 175)
-  else doc.setTextColor(...GREEN)
-  doc.text(isPreorder ? 'Pre-order' : 'Order', metaValueX, metaY)
+  drawMetaRow(doc, metaLabelEnd, metaValueX, metaY, 'Status', formatOrderStatus(order.status))
+  if (isPreorder) {
+    metaY += 6
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(8)
+    doc.setTextColor(30, 64, 175)
+    doc.text('Pre-order', metaValueX, metaY)
+  }
 
   y = Math.max(y, metaY) + 8
   doc.setDrawColor(187, 247, 208)
@@ -180,7 +184,7 @@ export function downloadOrderInvoicePdf(
 
   autoTable(doc, {
     startY: y,
-    head: [['Product', 'Boxes', 'Box size', 'Price / box', 'Total']],
+    head: [['Product', 'Quantity', 'Size', 'Price', 'Total']],
     body: tableBody,
     margin: { left: margin, right: margin },
     styles: {
@@ -189,6 +193,7 @@ export function downloadOrderInvoicePdf(
       cellPadding: { top: 3, right: 4, bottom: 3, left: 4 },
       textColor: TEXT,
       valign: 'middle',
+      overflow: 'linebreak',
     },
     headStyles: {
       fillColor: [240, 253, 244],
@@ -199,10 +204,10 @@ export function downloadOrderInvoicePdf(
     },
     columnStyles: {
       0: { cellWidth: 'auto', halign: 'left' },
-      1: { cellWidth: 14, halign: 'center' },
-      2: { cellWidth: 24, halign: 'left' },
-      3: { cellWidth: 32, halign: 'right' },
-      4: { cellWidth: 32, halign: 'right' },
+      1: { cellWidth: 22, halign: 'center' },
+      2: { cellWidth: 36, halign: 'left' },
+      3: { cellWidth: 28, halign: 'right' },
+      4: { cellWidth: 28, halign: 'right' },
     },
     alternateRowStyles: { fillColor: [249, 250, 251] },
     didParseCell(data) {
@@ -217,54 +222,46 @@ export function downloadOrderInvoicePdf(
       ?.finalY ?? y + 40
 
   const totalsRight = pageWidth - margin
-  const totalsLabelRight = totalsRight - 38
+  const totalsBoxWidth = 78
+  const totalsLeft = totalsRight - totalsBoxWidth
   let totalsY = finalY + 10
 
   drawTotalsRow(
     doc,
-    totalsLabelRight,
+    totalsLeft,
     totalsRight,
     totalsY,
     'Product total',
     formatPricePdf(productTotal),
   )
   totalsY += 7
-  if (deliveryCharge > 0) {
+  for (const line of adjustmentLines) {
+    const isDiscount = line.kind === 'discount'
     drawTotalsRow(
       doc,
-      totalsLabelRight,
+      totalsLeft,
       totalsRight,
       totalsY,
-      'Delivery charge',
-      formatPricePdf(deliveryCharge),
-    )
-    totalsY += 7
-  }
-  if (discount > 0) {
-    drawTotalsRow(
-      doc,
-      totalsLabelRight,
-      totalsRight,
-      totalsY,
-      order.promo_code ? `Promo (${order.promo_code})` : 'Discount',
-      `-${formatPricePdf(discount)}`,
+      line.label,
+      `${isDiscount ? '-' : ''}${formatPricePdf(line.amount)}`,
+      { discount: isDiscount },
     )
     totalsY += 7
   }
   drawTotalsRow(
     doc,
-    totalsLabelRight,
+    totalsLeft,
     totalsRight,
     totalsY,
     'Amount due',
     formatPricePdf(grandTotal),
-    true,
+    { large: true },
   )
   totalsY += 7
   if (received != null) {
     drawTotalsRow(
       doc,
-      totalsLabelRight,
+      totalsLeft,
       totalsRight,
       totalsY,
       'Amount received',
@@ -273,12 +270,12 @@ export function downloadOrderInvoicePdf(
     totalsY += 7
     drawTotalsRow(
       doc,
-      totalsLabelRight,
+      totalsLeft,
       totalsRight,
       totalsY,
       'Balance due',
       formatPricePdf(balance!),
-      true,
+      { large: true },
     )
     totalsY += 7
   }

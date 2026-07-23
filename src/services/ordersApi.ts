@@ -218,6 +218,7 @@ export async function placeCartOrder(
       delivery_charge: null,
       discount: appliedPromo?.discount ?? null,
       promo_code: appliedPromo?.code ?? null,
+      extra_charges: [],
       total,
       created_at: new Date().toISOString(),
     }
@@ -416,6 +417,7 @@ export async function updateOrderPaymentDetails(
     delivery_charge: number | null
     discount: number | null
     admin_notes: string | null
+    extra_charges?: Order['extra_charges']
   },
 ): Promise<void> {
   if (!isSupabaseConfigured || !supabase) {
@@ -426,16 +428,22 @@ export async function updateOrderPaymentDetails(
       order.delivery_charge = details.delivery_charge
       order.discount = details.discount
       order.admin_notes = details.admin_notes
+      if (details.extra_charges !== undefined) {
+        order.extra_charges = details.extra_charges
+      }
     }
     return
   }
 
-  const payload = {
+  const payload: Record<string, unknown> = {
     amount_received: details.amount_received,
     advance_payment: details.amount_received,
     delivery_charge: details.delivery_charge,
     discount: details.discount,
     admin_notes: details.admin_notes?.trim() || null,
+  }
+  if (details.extra_charges !== undefined) {
+    payload.extra_charges = details.extra_charges
   }
 
   const { error } = await supabase
@@ -451,10 +459,11 @@ export async function updateOrderPaymentDetails(
         'advance_payment',
         'delivery_charge',
         'discount',
+        'extra_charges',
       ])
     ) {
       throw new Error(
-        'Payment, delivery, or discount columns are missing. Run supabase migrations 013, 016, and 017 in Supabase.',
+        'Payment or invoice charge columns are missing. Run supabase migrations 013, 016, 017, and 024 in Supabase.',
       )
     }
     throw error
@@ -471,6 +480,7 @@ export async function updateOrderAdvancePayment(
     delivery_charge: null,
     discount: null,
     admin_notes: null,
+    extra_charges: [],
   })
 }
 
@@ -523,6 +533,7 @@ export async function createManualOrder(
       : null
   const discount =
     form.discount != null && form.discount > 0 ? Math.round(form.discount) : null
+  const extraCharges = form.extra_charges ?? []
 
   if (!isSupabaseConfigured || !supabase) {
     const orderId = `local-order-${crypto.randomUUID()}`
@@ -543,6 +554,7 @@ export async function createManualOrder(
       delivery_charge: deliveryCharge,
       discount,
       promo_code: null,
+      extra_charges: extraCharges,
       total,
       created_at: new Date().toISOString(),
     }
@@ -587,6 +599,7 @@ export async function createManualOrder(
     delivery_charge: deliveryCharge,
     discount,
     promo_code: null,
+    extra_charges: extraCharges,
   }
 
   const { error: orderError } = await supabase
@@ -594,7 +607,15 @@ export async function createManualOrder(
     .insert(orderPayload)
 
   if (orderError) {
-    throw new Error(supabaseErrorMessage(orderError))
+    if (isMissingColumnError(orderError, ['extra_charges'])) {
+      const { extra_charges: _removed, ...legacyPayload } = orderPayload
+      const { error: retryError } = await supabase
+        .from('orders')
+        .insert(legacyPayload)
+      if (retryError) throw new Error(supabaseErrorMessage(retryError))
+    } else {
+      throw new Error(supabaseErrorMessage(orderError))
+    }
   }
 
   const { error: itemsError } = await supabase.from('order_items').insert(

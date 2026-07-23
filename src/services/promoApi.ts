@@ -6,6 +6,7 @@ import {
 } from '../lib/promoCode'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import { supabaseErrorMessage } from '../lib/supabaseErrors'
+import { isPromoCodesEnabled } from './siteSettingsApi'
 import type {
   AppliedPromo,
   PromoCode,
@@ -97,6 +98,10 @@ export async function validatePromoCode(
   code: string,
   subtotal: number,
 ): Promise<AppliedPromo> {
+  if (!(await isPromoCodesEnabled())) {
+    throw new Error('Promo codes are not available right now.')
+  }
+
   const trimmed = code.trim()
   if (!trimmed) {
     throw new Error('Enter a promo code.')

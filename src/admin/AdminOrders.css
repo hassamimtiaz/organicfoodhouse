@@ -324,6 +324,14 @@
   background: var(--bg-alt);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.order-payment-panel .admin-payment-editor,
+.order-payment-panel .admin-invoice-lines {
+  max-width: 100%;
+  min-width: 0;
 }
 
 .order-payment-dl {

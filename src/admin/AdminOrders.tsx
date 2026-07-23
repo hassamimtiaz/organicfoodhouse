@@ -4,7 +4,7 @@ import {
   fetchAllOrders,
   updateOrderStatus,
 } from '../services/ordersApi'
-import { downloadOrderInvoiceHtml } from '../lib/invoice'
+import { downloadOrderInvoiceHtml, viewOrderInvoice } from '../lib/invoice'
 import {
   formatOrderPackCount,
   formatOrderPackSize,
@@ -207,6 +207,15 @@ function OrderList({
                             Download and share with the customer.
                           </p>
                           <div className="order-invoice-buttons">
+                            <button
+                              type="button"
+                              className="btn btn-outline btn-sm"
+                              onClick={() =>
+                                viewOrderInvoice(order, invoiceContext)
+                              }
+                            >
+                              View / Print
+                            </button>
                             <button
                               type="button"
                               className="btn btn-outline btn-sm"

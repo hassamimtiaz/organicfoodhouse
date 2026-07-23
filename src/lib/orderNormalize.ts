@@ -1,4 +1,5 @@
 import type { Order, OrderItem, OrderSource, OrderType } from '../types'
+import { normalizeExtraCharges } from './orderExtraCharges'
 
 export function normalizeOrderRow(row: Order): Order {
   const amountReceived =
@@ -27,6 +28,7 @@ export function normalizeOrderRow(row: Order): Order {
         ? Number(row.discount)
         : null,
     promo_code: row.promo_code ?? null,
+    extra_charges: normalizeExtraCharges(row.extra_charges),
   }
 }
 

@@ -1,6 +1,10 @@
-import type { Order } from '../types'
+import type { Order, OrderExtraCharge } from '../types'
+import {
+  getExtraChargesTotal,
+  normalizeExtraCharges,
+} from './orderExtraCharges'
 
-/** Product line total (excludes delivery and discount). */
+/** Product line total (excludes invoice adjustments). */
 export function getOrderProductTotal(order: Order): number {
   return Number(order.total)
 }
@@ -11,17 +15,54 @@ export function getOrderDeliveryCharge(order: Order): number {
     : 0
 }
 
+export function getOrderExtraCharges(order: Order): OrderExtraCharge[] {
+  return normalizeExtraCharges(order.extra_charges)
+}
+
+export function getOrderInvoiceAdjustmentLines(order: Order): OrderExtraCharge[] {
+  const lines = getOrderExtraCharges(order)
+  if (lines.length > 0) return lines
+
+  const legacy: OrderExtraCharge[] = []
+  if (getOrderDeliveryCharge(order) > 0) {
+    legacy.push({
+      label: 'Delivery Charges',
+      amount: getOrderDeliveryCharge(order),
+      kind: 'charge',
+    })
+  }
+  if (getOrderDiscount(order) > 0) {
+    legacy.push({
+      label: order.promo_code ? `Promo (${order.promo_code})` : 'Discount',
+      amount: getOrderDiscount(order),
+      kind: 'discount',
+    })
+  }
+  return legacy
+}
+
+export function getOrderExtraChargesTotal(order: Order): number {
+  return getExtraChargesTotal(getOrderExtraCharges(order))
+}
+
 export function getOrderDiscount(order: Order): number {
   return order.discount != null && order.discount > 0 ? Number(order.discount) : 0
 }
 
-/** Product total + delivery − discount (never below zero). */
+/**
+ * Product total + invoice adjustments.
+ * Prefer stored invoice lines when present; otherwise legacy delivery − discount.
+ */
 export function getOrderGrandTotal(order: Order): number {
-  const raw =
-    getOrderProductTotal(order) +
-    getOrderDeliveryCharge(order) -
-    getOrderDiscount(order)
-  return Math.max(0, raw)
+  const product = getOrderProductTotal(order)
+  const lines = getOrderExtraCharges(order)
+  if (lines.length > 0) {
+    return Math.max(0, product + getExtraChargesTotal(lines))
+  }
+  return Math.max(
+    0,
+    product + getOrderDeliveryCharge(order) - getOrderDiscount(order),
+  )
 }
 
 /** Payment recorded on the order (prefers amount_received, falls back to advance_payment). */

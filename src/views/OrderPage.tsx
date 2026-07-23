@@ -27,6 +27,7 @@ import { getProductUrl } from '../lib/productSlug'
 import { saveOrderSuccessPayload } from '../lib/orderSuccessStorage'
 import { supabaseErrorMessage } from '../lib/supabaseErrors'
 import { validatePromoCode } from '../services/promoApi'
+import { isPromoCodesEnabled } from '../services/siteSettingsApi'
 import {
   fetchProductBySlugOrId,
   getProductCategoryPath,
@@ -57,10 +58,15 @@ export default function OrderPage() {
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null)
   const [promoError, setPromoError] = useState<string | null>(null)
   const [applyingPromo, setApplyingPromo] = useState(false)
+  const [promoCodesEnabled, setPromoCodesEnabled] = useState(false)
 
   useEffect(() => {
     async function loadCheckout() {
-      const direct = loadDirectCheckout()
+      const [direct, promoEnabled] = await Promise.all([
+        Promise.resolve(loadDirectCheckout()),
+        isPromoCodesEnabled().catch(() => false),
+      ])
+      setPromoCodesEnabled(promoEnabled)
 
       if (direct?.length) {
         const loaded: CartLine[] = []
@@ -96,13 +102,14 @@ export default function OrderPage() {
   }, [])
 
   const subtotal = useMemo(() => getCartSubtotal(checkoutLines), [checkoutLines])
-  const promoDiscount = appliedPromo?.discountAmount ?? 0
+  const promoDiscount =
+    promoCodesEnabled && appliedPromo ? appliedPromo.discountAmount : 0
   const orderTotal = Math.max(0, subtotal - promoDiscount)
   const hasPreorder = useMemo(() => cartHasPreorder(checkoutLines), [checkoutLines])
   const hasPriceRange = useMemo(() => cartHasPriceRange(checkoutLines), [checkoutLines])
 
   useEffect(() => {
-    if (!appliedPromo) return
+    if (!promoCodesEnabled || !appliedPromo) return
     void (async () => {
       try {
         const refreshed = await validatePromoCode(appliedPromo.code, subtotal)
@@ -115,7 +122,7 @@ export default function OrderPage() {
     })()
     // Re-validate when cart subtotal changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subtotal])
+  }, [subtotal, promoCodesEnabled])
 
   function handleQuantityChange(lineKey: string, quantity: number) {
     setCheckoutLines((prev) => {
@@ -171,7 +178,7 @@ export default function OrderPage() {
 
     try {
       await placeCartOrder(checkoutLines, form, {
-        promoCode: appliedPromo?.code,
+        promoCode: promoCodesEnabled ? appliedPromo?.code : undefined,
       })
 
       const categoryPath =
@@ -280,6 +287,7 @@ export default function OrderPage() {
               })}
             </ul>
 
+            {promoCodesEnabled && (
             <div className="order-promo">
               <label className="order-promo-label" htmlFor="promo-code">
                 Promo code
@@ -328,12 +336,13 @@ export default function OrderPage() {
                 </p>
               )}
             </div>
+            )}
 
             <div className="order-summary-total">
               <span>Subtotal</span>
               <strong>{formatPricePKR(subtotal)}</strong>
             </div>
-            {appliedPromo && (
+            {promoCodesEnabled && appliedPromo && (
               <div className="order-summary-discount">
                 <span>Promo ({appliedPromo.code})</span>
                 <strong>−{formatPricePKR(promoDiscount)}</strong>

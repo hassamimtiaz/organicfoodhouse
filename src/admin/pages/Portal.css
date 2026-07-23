@@ -63,6 +63,10 @@
   overflow: visible;
 }
 
+.portal-panel--full {
+  grid-column: 1 / -1;
+}
+
 .portal-panel h2 {
   margin: 0 0 0.35rem;
   font-size: 1.15rem;

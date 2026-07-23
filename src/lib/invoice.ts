@@ -2,9 +2,10 @@ import { SITE, formatPricePKR } from '../config/site'
 import {
   formatOrderPackCount,
   formatOrderPackSize,
+  formatOrderStatus,
   getInvoiceSequence,
 } from './orderDisplay'
-import { getOrderAmountReceived, getOrderBalanceDue, getOrderDeliveryCharge, getOrderDiscount, getOrderGrandTotal, getOrderProductTotal } from './orderPayment'
+import { getOrderAmountReceived, getOrderBalanceDue, getOrderGrandTotal, getOrderInvoiceAdjustmentLines, getOrderProductTotal } from './orderPayment'
 import type { Order } from '../types'
 
 function escapeHtml(text: string): string {
@@ -42,8 +43,7 @@ export function buildOrderInvoiceHtml(
   const invNo = getInvoiceSequence(order, context.allOrders)
   const isPreorder = order.order_type === 'preorder'
   const productTotal = getOrderProductTotal(order)
-  const deliveryCharge = getOrderDeliveryCharge(order)
-  const discount = getOrderDiscount(order)
+  const adjustmentLines = getOrderInvoiceAdjustmentLines(order)
   const grandTotal = getOrderGrandTotal(order)
   const received = getOrderAmountReceived(order)
   const balance = getOrderBalanceDue(order)
@@ -191,9 +191,9 @@ export function buildOrderInvoiceHtml(
       background: #f0fdf4;
       text-align: left;
     }
-    th.col-packs, td.col-packs { width: 4.5rem; text-align: center; }
-    th.col-size, td.col-size { width: 6.5rem; text-align: left; }
-    th.col-money, td.col-money { width: 6.75rem; text-align: right; }
+    th.col-packs, td.col-packs { width: 5.5rem; text-align: center; }
+    th.col-size, td.col-size { width: 8.5rem; text-align: left; }
+    th.col-money, td.col-money { width: 6.5rem; text-align: right; }
     th.col-packs { text-align: center; }
     th.col-money { text-align: right; }
     td.col-product { text-align: left; word-break: break-word; }
@@ -205,13 +205,13 @@ export function buildOrderInvoiceHtml(
     }
     .totals {
       margin: 0;
-      width: 17rem;
+      width: 20rem;
       max-width: 100%;
     }
     .totals-row {
       display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 1.25rem;
+      grid-template-columns: minmax(0, 1fr) 7.5rem;
+      gap: 1rem;
       align-items: baseline;
       padding: 0.45rem 0;
       border-bottom: 1px solid #e5e7eb;
@@ -221,13 +221,17 @@ export function buildOrderInvoiceHtml(
       color: #4b5563;
       font-weight: 600;
       text-align: left;
+      overflow-wrap: anywhere;
     }
     .totals-row dd {
       margin: 0;
       font-weight: 700;
       text-align: right;
-      min-width: 6.5rem;
       white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .totals-row.discount dd {
+      color: #15803d;
     }
     .totals-row.grand dt,
     .totals-row.grand dd {
@@ -285,10 +289,10 @@ export function buildOrderInvoiceHtml(
           </div>
           <div class="meta-row">
             <dt>Status</dt>
-            <dd>${escapeHtml(order.status)}</dd>
+            <dd>${escapeHtml(formatOrderStatus(order.status))}</dd>
           </div>
         </dl>
-        <span class="badge">${isPreorder ? 'Pre-order' : 'Order'}</span>
+        ${isPreorder ? '<span class="badge">Pre-order</span>' : ''}
       </div>
     </header>
 
@@ -310,10 +314,10 @@ export function buildOrderInvoiceHtml(
       <thead>
         <tr>
           <th class="col-product">Product</th>
-          <th class="col-packs">Boxes</th>
-          <th class="col-size">Box size</th>
-          <th class="col-money">Price / box</th>
-          <th class="col-money">Line total</th>
+          <th class="col-packs">Quantity</th>
+          <th class="col-size">Size</th>
+          <th class="col-money">Price</th>
+          <th class="col-money">Total</th>
         </tr>
       </thead>
       <tbody>${itemsHtml}</tbody>
@@ -325,16 +329,12 @@ export function buildOrderInvoiceHtml(
           <dt>Product total</dt>
           <dd>${escapeHtml(formatPricePKR(productTotal))}</dd>
         </div>
-        ${
-          deliveryCharge > 0
-            ? `<div class="totals-row"><dt>Delivery charge</dt><dd>${escapeHtml(formatPricePKR(deliveryCharge))}</dd></div>`
-            : ''
-        }
-        ${
-          discount > 0
-            ? `<div class="totals-row"><dt>${order.promo_code ? `Promo (${escapeHtml(order.promo_code)})` : 'Discount'}</dt><dd>−${escapeHtml(formatPricePKR(discount))}</dd></div>`
-            : ''
-        }
+        ${adjustmentLines
+          .map((line) => {
+            const isDiscount = line.kind === 'discount'
+            return `<div class="totals-row${isDiscount ? ' discount' : ''}"><dt>${escapeHtml(line.label)}</dt><dd>${isDiscount ? '−' : ''}${escapeHtml(formatPricePKR(line.amount))}</dd></div>`
+          })
+          .join('')}
         <div class="totals-row grand">
           <dt>Amount due</dt>
           <dd>${escapeHtml(formatPricePKR(grandTotal))}</dd>

@@ -308,12 +308,15 @@ create table if not exists public.orders (
   discount numeric(12, 2)
     check (discount is null or discount >= 0),
   promo_code text,
+  extra_charges jsonb not null default '[]'::jsonb,
   total numeric(12, 2) not null check (total >= 0),
   created_at timestamptz not null default now()
 );
 
 comment on column public.orders.promo_code is
   'Promo code applied at checkout (discount stored in orders.discount).';
+comment on column public.orders.extra_charges is
+  'Invoice adjustment lines: [{label, amount, kind: charge|discount}].';
 
 -- -----------------------------------------------------------------------------
 -- Promo codes (checkout)
@@ -444,6 +447,43 @@ $$;
 
 grant execute on function public.increment_promo_usage(uuid)
   to anon, authenticated;
+
+-- -----------------------------------------------------------------------------
+-- Site settings (feature flags)
+-- -----------------------------------------------------------------------------
+
+create table if not exists public.site_settings (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.site_settings (key, value)
+values ('promo_codes_enabled', 'true'::jsonb)
+on conflict (key) do nothing;
+
+alter table public.site_settings enable row level security;
+
+drop policy if exists "Public read site_settings" on public.site_settings;
+create policy "Public read site_settings"
+  on public.site_settings for select
+  using (true);
+
+drop policy if exists "Admin upsert site_settings" on public.site_settings;
+create policy "Admin upsert site_settings"
+  on public.site_settings for insert
+  with check (public.is_admin());
+
+drop policy if exists "Admin update site_settings" on public.site_settings;
+create policy "Admin update site_settings"
+  on public.site_settings for update
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "Admin delete site_settings" on public.site_settings;
+create policy "Admin delete site_settings"
+  on public.site_settings for delete
+  using (public.is_admin());
 
 create table if not exists public.order_items (
   id uuid primary key default gen_random_uuid(),

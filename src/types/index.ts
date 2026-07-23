@@ -148,9 +148,20 @@ export interface Order {
   discount: number | null
   /** Promo code applied at checkout, if any */
   promo_code: string | null
+  /** Extra labeled charges on the invoice (packing, COD, etc.) */
+  extra_charges: OrderExtraCharge[]
   total: number
   created_at: string
   items?: OrderItem[]
+}
+
+export type OrderExtraChargeKind = 'charge' | 'discount'
+
+export interface OrderExtraCharge {
+  label: string
+  amount: number
+  /** charge = adds to total; discount = subtracts */
+  kind: OrderExtraChargeKind
 }
 
 export interface ManualOrderLineForm {
@@ -171,6 +182,7 @@ export interface ManualOrderFormData {
   amount_received: number | null
   delivery_charge: number | null
   discount: number | null
+  extra_charges: OrderExtraCharge[]
   lines: ManualOrderLineForm[]
 }
 
